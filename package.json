@@ -1,0 +1,26 @@
+{
+  "name": "@eirikb/data",
+  "version": "1.0.0",
+  "description": "Very simple in-memory storage with change listeners",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eirikb/data.git"
+  },
+  "keywords": [
+    "data",
+    "in-memory"
+  ],
+  "author": "Eirik Brandtzæg <eirikb@eirikb.no>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eirikb/data/issues"
+  },
+  "homepage": "https://github.com/eirikb/data#readme",
+  "devDependencies": {
+    "ava": "1.0.1"
+  }
+}
