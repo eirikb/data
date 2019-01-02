@@ -1,6 +1,14 @@
 import test from 'ava';
 import Data from '../src/data';
 
+test('no children please', t => {
+  const data = new Data();
+  t.plan(0);
+  data.set('hello.world', 'yes');
+  data.on('* hello', (() => t.pass()));
+  data.set('hello.world', 'no');
+});
+
 test('hello', t => {
   const data = new Data();
   data.on('= a', value => t.deepEqual('hello', value));
