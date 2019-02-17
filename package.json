@@ -2,7 +2,7 @@
   "name": "@eirikb/data",
   "version": "1.0.0",
   "description": "Very simple in-memory storage with change listeners",
-  "main": "index.js",
+  "main": "src/data.js",
   "scripts": {
     "test": "ava test"
   },
