@@ -32,7 +32,8 @@ module.exports = class {
       unset: this.unset.bind(this),
       trigger: this.trigger.bind(this),
       alias: this.alias.bind(this),
-      unalias: this.unalias.bind(this)
+      unalias: this.unalias.bind(this),
+      update: this.update.bind(this)
     }));
     this.reset();
   }
@@ -72,17 +73,10 @@ module.exports = class {
       return this.set(path, value, ignoreEqualCheck);
     }
 
-    let result = true;
     for (let key of Object.keys(value)) {
-      const part = value[key];
-      const newPath = path + '.' + key;
-      if (isPlainObject(part)) {
-        result = this.update(newPath, part, ignoreEqualCheck);
-      } else {
-        result = this.set(newPath, part, ignoreEqualCheck);
-      }
+      this.update(path + '.' + key, value[key], ignoreEqualCheck);
     }
-    return result;
+    return true;
   }
 
   unset(path) {
