@@ -304,3 +304,58 @@ test('remove ranged listeners', t => {
   data.set('x.a', 'ignored-a');
   data.set('x.b', 'ignored-b');
 });
+
+
+test('update', t => {
+  const data = new Data();
+
+  data.set('hello', {
+    hello: 'world',
+    and: {
+      more: 'data',
+      with: {
+        someArray: [1, 2, 3, 4],
+        ok: 42,
+        'dok': 'dok'
+      }
+    }
+  });
+
+  data.update('hello', {
+    and: {
+      more: 'more'
+    }
+  });
+
+  t.deepEqual(data.get('hello'), {
+    hello: 'world',
+    and: {
+      more: 'more',
+      with: {
+        someArray: [1, 2, 3, 4],
+        ok: 42,
+        'dok': 'dok'
+      }
+    }
+  });
+
+  data.update('hello', {
+    and: {
+      with: {
+        'dok': 'dakk'
+      }
+    }
+  });
+
+  t.deepEqual(data.get('hello'), {
+    hello: 'world',
+    and: {
+      more: 'more',
+      with: {
+        someArray: [1, 2, 3, 4],
+        ok: 42,
+        'dok': 'dakk'
+      }
+    }
+  });
+});

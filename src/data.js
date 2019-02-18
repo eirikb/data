@@ -67,6 +67,24 @@ module.exports = class {
     return true;
   }
 
+  update(path, value, ignoreEqualCheck) {
+    if (!isPlainObject(value)) {
+      return this.set(path, value, ignoreEqualCheck);
+    }
+
+    let result = true;
+    for (let key of Object.keys(value)) {
+      const part = value[key];
+      const newPath = path + '.' + key;
+      if (isPlainObject(part)) {
+        result = this.update(newPath, part, ignoreEqualCheck);
+      } else {
+        result = this.set(newPath, part, ignoreEqualCheck);
+      }
+    }
+    return result;
+  }
+
   unset(path) {
 
     const unsetRecursive = (parent, key, path) => {
