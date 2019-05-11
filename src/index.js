@@ -32,6 +32,19 @@ module.exports = () => {
       return false;
     }
 
+    // Trigger add on parents
+    const paths = path.split('.');
+    const parentPathsWithoutValue = [];
+    for (let i = paths.length - 2; i >= 0; i--) {
+      const parentPath = paths.slice(0, i + 1).join('.');
+      const parentObject = get(_data, parentPath);
+      if (!parentObject) {
+        parentPathsWithoutValue.push(parentPath);
+      } else {
+        break;
+      }
+    }
+
     set(_data, path, value);
 
     if (!equal && isPlainObject(value)) {
@@ -49,6 +62,10 @@ module.exports = () => {
       _addListeners.trigger(path, value);
     } else {
       _changeListeners.trigger(path, value);
+    }
+
+    for (let parentPath of parentPathsWithoutValue) {
+      _addListeners.trigger(parentPath, get(_data, parentPath));
     }
 
     return true;

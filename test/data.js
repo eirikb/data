@@ -306,7 +306,6 @@ test('remove ranged listeners', t => {
   data.set('x.b', 'ignored-b');
 });
 
-
 test('update', t => {
   const data = Data();
 
@@ -359,4 +358,13 @@ test('update', t => {
       }
     }
   });
+});
+
+test('adding sub-child triggers add on parent if parent missing', t => {
+  const {on, set} = Data();
+  t.plan(1);
+  on('+ x.$key', val =>
+    t.deepEqual('ok', val.a)
+  );
+  set('x.test.a', 'ok');
 });
