@@ -1,24 +1,21 @@
 const {get, set, clone} = require('./common');
 
-export default class Listeners {
-  constructor(prefix) {
-    this.prefix = prefix;
-    this.next = 1;
-    this.clear();
-    this._listeners = {};
-    this._listenersLookupTable = {};
-    this._paths = {};
-  }
+module.exports = (prefix) => {
+  const self = {};
+  let next = 1;
+  let _listeners = {};
+  const _listenersLookupTable = {};
+  const _paths = {};
 
-  setPath = (path) => {
+  self.setPath = (path) => {
     path = path.replace(/\$/g, '$.');
-    const orig = get(this._paths, path);
+    const orig = get(_paths, path);
     if (!orig) {
-      set(this._paths, path, true);
+      set(_paths, path, true);
     }
   };
 
-  getPaths = (path) => {
+  self.getPaths = (path) => {
     const parts = path.split('.');
     const paths = [];
 
@@ -63,7 +60,7 @@ export default class Listeners {
 
     const first = {key: [], keys: {}};
     paths.push(first);
-    children(first, this._paths, 0);
+    children(first, _paths, 0);
     return paths.filter(res => {
       if (res.dead) return false;
       res.key = (res.wildKey || res.key).join('.');
@@ -75,28 +72,28 @@ export default class Listeners {
     });
   };
 
-  add = (path, listener) => {
-    this.setPath(path);
+  self.add = (path, listener) => {
+    self.setPath(path);
 
-    const listeners = this._listeners[path] = this._listeners[path] || [];
-    const ref = [this.prefix, this.next].join('-');
-    this.next++;
+    const listeners = _listeners[path] = _listeners[path] || [];
+    const ref = [prefix, next].join('-');
+    next++;
     const wrapper = {
       listener, ref
     };
     listeners.push(wrapper);
-    this._listenersLookupTable[ref] = path;
+    _listenersLookupTable[ref] = path;
     return ref;
   };
 
-  remove = (ref) => {
-    const key = this._listenersLookupTable[ref];
-    delete this._listenersLookupTable[ref];
-    const listeners = this._listeners[key];
+  self.remove = (ref) => {
+    const key = _listenersLookupTable[ref];
+    delete _listenersLookupTable[ref];
+    const listeners = _listeners[key];
     if (!listeners) return;
 
     if (listeners.length === 1) {
-      delete this._listeners[key];
+      delete _listeners[key];
       return;
     }
     const wrapperIndex = listeners.findIndex(wrapper => wrapper.ref === ref);
@@ -105,13 +102,19 @@ export default class Listeners {
     }
   };
 
-  trigger = (path, value) => {
-    const paths = this.getPaths(path);
+  /**
+   *
+   * @param path
+   * @param value
+   * @returns {Array}
+   */
+  self.trigger = (path, value) => {
+    const paths = self.getPaths(path);
 
     let result = [];
 
     for (let {key, keys, path, pathDiff} of paths) {
-      for (let {listener} of (this._listeners[key] || [])) {
+      for (let {listener} of (_listeners[key] || [])) {
         result.push(
           listener(value, Object.assign({path, pathDiff}, keys))
         );
@@ -120,7 +123,9 @@ export default class Listeners {
     return result.length === 1 ? result[0] : result;
   };
 
-  clear = () => {
-    this._listeners = {};
+  self.clear = () => {
+    _listeners = {};
   };
+
+  return self;
 };

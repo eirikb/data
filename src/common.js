@@ -1,8 +1,8 @@
-export function isPlainObject(obj) {
+function isPlainObject(obj) {
   return typeof obj === 'object' && obj !== null && obj.constructor === Object;
 }
 
-export function get(input, path) {
+function get(input, path) {
   path = path.split('.');
   for (let i = 0; i < path.length; i++) {
     input = input[path[i]];
@@ -11,7 +11,7 @@ export function get(input, path) {
   return input;
 }
 
-export function set(input, path, value) {
+function set(input, path, value) {
   path = path.split('.');
   for (let i = 0; i < path.length - 1; i++) {
     const current = path[i];
@@ -23,7 +23,7 @@ export function set(input, path, value) {
   input[path[path.length - 1]] = value;
 }
 
-export function unset(input, path) {
+function unset(input, path) {
   path = path.split('.');
   for (let i = 0; i < path.length - 1; i++) {
     const current = path[i];
@@ -35,7 +35,7 @@ export function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-export function clone(input) {
+function clone(input) {
   if (!isPlainObject(input)) return input;
 
   const cloned = {};
@@ -52,7 +52,7 @@ export function clone(input) {
   return cloned;
 }
 
-export function isEqual(a, b) {
+function isEqual(a, b) {
   if (!isPlainObject(a) || !isPlainObject(b)) {
     return a === b;
   }
@@ -66,3 +66,5 @@ export function isEqual(a, b) {
   }
   return true;
 }
+
+module.exports = {get, set, unset, clone, isPlainObject, isEqual};

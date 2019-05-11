@@ -1,5 +1,5 @@
-import Listeners from './listeners';
-import {get, set, unset, isPlainObject, isEqual} from './common';
+const listeners = require('./listeners');
+const {get, set, unset, isPlainObject, isEqual} = require('./common');
 
 /***
  *    *   Value changed
@@ -14,60 +14,58 @@ import {get, set, unset, isPlainObject, isEqual} from './common';
  *            triggers on any of the values when any of the values are set
  *
  */
-export default class Index {
+module.exports = () => {
+  const self = {};
+  const _data = {};
+  const _changeListeners = listeners('change');
+  const _addListeners = listeners('add');
+  const _immediateListeners = listeners('immediate');
+  const _removeListeners = listeners('remove');
+  const _triggerListeners = listeners('trigger');
+  const _aliases = {};
 
-  constructor() {
-    this._data = {};
-    this._changeListeners = new Listeners('change');
-    this._addListeners = new Listeners('add');
-    this._immediateListeners = new Listeners('immediate');
-    this._removeListeners = new Listeners('remove');
-    this._triggerListeners = new Listeners('trigger');
-    this._aliases = {};
-  }
-
-  set = (path, value, ignoreEqualCheck) => {
-    const data = get(this._data, path);
+  self.set = (path, value, ignoreEqualCheck) => {
+    const data = get(_data, path);
 
     const equal = isEqual(data, value);
     if (!ignoreEqualCheck && equal) {
       return false;
     }
 
-    set(this._data, path, value);
+    set(_data, path, value);
 
     if (!equal && isPlainObject(value)) {
       for (let [key, val] of Object.entries(value)) {
         const subPath = path + '.' + key;
         if (!data || typeof data[key] === 'undefined') {
-          this._addListeners.trigger(subPath, val);
+          _addListeners.trigger(subPath, val);
         } else {
-          this._changeListeners.trigger(subPath, val);
+          _changeListeners.trigger(subPath, val);
         }
       }
     }
 
     if (typeof data === 'undefined') {
-      this._addListeners.trigger(path, value);
+      _addListeners.trigger(path, value);
     } else {
-      this._changeListeners.trigger(path, value);
+      _changeListeners.trigger(path, value);
     }
 
     return true;
   };
 
-  update = (path, value, ignoreEqualCheck) => {
+  self.update = (path, value, ignoreEqualCheck) => {
     if (!isPlainObject(value)) {
-      return this.set(path, value, ignoreEqualCheck);
+      return self.set(path, value, ignoreEqualCheck);
     }
 
     for (let key of Object.keys(value)) {
-      this.update(path + '.' + key, value[key], ignoreEqualCheck);
+      self.update(path + '.' + key, value[key], ignoreEqualCheck);
     }
     return true;
   };
 
-  unset = (path) => {
+  self.unset = (path) => {
     const unsetRecursive = (parent, key, path) => {
       const data = get(parent, key);
       if (isPlainObject(data)) {
@@ -75,14 +73,14 @@ export default class Index {
           unsetRecursive(data, key, path + '.' + key);
         }
       }
-      this._removeListeners.trigger(path, data);
+      _removeListeners.trigger(path, data);
     };
 
-    unsetRecursive(this._data, path, path);
-    unset(this._data, path);
+    unsetRecursive(_data, path, path);
+    unset(_data, path);
   };
 
-  on = (pathAndFlags, listener) => {
+  self.on = (pathAndFlags, listener) => {
     const [flags, path] = pathAndFlags.split(' ').filter(p => p);
     if (!flags || !path) {
       throw new Error('Missing flags or path');
@@ -95,11 +93,11 @@ export default class Index {
 
       return parts.reduce((res, part) => {
         const fullPath = paths.concat(part).join('.');
-        return res + ' ' + this.on(`${flags} ${fullPath}`, (a, b) => {
+        return res + ' ' + self.on(`${flags} ${fullPath}`, (a, b) => {
           const triggeredPath = b.path.split('.').slice(0, -1);
 
           const ret = parts.reduce((res, part) => {
-            res[part] = this.get(triggeredPath.concat(part).join('.'));
+            res[part] = self.get(triggeredPath.concat(part).join('.'));
             return res;
           }, {});
 
@@ -109,7 +107,7 @@ export default class Index {
     }
 
     const refs = flags.split('').reduce((refs, flag) =>
-      refs + ' ' + this.getListenerByFlag(flag).add(path, listener)
+      refs + ' ' + self.getListenerByFlag(flag).add(path, listener)
       , '');
 
     function recursiveImmediateTrigger(parent, pathIndex, b) {
@@ -138,78 +136,80 @@ export default class Index {
     if (flags.match(/!/)) {
       // paths was changed (lastPath removed) in the ranged listener setup
       paths.push(lastPath);
-      recursiveImmediateTrigger(this._data, 0, {path: []});
+      recursiveImmediateTrigger(_data, 0, {path: []});
     }
 
     return refs;
   };
 
-  getListenerByFlag = (flag) => {
+  self.getListenerByFlag = (flag) => {
     switch (flag) {
       case '*':
-        return this._changeListeners;
+        return _changeListeners;
       case '!':
-        return this._immediateListeners;
+        return _immediateListeners;
       case '+':
-        return this._addListeners;
+        return _addListeners;
       case '-':
-        return this._removeListeners;
+        return _removeListeners;
       case '=':
-        return this._triggerListeners;
+        return _triggerListeners;
     }
   };
 
-  off = (refs) => {
+  self.off = (refs) => {
     for (let ref of refs.split(' ').map(ref => ref.trim()).filter(ref => ref)) {
-      this._changeListeners.remove(ref);
-      this._immediateListeners.remove(ref);
-      this._addListeners.remove(ref);
-      this._removeListeners.remove(ref);
-      this._triggerListeners.remove(ref);
+      _changeListeners.remove(ref);
+      _immediateListeners.remove(ref);
+      _addListeners.remove(ref);
+      _removeListeners.remove(ref);
+      _triggerListeners.remove(ref);
     }
   };
 
-  trigger = (path, value) => {
-    return this._triggerListeners.trigger(path, value);
+  self.trigger = (path, value) => {
+    return _triggerListeners.trigger(path, value);
   };
 
-  get = (path) => {
-    return get(this._data, path);
+  self.get = (path) => {
+    return get(_data, path);
   };
 
-  alias = (to, from) => {
-    if ((this._aliases[to] || {}).from === from) {
+  self.alias = (to, from) => {
+    if ((_aliases[to] || {}).from === from) {
       return;
     }
-    this.unalias(to);
+    self.unalias(to);
 
-    this._aliases[to] = {
+    _aliases[to] = {
       from,
       refs: [
-        this.on('!+* ' + from + '.>', (value, {path, pathDiff}) =>
-          this.set(to + '.' + pathDiff, value, true)
+        self.on('!+* ' + from + '.>', (value, {path, pathDiff}) =>
+          self.set(to + '.' + pathDiff, value, true)
         ),
-        this.on('!+* ' + from, (value) =>
-          this.set(to, value, true)
+        self.on('!+* ' + from, (value) =>
+          self.set(to, value, true)
         ),
-        this.on('- ' + from, value =>
-          this.unset(to, value, true)
+        self.on('- ' + from, value =>
+          self.unset(to, value, true)
         ),
-        this.on('= ' + from, (value) =>
-          this.trigger(to, value, true)
+        self.on('= ' + from, (value) =>
+          self.trigger(to, value, true)
         )
       ]
     };
   };
 
-  unalias = (to) => {
-    const refs = (this._aliases[to] || {}).refs || [];
+  self.unalias = (to) => {
+    const refs = (_aliases[to] || {}).refs || [];
     if (refs.length === 0) return;
 
-    this.unset(to);
+    self.unset(to);
     for (let ref of refs) {
-      this.off(ref);
+      self.off(ref);
     }
-    delete this._aliases[to];
+    delete _aliases[to];
   };
+
+  return self;
 };

@@ -22,17 +22,6 @@
   },
   "homepage": "https://github.com/eirikb/data#readme",
   "devDependencies": {
-    "@babel/core": "^7.4.4",
-    "@babel/plugin-proposal-class-properties": "7.4.4",
-    "@babel/register": "7.4.4",
     "ava": "1.4.1"
-  },
-  "ava": {
-    "require": [
-      "@babel/register"
-    ]
-  },
-  "dependencies": {
-    "@babel/preset-env": "7.4.4"
   }
 }
