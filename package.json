@@ -2,7 +2,8 @@
   "name": "@eirikb/data",
   "version": "1.0.0",
   "description": "Very simple in-memory storage with change listeners",
-  "main": "src/data.js",
+  "main": "src/index.js",
+  "source": true,
   "scripts": {
     "test": "ava test"
   },
@@ -21,6 +22,17 @@
   },
   "homepage": "https://github.com/eirikb/data#readme",
   "devDependencies": {
-    "ava": "1.0.1"
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "7.4.4",
+    "@babel/register": "7.4.4",
+    "ava": "1.4.1"
+  },
+  "ava": {
+    "require": [
+      "@babel/register"
+    ]
+  },
+  "dependencies": {
+    "@babel/preset-env": "7.4.4"
   }
 }

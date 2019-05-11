@@ -1,6 +1,6 @@
 const {get, set, clone} = require('./common');
 
-module.exports = class {
+export default class Listeners {
   constructor(prefix) {
     this.prefix = prefix;
     this.next = 1;
@@ -10,15 +10,15 @@ module.exports = class {
     this._paths = {};
   }
 
-  setPath(path) {
+  setPath = (path) => {
     path = path.replace(/\$/g, '$.');
     const orig = get(this._paths, path);
     if (!orig) {
       set(this._paths, path, true);
     }
-  }
+  };
 
-  getPaths(path) {
+  getPaths = (path) => {
     const parts = path.split('.');
     const paths = [];
 
@@ -73,9 +73,9 @@ module.exports = class {
       res.path = path;
       return true;
     });
-  }
+  };
 
-  add(path, listener) {
+  add = (path, listener) => {
     this.setPath(path);
 
     const listeners = this._listeners[path] = this._listeners[path] || [];
@@ -87,9 +87,9 @@ module.exports = class {
     listeners.push(wrapper);
     this._listenersLookupTable[ref] = path;
     return ref;
-  }
+  };
 
-  remove(ref) {
+  remove = (ref) => {
     const key = this._listenersLookupTable[ref];
     delete this._listenersLookupTable[ref];
     const listeners = this._listeners[key];
@@ -103,9 +103,9 @@ module.exports = class {
     if (wrapperIndex >= 0) {
       listeners.splice(wrapperIndex, 2);
     }
-  }
+  };
 
-  trigger(path, value) {
+  trigger = (path, value) => {
     const paths = this.getPaths(path);
 
     let result = [];
@@ -118,9 +118,9 @@ module.exports = class {
       }
     }
     return result.length === 1 ? result[0] : result;
-  }
+  };
 
-  clear() {
+  clear = () => {
     this._listeners = {};
-  }
+  };
 };
