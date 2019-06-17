@@ -232,3 +232,17 @@ test('sub-listeners no trigger on last child', t => {
   listeners.trigger('a.b', 137);
   listeners.trigger('a', {b: 137});
 });
+
+test('listener on/off test', t => {
+  const listeners = Listeners('a');
+  t.plan(2);
+  const l = listeners.add('test', (val) => {
+    t.deepEqual('a', val);
+  });
+  listeners.trigger('test', 'a');
+  listeners.add('test', (val) => {
+    t.deepEqual('b', val);
+  });
+  listeners.remove(l);
+  listeners.trigger('test', 'b');
+});

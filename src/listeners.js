@@ -98,7 +98,7 @@ module.exports = (prefix) => {
     }
     const wrapperIndex = listeners.findIndex(wrapper => wrapper.ref === ref);
     if (wrapperIndex >= 0) {
-      listeners.splice(wrapperIndex, 2);
+      listeners.splice(wrapperIndex, 1);
     }
   };
 

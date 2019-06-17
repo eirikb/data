@@ -368,3 +368,21 @@ test('adding sub-child triggers add on parent if parent missing', t => {
   );
   set('x.test.a', 'ok');
 });
+
+test('on/off on test', t => {
+  const {on, off, set} = Data();
+  t.plan(2);
+  set('test', 'a');
+  const l = on('* test', val =>
+    t.deepEqual('b', val)
+  );
+
+  set('test', 'b');
+
+  on('* test', val =>
+    t.deepEqual('c', val)
+  );
+  off(l);
+
+  set('test', 'c');
+});
