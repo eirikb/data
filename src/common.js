@@ -62,7 +62,7 @@ function isEqual(a, b) {
     }
   }
   for (let key of Object.keys(b)) {
-    if (!a[key]) return false;
+    if (!a.hasOwnProperty(key)) return false;
   }
   return true;
 }
