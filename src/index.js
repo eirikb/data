@@ -108,6 +108,7 @@ module.exports = () => {
     if (lastPath.indexOf('{') === 0) {
       const parts = lastPath.replace(/[{}]/g, '').split(',');
 
+      let previousValues;
       return parts.reduce((res, part) => {
         const fullPath = paths.concat(part).join('.');
         return res + ' ' + self.on(`${flags} ${fullPath}`, (a, b) => {
@@ -118,7 +119,10 @@ module.exports = () => {
             return res;
           }, {});
 
-          listener(ret, b);
+          if (!isEqual(ret, previousValues)) {
+            previousValues = ret;
+            listener(ret, b);
+          }
         });
       }, '');
     }

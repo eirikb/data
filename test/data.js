@@ -255,9 +255,7 @@ test('immediate listener with wildcard', t => {
 
 test('ranged listeners immediate', t => {
   const data = Data();
-  // The immediate will be called once for each ranged value
-  // This isn't a big deal, and nothing that will be fixed
-  t.plan(12);
+  t.plan(4);
 
   data.set('players.42', {x: 3});
   data.set('players.42.y', 2);
@@ -385,4 +383,16 @@ test('on/off on test', t => {
   off(l);
 
   set('test', 'c');
+});
+
+
+test('Accumulate ranged listeners', t => {
+  const data = Data();
+  t.plan(2);
+  data.on('+* players.$id.{x,y,moving}', ({x, y, moving}, {$id}) => {
+    t.pass();
+  });
+
+  data.set('players.42', {x: 1, y: 2});
+  data.set('players.42.moving', true);
 });
