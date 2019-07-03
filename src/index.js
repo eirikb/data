@@ -196,7 +196,7 @@ module.exports = () => {
     return get(_data, path);
   };
 
-  self.alias = (to, from) => {
+  self.alias = (to, from, unaliasOnUnset) => {
     if ((_aliases[to] || {}).from === from) {
       return;
     }
@@ -211,9 +211,13 @@ module.exports = () => {
         self.on('!+* ' + from, (value) =>
           self.set(to, value, true)
         ),
-        self.on('- ' + from, value =>
-          self.unset(to, value, true)
-        ),
+        self.on('- ' + from, value => {
+          if (unaliasOnUnset) {
+            self.unalias(to);
+          } else {
+            self.unset(to, value, true);
+          }
+        }),
         self.on('= ' + from, (value) =>
           self.trigger(to, value, true)
         )
