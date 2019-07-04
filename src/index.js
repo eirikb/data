@@ -24,11 +24,12 @@ module.exports = () => {
   const _triggerListeners = listeners('trigger');
   const _aliases = {};
 
-  self.set = (path, value, ignoreEqualCheck) => {
-    const data = get(_data, path);
+  function _set(path, value, data) {
+    // const data = get(_data, path);
+    const hasData = typeof data !== 'undefined';
 
-    const equal = ignoreEqualCheck ? false : isEqual(data, value);
-    // console.log('set', path, value, ignoreEqualCheck, equal, data);
+    const equal = isEqual(data, value);
+    console.log('set', path, value, equal, data);
     if (equal) {
       return;
     }
@@ -46,23 +47,25 @@ module.exports = () => {
       }
     }
 
-    set(_data, path, value);
-
-    if (!equal && isPlainObject(value)) {
+    if (isPlainObject(value)) {
       for (let [key, val] of Object.entries(value)) {
         const subPath = path + '.' + key;
-        if (!data || typeof data[key] === 'undefined') {
-          self.set(subPath, val);
-        } else {
-          _changeListeners.trigger(subPath, val);
+        if (!hasData) {
+          set(_data, subPath, {});
         }
+        _set(subPath, val, data && data[key]);
       }
+    } else {
+      console.log('>set', path, value);
+      set(_data, path, value);
     }
 
-    if (typeof data === 'undefined') {
+    if (!hasData) {
+      console.log('+', path, value);
       _addListeners.trigger(path, value);
     } else {
       _changeListeners.trigger(path, value);
+      console.log('*', path, value);
     }
 
     for (let parentPath of parentPathsWithoutValue) {
@@ -70,15 +73,21 @@ module.exports = () => {
     }
 
     return true;
+  }
+
+  self.set = (path, value) => {
+    const data = get(_data, path);
+    unset(_data, path);
+    return _set(path, value, data);
   };
 
-  self.update = (path, value, ignoreEqualCheck) => {
+  self.update = (path, value) => {
     if (!isPlainObject(value)) {
-      return self.set(path, value, ignoreEqualCheck);
+      return self.set(path, value);
     }
 
     for (let key of Object.keys(value)) {
-      self.update(path + '.' + key, value[key], ignoreEqualCheck);
+      self.update(path + '.' + key, value[key]);
     }
     return true;
   };
@@ -207,11 +216,15 @@ module.exports = () => {
     _aliases[to] = {
       from,
       refs: [
-        self.on('+* ' + from + '.>', (value, {path, pathDiff}) =>
-          self.set(to + '.' + pathDiff, value)
+        self.on('+* ' + from + '.>', (value, {pathDiff}) => {
+            console.log(1, pathDiff, to, value);
+            self.update(to + '.' + pathDiff, value)
+          }
         ),
-        self.on('+* ' + from, (value) =>
-          self.set(to, value)
+        self.on('+* ' + from, (value) => {
+            console.log(2, from, to, value);
+            self.update(to, value)
+          }
         ),
         self.on('- ' + from, value => {
           if (unaliasOnUnset) {

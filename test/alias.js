@@ -94,7 +94,10 @@ test('alias does not delete original', t => {
   data.alias('quest.user', 'bops.someid');
   data.set('bops.someid', {nick: 'mini'});
   t.deepEqual('mini', data.get('bops.someid.nick'));
+  console.log(data.get('bops'));
+  console.log(data.get('quest'));
   t.deepEqual('mini', data.get('quest.user.nick'));
+  return
   data.alias('quest.user', 'bops.someid2');
   t.deepEqual({nick: 'mini'}, data.get('bops.someid'));
   t.deepEqual('mini', data.get('bops.someid.nick'));
@@ -117,7 +120,7 @@ test('alias wildcard change listener', t => {
   const data = Data();
   t.plan(2);
   data.set('quest.bops.k1', {nick: 'large'});
-  data.on('* quest.map.$key.nick', (nick, {$key}) => {
+  data.on('+ quest.map.$key.nick', (nick, {$key}) => {
     t.deepEqual('mini', nick);
     t.deepEqual('k1', $key);
   });
