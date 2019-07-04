@@ -396,3 +396,10 @@ test('Accumulate ranged listeners', t => {
   data.set('players.42', {x: 1, y: 2});
   data.set('players.42.moving', true);
 });
+
+test('set is recursive', t => {
+  const data = Data();
+  t.plan(1);
+  data.on('!+* players.$eh.name', () => t.pass());
+  data.set('players', {eirik: {name: 'Eirik'}});
+});

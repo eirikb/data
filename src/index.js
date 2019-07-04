@@ -27,9 +27,10 @@ module.exports = () => {
   self.set = (path, value, ignoreEqualCheck) => {
     const data = get(_data, path);
 
-    const equal = isEqual(data, value);
-    if (!ignoreEqualCheck && equal) {
-      return false;
+    const equal = ignoreEqualCheck ? false : isEqual(data, value);
+    // console.log('set', path, value, ignoreEqualCheck, equal, data);
+    if (equal) {
+      return;
     }
 
     // Trigger add on parents
@@ -51,7 +52,7 @@ module.exports = () => {
       for (let [key, val] of Object.entries(value)) {
         const subPath = path + '.' + key;
         if (!data || typeof data[key] === 'undefined') {
-          _addListeners.trigger(subPath, val);
+          self.set(subPath, val);
         } else {
           _changeListeners.trigger(subPath, val);
         }
@@ -201,15 +202,16 @@ module.exports = () => {
       return;
     }
     self.unalias(to);
+    set(_data, to, get(_data, from));
 
     _aliases[to] = {
       from,
       refs: [
-        self.on('!+* ' + from + '.>', (value, {path, pathDiff}) =>
-          self.set(to + '.' + pathDiff, value, true)
+        self.on('+* ' + from + '.>', (value, {path, pathDiff}) =>
+          self.set(to + '.' + pathDiff, value)
         ),
-        self.on('!+* ' + from, (value) =>
-          self.set(to, value, true)
+        self.on('+* ' + from, (value) =>
+          self.set(to, value)
         ),
         self.on('- ' + from, value => {
           if (unaliasOnUnset) {
