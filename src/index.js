@@ -1,5 +1,5 @@
 const listeners = require('./listeners');
-const {get, set, unset, isPlainObject, isEqual} = require('./common');
+const {get, set, unset, isPlainObject, clone, isEqual} = require('./common');
 
 /***
  *    *   Value changed
@@ -22,14 +22,14 @@ module.exports = () => {
   const _immediateListeners = listeners('immediate');
   const _removeListeners = listeners('remove');
   const _triggerListeners = listeners('trigger');
+  const _afterListeners = listeners('after');
   const _aliases = {};
+  let pathsFired;
 
   function _set(path, value, data) {
-    // const data = get(_data, path);
     const hasData = typeof data !== 'undefined';
 
     const equal = isEqual(data, value);
-    console.log('set', path, value, equal, data);
     if (equal) {
       return;
     }
@@ -56,32 +56,53 @@ module.exports = () => {
         _set(subPath, val, data && data[key]);
       }
     } else {
-      console.log('>set', path, value);
       set(_data, path, value);
     }
 
     if (!hasData) {
-      console.log('+', path, value);
       _addListeners.trigger(path, value);
+      pathsFired[path] = true;
     } else {
       _changeListeners.trigger(path, value);
-      console.log('*', path, value);
+      pathsFired[path] = true;
     }
 
     for (let parentPath of parentPathsWithoutValue) {
       _addListeners.trigger(parentPath, get(_data, parentPath));
+      pathsFired[parentPath] = true;
     }
 
     return true;
   }
 
+  function triggerAlias(path, cb) {
+    const parts = path.split('.');
+    for (let i = 0; i <= parts.length; i++) {
+      const subPath = parts.slice(0, i).join('.');
+      if (_aliases[subPath]) {
+        const diff = parts.slice(i).join('.');
+        for (let [key, value] of Object.entries(_aliases[subPath])) {
+          const aliasPath = [key, diff].filter(p => p).join('.');
+          cb(aliasPath, value.unaliasOnUnset);
+        }
+      }
+    }
+  }
+
   self.set = (path, value) => {
+    triggerAlias(path, aliasPath => self.set(aliasPath, value));
     const data = get(_data, path);
     unset(_data, path);
-    return _set(path, value, data);
+    pathsFired = {};
+    const res = _set(path, value, data);
+    Object.keys(pathsFired).forEach(path =>
+      _afterListeners.trigger(path)
+    );
+    return res;
   };
 
   self.update = (path, value) => {
+    triggerAlias(path, aliasPath => self.update(aliasPath, value));
     if (!isPlainObject(value)) {
       return self.set(path, value);
     }
@@ -93,6 +114,10 @@ module.exports = () => {
   };
 
   self.unset = (path) => {
+    triggerAlias(path, (aliasPath, unaliasOnUnset) => {
+      self.unset(aliasPath);
+      if (unaliasOnUnset) self.unalias(aliasPath);
+    });
     const unsetRecursive = (parent, key, path) => {
       const data = get(parent, key);
       if (isPlainObject(data)) {
@@ -118,23 +143,35 @@ module.exports = () => {
     if (lastPath.indexOf('{') === 0) {
       const parts = lastPath.replace(/[{}]/g, '').split(',');
 
-      let previousValues;
-      return parts.reduce((res, part) => {
+      let values = {};
+      let prevValues = {};
+      let prevB = {};
+      const preTriggers = parts.reduce((res, part) => {
         const fullPath = paths.concat(part).join('.');
         return res + ' ' + self.on(`${flags} ${fullPath}`, (a, b) => {
-          const triggeredPath = b.path.split('.').slice(0, -1);
-
-          const ret = parts.reduce((res, part) => {
-            res[part] = self.get(triggeredPath.concat(part).join('.'));
+          prevB = b;
+          const path = b.path.split('.').slice(0, -1);
+          values = parts.reduce((res, prop) => {
+            res[prop] = get(_data, path.concat(prop).join('.'));
             return res;
           }, {});
-
-          if (!isEqual(ret, previousValues)) {
-            previousValues = ret;
-            listener(ret, b);
-          }
         });
       }, '');
+      const afterTriggers = parts.reduce((res, part) => {
+        const fullPath = paths.concat(part).join('.');
+        return res + ' ' + _afterListeners.add(fullPath, (a, b) => {
+          if (!isEqual(values, prevValues)) {
+            listener(values, prevB);
+          }
+          prevValues = clone(values);
+        });
+      }, '');
+      // Immediate hack
+      parts.forEach(part => {
+        const fullPath = paths.concat(part).join('.');
+        _afterListeners.trigger(fullPath);
+      });
+      return preTriggers + ' ' + afterTriggers;
     }
 
     const refs = flags.split('').reduce((refs, flag) =>
@@ -145,6 +182,7 @@ module.exports = () => {
       const path = paths[pathIndex];
       if (!path) {
         b.path = b.path.join('.');
+        _afterListeners.trigger(b.path);
         listener(parent, b);
         return;
       }
@@ -199,6 +237,7 @@ module.exports = () => {
   };
 
   self.trigger = (path, value) => {
+    triggerAlias(path, aliasPath => self.trigger(aliasPath, value));
     return _triggerListeners.trigger(path, value);
   };
 
@@ -212,43 +251,16 @@ module.exports = () => {
     }
     self.unalias(to);
     set(_data, to, get(_data, from));
-
-    _aliases[to] = {
-      from,
-      refs: [
-        self.on('+* ' + from + '.>', (value, {pathDiff}) => {
-            console.log(1, pathDiff, to, value);
-            self.update(to + '.' + pathDiff, value)
-          }
-        ),
-        self.on('+* ' + from, (value) => {
-            console.log(2, from, to, value);
-            self.update(to, value)
-          }
-        ),
-        self.on('- ' + from, value => {
-          if (unaliasOnUnset) {
-            self.unalias(to);
-          } else {
-            self.unset(to, value, true);
-          }
-        }),
-        self.on('= ' + from, (value) =>
-          self.trigger(to, value, true)
-        )
-      ]
-    };
+    _aliases[from] = _aliases[from] || {};
+    _aliases[from][to] = {unaliasOnUnset};
   };
 
   self.unalias = (to) => {
-    const refs = (_aliases[to] || {}).refs || [];
-    if (refs.length === 0) return;
-
     self.unset(to);
-    for (let ref of refs) {
-      self.off(ref);
+    const from = Object.entries(_aliases).find(([, t]) => t[to]);
+    if (from) {
+      delete _aliases[from[0]][to];
     }
-    delete _aliases[to];
   };
 
   return self;

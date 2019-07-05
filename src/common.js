@@ -24,6 +24,8 @@ function set(input, path, value) {
 }
 
 function unset(input, path) {
+  if (typeof get(input, path) === 'undefined') return;
+
   path = path.split('.');
   for (let i = 0; i < path.length - 1; i++) {
     const current = path[i];

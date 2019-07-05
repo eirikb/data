@@ -65,7 +65,7 @@ test('re-aliasing should remove all listeners', t => {
   data.set('bops.someid2', {nick: 'mini2'});
 });
 
-test('alias is actual reference, to save memory', t => {
+test('alias is not reference - actually nothing is', t => {
   const data = Data();
   t.plan(2);
   const user = {nick: 'mini'};
@@ -73,7 +73,7 @@ test('alias is actual reference, to save memory', t => {
   user.hack = 'yes';
   data.alias('quest.user', 'bops.someid');
   data.on('! quest.user.nick', nick => t.deepEqual('mini', nick));
-  data.on('! quest.user', user => t.deepEqual('yes', user.hack));
+  data.on('! quest.user', user => t.deepEqual('undefined', typeof user.hack));
 });
 
 test('alias with wildcard support', t => {
@@ -94,10 +94,7 @@ test('alias does not delete original', t => {
   data.alias('quest.user', 'bops.someid');
   data.set('bops.someid', {nick: 'mini'});
   t.deepEqual('mini', data.get('bops.someid.nick'));
-  console.log(data.get('bops'));
-  console.log(data.get('quest'));
   t.deepEqual('mini', data.get('quest.user.nick'));
-  return
   data.alias('quest.user', 'bops.someid2');
   t.deepEqual({nick: 'mini'}, data.get('bops.someid'));
   t.deepEqual('mini', data.get('bops.someid.nick'));
@@ -120,7 +117,7 @@ test('alias wildcard change listener', t => {
   const data = Data();
   t.plan(2);
   data.set('quest.bops.k1', {nick: 'large'});
-  data.on('+ quest.map.$key.nick', (nick, {$key}) => {
+  data.on('* quest.map.$key.nick', (nick, {$key}) => {
     t.deepEqual('mini', nick);
     t.deepEqual('k1', $key);
   });
