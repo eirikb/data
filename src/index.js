@@ -159,7 +159,7 @@ module.exports = () => {
       }, '');
       const afterTriggers = parts.reduce((res, part) => {
         const fullPath = paths.concat(part).join('.');
-        return res + ' ' + _afterListeners.add(fullPath, (a, b) => {
+        return res + ' ' + _afterListeners.add(fullPath, () => {
           if (!isEqual(values, prevValues)) {
             listener(values, prevB);
           }
