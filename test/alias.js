@@ -36,6 +36,15 @@ test('alias immediate listener', t => {
   data.on('! quest.user', user => t.deepEqual({nick: 'mini'}, user));
 });
 
+test('alias listeners existing values', t => {
+  const data = Data();
+  t.plan(2);
+  data.on('+ quest.user.nick', nick => t.deepEqual('mini', nick));
+  data.on('+ quest.user', user => t.deepEqual({nick: 'mini'}, user));
+  data.set('bops.someid', {nick: 'mini'});
+  data.alias('quest.user', 'bops.someid');
+});
+
 test('alias trigger listener', t => {
   const data = Data();
   t.plan(1);

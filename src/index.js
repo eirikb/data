@@ -250,7 +250,7 @@ module.exports = () => {
       return;
     }
     self.unalias(to);
-    set(_data, to, get(_data, from));
+    _set(to, get(_data, from));
     _aliases[from] = _aliases[from] || {};
     _aliases[from][to] = {unaliasOnUnset};
   };
