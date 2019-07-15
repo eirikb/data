@@ -407,6 +407,16 @@ test('set is recursive', t => {
 test('immediate with key', t => {
   const data = Data();
   t.plan(1);
-  data.set('players', 'ok');
+  data.set('players.ok', 'ok');
+  data.on('! players.$eh', () => t.pass());
+});
+
+test('immediate with multiple', t => {
+  const data = Data();
+  t.plan(2);
+  data.set('players', {
+    '20': 'twenty',
+    '30': 'thirty'
+  });
   data.on('! players.$eh', () => t.pass());
 });
