@@ -403,3 +403,10 @@ test('set is recursive', t => {
   data.on('!+* players.$eh.name', () => t.pass());
   data.set('players', {eirik: {name: 'Eirik'}});
 });
+
+test('immediate with key', t => {
+  const data = Data();
+  t.plan(1);
+  data.set('players', 'ok');
+  data.on('! players.$eh', () => t.pass());
+});

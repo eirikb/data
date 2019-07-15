@@ -190,8 +190,10 @@ module.exports = () => {
       if (path.charAt(0) === '$') {
         for (let key of Object.keys(parent)) {
           b[path] = key;
-          b.path.push(key);
-          recursiveImmediateTrigger(get(parent, key), pathIndex + 1, b);
+          if (Array.isArray(b.path)) {
+            b.path.push(key);
+            recursiveImmediateTrigger(get(parent, key), pathIndex + 1, b);
+          }
         }
       } else {
         const value = get(parent, path);
