@@ -420,3 +420,15 @@ test('immediate with multiple', t => {
   });
   data.on('! players.$eh', () => t.pass());
 });
+
+test('Wildcard immediate listeners never go wild', t => {
+  const data = Data();
+  t.plan(2);
+  data.set('test', {
+    1: 'hello',
+    2: 'world'
+  });
+  data.on('! test.$id', (test, {path}) => {
+    t.notDeepEqual(path, 'test.1.2');
+  });
+});

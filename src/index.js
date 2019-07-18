@@ -179,7 +179,6 @@ module.exports = () => {
       , '');
 
     function recursiveImmediateTrigger(parent, pathIndex, b) {
-      b = clone(b);
       const path = paths[pathIndex];
       if (!path) {
         b.path = b.path.join('.');
@@ -190,9 +189,10 @@ module.exports = () => {
 
       if (path.charAt(0) === '$') {
         for (let key of Object.keys(parent)) {
-          b[path] = key;
-          b.path.push(key);
-          recursiveImmediateTrigger(get(parent, key), pathIndex + 1, b);
+          const c = clone(b);
+          c[path] = key;
+          c.path.push(key);
+          recursiveImmediateTrigger(get(parent, key), pathIndex + 1, c);
         }
       } else {
         const value = get(parent, path);
