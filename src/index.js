@@ -1,5 +1,5 @@
 const listeners = require('./listeners');
-const {get, set, unset, isPlainObject, clone, isEqual} = require('./common');
+const { get, set, unset, isPlainObject, clone, isEqual } = require('./common');
 
 /***
  *    *   Value changed
@@ -197,7 +197,7 @@ module.exports = () => {
       } else {
         const value = get(parent, path);
         b.path.push(path);
-        if (value) {
+        if (typeof value !== 'undefined') {
           recursiveImmediateTrigger(value, pathIndex + 1, b);
         }
       }
@@ -206,7 +206,7 @@ module.exports = () => {
     if (flags.match(/!/)) {
       // paths was changed (lastPath removed) in the ranged listener setup
       paths.push(lastPath);
-      recursiveImmediateTrigger(_data, 0, {path: []});
+      recursiveImmediateTrigger(_data, 0, { path: [] });
     }
 
     return refs;
@@ -254,7 +254,7 @@ module.exports = () => {
     self.unalias(to);
     _set(to, get(_data, from));
     _aliases[from] = _aliases[from] || {};
-    _aliases[from][to] = {unaliasOnUnset};
+    _aliases[from][to] = { unaliasOnUnset };
   };
 
   self.unalias = (to) => {
