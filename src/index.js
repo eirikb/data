@@ -40,7 +40,7 @@ module.exports = () => {
     for (let i = paths.length - 2; i >= 0; i--) {
       const parentPath = paths.slice(0, i + 1).join('.');
       const parentObject = get(_data, parentPath);
-      if (!parentObject) {
+      if (typeof parentObject !== 'undefined') {
         parentPathsWithoutValue.push(parentPath);
       } else {
         break;

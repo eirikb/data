@@ -441,3 +441,33 @@ test('Immediate false trigger', t => {
     t.deepEqual(false, test);
   });
 });
+
+test('Listeners trigger order', t => {
+  const data = Data();
+
+  let counter = 0;
+  data.on('+* a.b.c', c => {
+    t.deepEqual('d', c);
+    t.deepEqual(0, counter);
+    counter++;
+  });
+  data.on('+* a.b', b => {
+    t.deepEqual({ c: 'd' }, b);
+    t.deepEqual(1, counter);
+    counter++;
+  });
+  data.on('+* a', a => {
+    if (a === false) return;
+
+    t.deepEqual({ b: { c: 'd' } }, a);
+    t.deepEqual(2, counter);
+    counter++;
+  });
+
+  data.set('a', false);
+  data.set('a', {
+    b: {
+      c: 'd'
+    }
+  });
+});
