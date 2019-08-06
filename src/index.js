@@ -26,7 +26,7 @@ module.exports = () => {
   const _aliases = {};
   let pathsFired;
 
-  function _set(path, value, data) {
+  function _set(path, value, data, skipParentCheck) {
     const hasData = typeof data !== 'undefined';
 
     const equal = isEqual(data, value);
@@ -37,13 +37,11 @@ module.exports = () => {
     // Trigger add on parents
     const paths = path.split('.');
     const parentPathsWithoutValue = [];
-    for (let i = paths.length - 2; i >= 0; i--) {
-      const parentPath = paths.slice(0, i + 1).join('.');
+    if (!skipParentCheck) {
+      const parentPath = paths.slice(0, paths.length - 1).join('.');
       const parentObject = get(_data, parentPath);
-      if (typeof parentObject !== 'undefined') {
+      if (typeof parentObject === 'undefined') {
         parentPathsWithoutValue.push(parentPath);
-      } else {
-        break;
       }
     }
 
@@ -53,7 +51,7 @@ module.exports = () => {
         if (!hasData) {
           set(_data, subPath, {});
         }
-        _set(subPath, val, data && data[key]);
+        _set(subPath, val, data && data[key], true);
       }
     } else {
       set(_data, path, value);

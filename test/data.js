@@ -471,3 +471,15 @@ test('Listeners trigger order', t => {
     }
   });
 });
+
+test('Listeners only called once', t => {
+  const data = Data();
+
+  let counter = 0;
+  data.on('!+* a', () =>
+    counter++
+  );
+
+  data.set('a', { 1: 'yes', 2: 'no' });
+  t.deepEqual(1, counter);
+});
