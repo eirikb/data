@@ -88,8 +88,12 @@ module.exports = () => {
   }
 
   self.set = (path, value) => {
-    triggerAlias(path, aliasPath => self.set(aliasPath, value));
     const data = get(_data, path);
+    const equal = isEqual(data, value);
+    if (equal) {
+      return false;
+    }
+    triggerAlias(path, aliasPath => self.set(aliasPath, value));
     unset(_data, path);
     pathsFired = {};
     const res = _set(path, value, data);

@@ -483,3 +483,11 @@ test('Listeners only called once', t => {
   data.set('a', { 1: 'yes', 2: 'no' });
   t.deepEqual(1, counter);
 });
+
+test('Overwrite parent path should not clear data', t => {
+  const data = Data();
+  data.set('a', { b: 'yes' });
+  t.deepEqual({ b: 'yes' }, data.get('a'));
+  data.set('a', { b: 'yes' });
+  t.deepEqual({ b: 'yes' }, data.get('a'));
+});
