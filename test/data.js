@@ -491,3 +491,16 @@ test('Overwrite parent path should not clear data', t => {
   data.set('a', { b: 'yes' });
   t.deepEqual({ b: 'yes' }, data.get('a'));
 });
+
+test('Setting value while listening', t => {
+  const data = Data();
+
+  data.on('+* hello', () => data.set('hello', 2));
+
+  let i = 0;
+  data.on('+* hello', hello => {
+    t.deepEqual(++i, hello);
+  });
+  data.set('hello', 1);
+  t.pass();
+});

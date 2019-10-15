@@ -87,7 +87,12 @@ module.exports = () => {
     }
   }
 
+  const setQueue = {};
   self.set = (path, value) => {
+    if (setQueue[path]) {
+      setQueue[path] = { qVal: value };
+      return;
+    }
     const data = get(_data, path);
     const equal = isEqual(data, value);
     if (equal) {
@@ -96,10 +101,16 @@ module.exports = () => {
     triggerAlias(path, aliasPath => self.set(aliasPath, value));
     unset(_data, path);
     pathsFired = {};
+    setQueue[path] = true;
     const res = _set(path, value, data);
     Object.keys(pathsFired).forEach(path =>
       _afterListeners.trigger(path)
     );
+    let { qVal } = (setQueue[path] || {});
+    delete setQueue[path];
+    if (typeof qVal !== 'undefined') {
+      self.set(path, qVal);
+    }
     return res;
   };
 
