@@ -34,14 +34,17 @@ module.exports = () => {
       return;
     }
 
-    // Trigger add on parents
+    // Trigger add on missing parents and change on existing parents
     const paths = path.split('.');
     const parentPathsWithoutValue = [];
+    const parentPathsWithValue = [];
     if (!skipParentCheck) {
       const parentPath = paths.slice(0, paths.length - 1).join('.');
       const parentObject = get(_data, parentPath);
       if (typeof parentObject === 'undefined') {
         parentPathsWithoutValue.push(parentPath);
+      } else {
+        parentPathsWithValue.push(parentPath);
       }
     }
 
@@ -67,6 +70,10 @@ module.exports = () => {
 
     for (let parentPath of parentPathsWithoutValue) {
       _addListeners.trigger(parentPath, get(_data, parentPath));
+      pathsFired[parentPath] = true;
+    }
+    for (let parentPath of parentPathsWithValue) {
+      _changeListeners.trigger(parentPath, get(_data, parentPath));
       pathsFired[parentPath] = true;
     }
 

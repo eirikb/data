@@ -1,14 +1,6 @@
 import test from 'ava';
 import Data from '../src';
 
-test('no children please', t => {
-  const data = Data();
-  t.plan(0);
-  data.set('hello.world', 'yes');
-  data.on('* hello', (() => t.pass()));
-  data.set('hello.world', 'no');
-});
-
 test('hello', t => {
   const data = Data();
   data.on('= a', value => t.deepEqual('hello', value));
@@ -503,4 +495,15 @@ test('Setting value while listening', t => {
   });
   data.set('hello', 1);
   t.pass();
+});
+
+test('Adding sub-thing trigger change on parent', t => {
+  const data = Data();
+  data.set('users.1.name', 'Hello');
+  t.plan(2);
+  data.on('* users.$id', (user, { $id }) => {
+    t.deepEqual('1', $id);
+    t.deepEqual('137', user.x);
+  });
+  data.set('users.1.x', '137');
 });
