@@ -507,3 +507,31 @@ test('Adding sub-thing trigger change on parent', t => {
   });
   data.set('users.1.x', '137');
 });
+
+test('Update bundle changes', t => {
+  const data = Data();
+  data.set('users.1.name', 'Hello');
+  t.plan(3);
+
+  data.on('* users.$id', () => t.pass());
+  data.on('+ users.$id.x', x => t.deepEqual(137, x));
+  data.on('* users.$id.name', name => t.deepEqual('world', name));
+
+  data.update('users.1', {
+    name: 'world',
+    x: 137
+  });
+});
+
+test('Update bundle calls add when not set', t => {
+  const data = Data();
+  t.plan(3);
+  data.on('+ users.$id', () => t.pass());
+  data.on('+ users.$id.x', x => t.deepEqual(137, x));
+  data.on('+ users.$id.name', name => t.deepEqual('world', name));
+
+  data.update('users.1', {
+    name: 'world',
+    x: 137
+  });
+});

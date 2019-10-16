@@ -95,7 +95,8 @@ module.exports = () => {
   }
 
   const setQueue = {};
-  self.set = (path, value) => {
+
+  function setOrUpdate(replace, path, value) {
     if (setQueue[path]) {
       setQueue[path] = { qVal: value };
       return;
@@ -106,7 +107,9 @@ module.exports = () => {
       return false;
     }
     triggerAlias(path, aliasPath => self.set(aliasPath, value));
-    unset(_data, path);
+    if (replace) {
+      unset(_data, path);
+    }
     pathsFired = {};
     setQueue[path] = true;
     const res = _set(path, value, data);
@@ -119,19 +122,13 @@ module.exports = () => {
       self.set(path, qVal);
     }
     return res;
-  };
+  }
 
-  self.update = (path, value) => {
-    triggerAlias(path, aliasPath => self.update(aliasPath, value));
-    if (!isPlainObject(value)) {
-      return self.set(path, value);
-    }
+  self.set = (path, value) =>
+    setOrUpdate(true, path, value);
 
-    for (let key of Object.keys(value)) {
-      self.update(path + '.' + key, value[key]);
-    }
-    return true;
-  };
+  self.update = (path, value) =>
+    setOrUpdate(false, path, value);
 
   self.unset = (path) => {
     triggerAlias(path, (aliasPath, unaliasOnUnset) => {
