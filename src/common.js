@@ -55,6 +55,13 @@ function clone(input) {
 }
 
 function isEqual(a, b) {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!isEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
   if (!isPlainObject(a) || !isPlainObject(b)) {
     return a === b;
   }
@@ -69,4 +76,4 @@ function isEqual(a, b) {
   return true;
 }
 
-module.exports = {get, set, unset, clone, isPlainObject, isEqual};
+module.exports = { get, set, unset, clone, isPlainObject, isEqual };

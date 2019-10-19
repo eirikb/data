@@ -535,3 +535,12 @@ test('Update bundle calls add when not set', t => {
     x: 137
   });
 });
+
+test('Arrays can be equal', t => {
+  const data = Data();
+
+  t.plan(1);
+  data.on('!+* test', () => t.pass());
+  data.set('test', ['hello', 'world']);
+  data.set('test', ['hello', 'world']);
+});
