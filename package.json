@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "source": true,
   "scripts": {
-    "test": "ava test"
+    "test": "ava test",
+    "eh": "ava test/data.js -v -w"
   },
   "repository": {
     "type": "git",

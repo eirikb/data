@@ -11,18 +11,6 @@ function get(input, path) {
   return input;
 }
 
-function set(input, path, value) {
-  path = path.split('.');
-  for (let i = 0; i < path.length - 1; i++) {
-    const current = path[i];
-    if (!isPlainObject(input[current])) {
-      input[current] = {};
-    }
-    input = input[current];
-  }
-  input[path[path.length - 1]] = value;
-}
-
 function unset(input, path) {
   if (typeof get(input, path) === 'undefined') return;
 
@@ -37,43 +25,24 @@ function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-function clone(input) {
-  if (!isPlainObject(input)) return input;
-
-  const cloned = {};
-  for (let key of Object.keys(input)) {
-    const value = input[key];
-    if (isPlainObject(value)) {
-      cloned[key] = clone(value);
-    } else if (Array.isArray(value)) {
-      cloned[key] = value.map(clone);
+function pathBrancher(path, onPart) {
+  return path.split('.').reduce((paths, part) => {
+    const results = [];
+    [].concat(onPart(part, paths)).forEach(pp =>
+      [].concat(pp).forEach(p => results.push(p))
+    );
+    if (results.length > 0) {
+      if (paths.length === 0) {
+        return results;
+      }
+      return paths.reduce((res, p) => {
+        results.forEach(part => res.push(p + '.' + part));
+        return res;
+      }, []);
     } else {
-      cloned[key] = value;
+      return paths.map(path => path + '.' + part);
     }
-  }
-  return cloned;
+  }, []);
 }
 
-function isEqual(a, b) {
-  if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!isEqual(a[i], b[i])) return false;
-    }
-    return true;
-  }
-  if (!isPlainObject(a) || !isPlainObject(b)) {
-    return a === b;
-  }
-  for (let key of Object.keys(a)) {
-    if (!isEqual(a[key], b[key])) {
-      return false;
-    }
-  }
-  for (let key of Object.keys(b)) {
-    if (!a.hasOwnProperty(key)) return false;
-  }
-  return true;
-}
-
-module.exports = { get, set, unset, clone, isPlainObject, isEqual };
+module.exports = {get, unset, isPlainObject, pathBrancher};

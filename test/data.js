@@ -1,8 +1,8 @@
 import test from 'ava';
-import Data from '../src';
+import d from '../src';
 
 test('hello', t => {
-  const data = Data();
+  const data = d();
   data.on('= a', value => t.deepEqual('hello', value));
   data.trigger('a', 'hello');
   data.on('= a.b.c', value => t.deepEqual('hello', value));
@@ -12,13 +12,13 @@ test('hello', t => {
 });
 
 test('get set', t => {
-  const data = Data();
+  const data = d();
   data.set('test', 'ing');
   t.deepEqual('ing', data.get('test'));
 });
 
 test('change flag not trigger on existing', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.set('a', 'hello');
   data.on('* a', val => value = val);
@@ -26,7 +26,7 @@ test('change flag not trigger on existing', t => {
 });
 
 test('change flag not trigger on add', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.on('* a', val => value = val);
   data.set('a', 'hello');
@@ -34,7 +34,7 @@ test('change flag not trigger on add', t => {
 });
 
 test('change flag not trigger on trigger', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.on('* a', val => value = val);
   data.trigger('a', 'hello');
@@ -42,7 +42,7 @@ test('change flag not trigger on trigger', t => {
 });
 
 test('change flag trigger on change', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.set('a', 'hello');
   data.on('* a', val => value = val);
@@ -51,7 +51,7 @@ test('change flag trigger on change', t => {
 });
 
 test('add flag', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.on('+ a', val => value = val);
   data.set('a', 'hello');
@@ -60,7 +60,7 @@ test('add flag', t => {
 });
 
 test('immediate flag', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.set('a', 'hello');
   data.on('! a', val => value = val);
@@ -68,7 +68,7 @@ test('immediate flag', t => {
 });
 
 test('trigger flag', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.on('= a', val => value = val);
   data.trigger('a', 'hello');
@@ -76,7 +76,7 @@ test('trigger flag', t => {
 });
 
 test('remove flag', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.set('a', 'hello');
   data.on('- a', () => value = 'removed');
@@ -85,7 +85,7 @@ test('remove flag', t => {
 });
 
 test('combine flags', t => {
-  const data = Data();
+  const data = d();
   let value = null;
   data.set('b', 'one');
   data.on('!*- b', val => value = val);
@@ -103,13 +103,13 @@ test('combine flags', t => {
 });
 
 test('listener', t => {
-  const data = Data();
+  const data = d();
   data.on('+ test.ing', value => t.deepEqual({ hello: 'world' }, value));
   data.set('test.ing', { hello: 'world' });
 });
 
 test('special key paths', t => {
-  const data = Data();
+  const data = d();
   data.on('+ a.$b.c', (value, { $b }) => {
     t.deepEqual({ hello: 'world' }, value);
     t.deepEqual('hello', $b);
@@ -118,7 +118,7 @@ test('special key paths', t => {
 });
 
 test('remove listener', t => {
-  const data = Data();
+  const data = d();
   let value;
   data.on('+* a', val => value = val);
   const ref = data.on('+* b', val => value = val);
@@ -131,21 +131,21 @@ test('remove listener', t => {
 });
 
 test('on child data', t => {
-  const data = Data();
+  const data = d();
   t.plan(1);
   data.on('+ player.name', name => t.deepEqual('mini', name));
   data.set('player', { name: 'mini' });
 });
 
 test('remove data', t => {
-  const data = Data();
+  const data = d();
   data.set('a.b', 'hello');
   data.on('- a.b', () => t.pass());
   data.unset('a.b');
 });
 
 test('remove includes item', t => {
-  const data = Data();
+  const data = d();
   data.set('a.b', { hello: 'world' });
   let value;
   data.on('- a.b', val => value = val);
@@ -154,14 +154,14 @@ test('remove includes item', t => {
 });
 
 test('instant callback upon adding listener to existing data', t => {
-  const data = Data();
+  const data = d();
   data.set('player.name', 'mini');
   t.plan(1);
   data.on('! player.name', val => t.deepEqual('mini', val));
 });
 
 test('bop paths', t => {
-  const data = Data();
+  const data = d();
   t.plan(2);
   data.on('+* quest.bops.$key', (bopData, { $key }) => {
     t.deepEqual('-LNRK0flHBSZniioW6YS', $key);
@@ -171,7 +171,7 @@ test('bop paths', t => {
 });
 
 test('bop paths 2', t => {
-  const data = Data();
+  const data = d();
   t.plan(2);
   data.on('+* quest.bops.$key', (bopData, { $key }) => {
     t.deepEqual('-LNRK0flH-BSZniioW6YS', $key);
@@ -181,7 +181,7 @@ test('bop paths 2', t => {
 });
 
 test('previous data can be falsey', t => {
-  const data = Data();
+  const data = d();
   t.plan(1);
   data.set('a', 0);
   data.on('* a', value => t.deepEqual(1337, value));
@@ -189,7 +189,7 @@ test('previous data can be falsey', t => {
 });
 
 test('trigger on object property change', t => {
-  const data = Data();
+  const data = d();
   t.plan(2);
 
   data.set('player', { x: 0 });
@@ -198,43 +198,8 @@ test('trigger on object property change', t => {
   data.set('player', { x: 1337 });
 });
 
-test('ranged listeners', t => {
-  const data = Data();
-  t.plan(4);
-  data.on('+* players.$id.{x,y,moving}', ({ x, y, moving }, { $id }) => {
-    if (x && y && moving) {
-      t.deepEqual(1, x);
-      t.deepEqual(2, y);
-      t.deepEqual(true, moving);
-      t.deepEqual('42', $id);
-    }
-  });
-
-  data.set('players.42', { x: 1 });
-  data.set('players.42.y', 2);
-  data.set('players.42.moving', true);
-});
-
-test('ranged listeners change only', t => {
-  const data = Data();
-  t.plan(4);
-  data.on('* players.$id.{x,y,moving}', ({ x, y, moving }, { $id }) => {
-    if (x && y && moving) {
-      t.deepEqual(3, x);
-      t.deepEqual(2, y);
-      t.deepEqual(true, moving);
-      t.deepEqual('42', $id);
-    }
-  });
-
-  data.set('players.42', { x: 1 });
-  data.set('players.42.y', 2);
-  data.set('players.42.moving', true);
-  data.set('players.42.x', 3);
-});
-
 test('immediate listener with wildcard', t => {
-  const data = Data();
+  const data = d();
   t.plan(4);
   data.set('players.42.items.axe.power', 137);
   data.on('! players.$id.items.$item.power', (power, { $id, $item, path }) => {
@@ -245,24 +210,8 @@ test('immediate listener with wildcard', t => {
   });
 });
 
-test('ranged listeners immediate', t => {
-  const data = Data();
-  t.plan(4);
-
-  data.set('players.42', { x: 3 });
-  data.set('players.42.y', 2);
-  data.set('players.42.moving', true);
-
-  data.on('!+* players.$id.{x,y,moving}', ({ x, y, moving }, { $id }) => {
-    t.deepEqual(3, x);
-    t.deepEqual(2, y);
-    t.deepEqual(true, moving);
-    t.deepEqual('42', $id);
-  });
-});
-
 test('unset is recursive', t => {
-  const data = Data();
+  const data = d();
   data.set('a.b.c', 1);
   data.set('a.b.d', 2);
 
@@ -276,82 +225,15 @@ test('unset is recursive', t => {
 
 test('methods support destructuring', t => {
   t.plan(1);
-  const d = Data();
-  const { set, get } = d;
+  const data = d();
+  const { set, get } = data;
   set('ok.test', 137);
 
   t.deepEqual(137, get('ok.test'));
 });
 
-test('remove ranged listeners', t => {
-  const data = Data();
-  t.plan(1);
-  const ref = data.on('+* x.{a,b}', val =>
-    t.deepEqual('ok', val.a)
-  );
-
-  data.set('x.a', 'ok');
-  data.off(ref);
-  data.set('x.a', 'ignored-a');
-  data.set('x.b', 'ignored-b');
-});
-
-test('update', t => {
-  const data = Data();
-
-  data.set('hello', {
-    hello: 'world',
-    and: {
-      more: 'data',
-      with: {
-        someArray: [1, 2, 3, 4],
-        ok: 42,
-        'dok': 'dok'
-      }
-    }
-  });
-
-  data.update('hello', {
-    and: {
-      more: 'more'
-    }
-  });
-
-  t.deepEqual(data.get('hello'), {
-    hello: 'world',
-    and: {
-      more: 'more',
-      with: {
-        someArray: [1, 2, 3, 4],
-        ok: 42,
-        'dok': 'dok'
-      }
-    }
-  });
-
-  data.update('hello', {
-    and: {
-      with: {
-        'dok': 'dakk'
-      }
-    }
-  });
-
-  t.deepEqual(data.get('hello'), {
-    hello: 'world',
-    and: {
-      more: 'more',
-      with: {
-        someArray: [1, 2, 3, 4],
-        ok: 42,
-        'dok': 'dakk'
-      }
-    }
-  });
-});
-
 test('adding sub-child triggers add on parent if parent missing', t => {
-  const { on, set } = Data();
+  const { on, set } = d();
   t.plan(1);
   on('+ x.$key', val =>
     t.deepEqual('ok', val.a)
@@ -360,7 +242,7 @@ test('adding sub-child triggers add on parent if parent missing', t => {
 });
 
 test('on/off on test', t => {
-  const { on, off, set } = Data();
+  const { on, off, set } = d();
   t.plan(2);
   set('test', 'a');
   const l = on('* test', val =>
@@ -377,34 +259,22 @@ test('on/off on test', t => {
   set('test', 'c');
 });
 
-
-test('Accumulate ranged listeners', t => {
-  const data = Data();
-  t.plan(2);
-  data.on('+* players.$id.{x,y,moving}', ({ x, y, moving }, { $id }) => {
-    t.pass();
-  });
-
-  data.set('players.42', { x: 1, y: 2 });
-  data.set('players.42.moving', true);
-});
-
 test('set is recursive', t => {
-  const data = Data();
+  const data = d();
   t.plan(1);
   data.on('!+* players.$eh.name', () => t.pass());
   data.set('players', { eirik: { name: 'Eirik' } });
 });
 
 test('immediate with key', t => {
-  const data = Data();
+  const data = d();
   t.plan(1);
   data.set('players.ok', 'ok');
   data.on('! players.$eh', () => t.pass());
 });
 
 test('immediate with multiple', t => {
-  const data = Data();
+  const data = d();
   t.plan(2);
   data.set('players', {
     '20': 'twenty',
@@ -414,7 +284,7 @@ test('immediate with multiple', t => {
 });
 
 test('Wildcard immediate listeners never go wild', t => {
-  const data = Data();
+  const data = d();
   t.plan(2);
   data.set('test', {
     1: 'hello',
@@ -426,16 +296,17 @@ test('Wildcard immediate listeners never go wild', t => {
 });
 
 test('Immediate false trigger', t => {
-  const data = Data();
+  const data = d();
   t.plan(1);
   data.set('test', false);
   data.on('! test', (test) => {
+    console.log('test is', test);
     t.deepEqual(false, test);
   });
 });
 
 test('Listeners trigger order', t => {
-  const data = Data();
+  const data = d();
 
   let counter = 0;
   data.on('+* a.b.c', c => {
@@ -464,12 +335,47 @@ test('Listeners trigger order', t => {
   });
 });
 
+test('Adding sub-thing trigger change on parent', t => {
+  const data = d();
+  data.set('users.1.name', 'Hello');
+  t.plan(2);
+  data.on('+ users.$id.*', (user, { $id }) => {
+    t.deepEqual('1', $id);
+    t.deepEqual('137', user.x);
+  });
+  data.set('users.1.x', '137');
+});
+
+test('Update bundle changes', t => {
+  const data = d();
+  data.set('users.1.name', 'Hello');
+  t.plan(3);
+
+  data.on('* users.$id', () => t.pass());
+  data.on('+ users.$id.x', x => t.deepEqual(137, x));
+  data.on('* users.$id.name', name => t.deepEqual('world', name));
+
+  data.set('users.1', {
+    name: 'world',
+    x: 137
+  });
+});
+
+test('Immediate only when has data', t => {
+  const data = d();
+  t.plan(1);
+  data.on('! a', t.pass);
+  data.set('a', true);
+  data.on('! a', t.pass);
+});
+
 test('Listeners only called once', t => {
-  const data = Data();
+  const data = d();
 
   let counter = 0;
-  data.on('!+* a', () =>
-    counter++
+  data.on('!+* a', () => {
+      counter++
+    }
   );
 
   data.set('a', { 1: 'yes', 2: 'no' });
@@ -477,7 +383,7 @@ test('Listeners only called once', t => {
 });
 
 test('Overwrite parent path should not clear data', t => {
-  const data = Data();
+  const data = d();
   data.set('a', { b: 'yes' });
   t.deepEqual({ b: 'yes' }, data.get('a'));
   data.set('a', { b: 'yes' });
@@ -485,9 +391,13 @@ test('Overwrite parent path should not clear data', t => {
 });
 
 test('Setting value while listening', t => {
-  const data = Data();
+  const data = d();
 
-  data.on('+* hello', () => data.set('hello', 2));
+  data.on('+* hello', i => {
+    if (i < 2) {
+      data.set('hello', 2)
+    }
+  });
 
   let i = 0;
   data.on('+* hello', hello => {
@@ -497,50 +407,39 @@ test('Setting value while listening', t => {
   t.pass();
 });
 
-test('Adding sub-thing trigger change on parent', t => {
-  const data = Data();
-  data.set('users.1.name', 'Hello');
-  t.plan(2);
-  data.on('* users.$id', (user, { $id }) => {
-    t.deepEqual('1', $id);
-    t.deepEqual('137', user.x);
-  });
-  data.set('users.1.x', '137');
-});
-
-test('Update bundle changes', t => {
-  const data = Data();
-  data.set('users.1.name', 'Hello');
-  t.plan(3);
-
-  data.on('* users.$id', () => t.pass());
-  data.on('+ users.$id.x', x => t.deepEqual(137, x));
-  data.on('* users.$id.name', name => t.deepEqual('world', name));
-
-  data.update('users.1', {
-    name: 'world',
-    x: 137
-  });
-});
-
-test('Update bundle calls add when not set', t => {
-  const data = Data();
-  t.plan(3);
-  data.on('+ users.$id', () => t.pass());
-  data.on('+ users.$id.x', x => t.deepEqual(137, x));
-  data.on('+ users.$id.name', name => t.deepEqual('world', name));
-
-  data.update('users.1', {
-    name: 'world',
-    x: 137
-  });
-});
-
-test('Arrays can be equal', t => {
-  const data = Data();
+test('Only call on change', t => {
+  const data = d();
 
   t.plan(1);
-  data.on('!+* test', () => t.pass());
-  data.set('test', ['hello', 'world']);
-  data.set('test', ['hello', 'world']);
+  data.on('!*+ a', t.pass);
+  data.set('a', true);
+  data.set('a', true);
+  data.set('a', true);
+});
+
+test('Arrays', t => {
+  const data = d();
+
+  t.plan(2);
+  data.on('!+* test.$id.a', (n) => {
+    t.pass();
+  });
+  data.set('test', [{ a: 1 }, { a: 2 }]);
+  data.set('test', [{ a: 1 }, { a: 2 }]);
+});
+
+test('Array with key', t => {
+  const data = d();
+
+  data.set('a', [{ a: 'a', name: 'ok' }, { a: 'b', name: 'yes' }], 'a');
+  t.deepEqual(data.get(), {
+    a: {
+      a: {
+        a: 'a', name: 'ok'
+      },
+      b: {
+        a: 'b', name: 'yes'
+      }
+    }
+  });
 });

@@ -1,248 +1,163 @@
 import test from 'ava';
 import Listeners from '../src/listeners';
 
-test('one level', t => {
+test('static listener', t => {
   const listeners = Listeners();
-  listeners.add('a', () => t.pass());
-  listeners.trigger('a', 'hello');
+  const listener = () => true;
+  listeners.add('a', listener);
+  listeners.add('a.b.c', listener);
+  t.deepEqual(listeners.get('a'), [{
+    keys: {}, path: 'a', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b'), []);
+  t.deepEqual(listeners.get('a.b.c'), [{
+    keys: {}, path: 'a.b.c', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d'), []);
+  t.deepEqual(listeners.get('a.c.c'), []);
 });
 
-test('two level', t => {
+test('dynamic listener', t => {
   const listeners = Listeners();
-  t.plan(1);
-  listeners.add('a.b', (value) => t.deepEqual('hello', value));
-  listeners.trigger('a.b', 'hello');
-});
-
-test('special key one level', t => {
-  const listeners = Listeners();
-  listeners.add('a.$b', (value, {$b}) => {
-    t.deepEqual('c', $b);
-    t.deepEqual('hello', value);
-  });
-  listeners.trigger('a.c', 'hello');
-});
-
-test('special key two level', t => {
-  const listeners = Listeners();
-  listeners.add('teams.$team.players.$player', (value, {$team, $player}) => {
-    t.deepEqual('rbk', $team);
-    t.deepEqual('mini', $player);
-    t.deepEqual('hello', value);
-  });
-  listeners.trigger('teams.rbk.players.mini', 'hello');
-});
-
-test('special key two level + 1', t => {
-  const listeners = Listeners();
-  listeners.add('teams.$team.players.$player.age', (value, {$team, $player}) => {
-    t.deepEqual('rbk', $team);
-    t.deepEqual('mini', $player);
-    t.deepEqual(99, value);
-  });
-  listeners.trigger('teams.rbk.players.mini.age', 99);
-});
-
-test('special key two level + object', t => {
-  const listeners = Listeners();
-  listeners.add('teams.$team.players.$player', (value, {$team, $player}) => {
-    t.deepEqual('rbk', $team);
-    t.deepEqual('mini', $player);
-    t.deepEqual({hello: 'world'}, value);
-  });
-  listeners.trigger('teams.rbk.players.mini', {hello: 'world'});
-});
-
-test('pathing', t => {
-  const listeners = Listeners();
-  let val;
-  const paths = ['a', 'a.b', 'a.b.c', 'a.$b.c', 'a.$b.$c.d'];
-  for (let path of paths) {
-    listeners.add(path, () => val.push(path));
-  }
-
-  function run(trigger, exp) {
-    val = [];
-    listeners.trigger(trigger);
-    t.deepEqual(exp, val);
-  }
-
-  run('', []);
-  run('b', []);
-  run('a', ['a']);
-  run('a.hello', []);
-  run('a.hello.c', ['a.$b.c']);
-  run('a.b.c', ['a.b.c', 'a.$b.c']);
-  run('a.b.c.d', ['a.$b.$c.d']);
-  run('a.b.c.d.e', []);
-});
-
-test('trigger non-existing listener should not fail', t => {
-  const listeners = Listeners();
-  listeners.trigger('derp');
-  t.pass();
-});
-
-test('add and call listener', t => {
-  const listeners = Listeners();
-  t.plan(1);
-  listeners.add('hello', val => t.deepEqual('world', val));
-  listeners.trigger('hello', 'world');
+  const listener = () => true;
+  listeners.add('a.$b', listener);
+  listeners.add('a.$b.$c.d', listener);
+  t.deepEqual(listeners.get('a.c'), [{
+    path: 'a.c', _: [listener], keys: { $b: 'c' }
+  }]);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b.c'), []);
+  t.deepEqual(listeners.get('a.b.c.d'), [{
+    path: 'a.b.c.d', _: [listener], keys: { $b: 'b', $c: 'c' }
+  }]);
 });
 
 test('add and remove listener', t => {
   const listeners = Listeners();
-  t.plan(0);
   const ref = listeners.add('hello', () => t.pass());
   listeners.remove(ref);
-  listeners.trigger('hello', 'world');
+  t.deepEqual(0, listeners.get('hello').length);
 });
 
-test('clear listeners', t => {
+test('add and remove dynamic listener', t => {
   const listeners = Listeners();
-  t.plan(0);
-  listeners.add('hello', () => t.pass());
-  listeners.clear();
-  listeners.trigger('hello', 'world');
+  const ref = listeners.add('hello.$x', () => t.pass());
+  listeners.remove(ref);
+  t.deepEqual(0, listeners.get('hello.world').length);
 });
 
-test('triggering includes path', t => {
+test('wildcard key middle', t => {
   const listeners = Listeners();
-  listeners.add('a.$b.x', (value, {$b, path}) => {
-    t.deepEqual('42', $b);
-    t.deepEqual('hello', value);
-    t.deepEqual('a.42.x', path);
-  });
-  listeners.trigger('a.42.x', 'hello');
+  const listener = () => true;
+  listeners.add('a.*.b.*.c', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), []);
+  t.deepEqual(listeners.get('a.b.c'), []);
+  t.deepEqual(listeners.get('a.b.c.d'), []);
+  t.deepEqual(listeners.get('a.x.b.y.c'), [{
+    keys: {}, path: 'a.x.b.y.c', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.x.b.y.c.d'), []);
 });
 
-test('setPath and getPaths simplest', t => {
+test('wildcard key end', t => {
   const listeners = Listeners();
-  listeners.setPath('hello.world');
-  const paths = listeners.getPaths('hello.world');
-  t.deepEqual([{key: 'hello.world', keys: {}, path: 'hello.world'}], paths);
+  const listener = () => true;
+  listeners.add('a.b.*', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), []);
+  t.deepEqual(listeners.get('a.b.c'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
 });
 
-test('setPath and getPaths', t => {
+
+test('multiple wildcard key end', t => {
   const listeners = Listeners();
-  listeners.setPath('bops.$key.name');
-  const paths = listeners.getPaths('bops.abc123.name');
-  t.deepEqual([{key: 'bops.$key.name', keys: {$key: 'abc123'}, path: 'bops.abc123.name'}], paths);
+  const listener = () => true;
+  listeners.add('*.b.*.*', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), []);
+  t.deepEqual(listeners.get('a.b.c'), []);
+  t.deepEqual(listeners.get('a.b.c.d'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
 });
 
-// test('setPath and getPaths multiple', t => {
-//   listeners.setPath('bops.$key.$any');
-//   listeners.setPath('bops.$me.name');
-//   const paths = listeners.getPaths('bops.abc123.name');
-//   console.log(paths);
-//   t.deepEqual([
-//     {key: 'bops.$key.$any', keys: {$key: 'abc123', $any: 'name'}, path: 'bops.abc123.name'},
-//     {key: 'bops.$me.name', keys: {$me: 'abc123'}, path: 'bops.abc123.name'},
-//   ], paths);
-// });
-
-test('setPath and getPaths a.$b.c', t => {
+test('recursive wildcard', t => {
   const listeners = Listeners();
-  ['a', 'a.b', 'a.b.c', 'a.$b.c', 'a.$b.$c.d'].forEach(path => {
-    listeners.setPath(path);
-  });
-  const paths = listeners.getPaths('a.hello.c');
-  t.deepEqual([
-    {key: 'a.$b.c', keys: {$b: 'hello'}, path: 'a.hello.c'},
-    {key: 'a.$b.$c', keys: {$b: 'hello', $c: 'c'}, path: 'a.hello.c'}
-  ], paths);
+  const listener = () => true;
+  listeners.add('a.b.**', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d.e'), [{
+    keys: {}, path: 'a.b', _: [listener]
+  }]);
 });
 
-test('wildcard sub-listener', t => {
+test('recursive wildcard and wildcard', t => {
   const listeners = Listeners();
-  t.plan(2);
-  listeners.add('a.>', (val, {path}) => {
-    t.deepEqual('a.b.c.d', path);
-    t.deepEqual(137, val);
-  });
-  listeners.trigger('a.b.c.d', 137);
+  const listener = () => true;
+  listeners.add('a.*.**', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), [{
+    keys: {}, path: 'a', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c'), [{
+    keys: {}, path: 'a', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d'), [{
+    keys: {}, path: 'a', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d.e'), [{
+    keys: {}, path: 'a', _: [listener]
+  }]);
 });
 
-test('wildcard wildcard sub-listener', t => {
+test('recursive wildcard and wildcard 2', t => {
   const listeners = Listeners();
-  t.plan(3);
-  listeners.add('a.$key.>', (val, {path, $key}) => {
-    t.deepEqual('a.b.c.d', path);
-    t.deepEqual('b', $key);
-    t.deepEqual(137, val);
-  });
-  listeners.trigger('a.b.c.d', 137);
+  const listener = () => true;
+  listeners.add('a.*.c.**', listener);
+  t.deepEqual(listeners.get('a'), []);
+  t.deepEqual(listeners.get('a.b'), []);
+  t.deepEqual(listeners.get('a.b.c'), [{
+    keys: {}, path: 'a.b.c', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d'), [{
+    keys: {}, path: 'a.b.c', _: [listener]
+  }]);
+  t.deepEqual(listeners.get('a.b.c.d.e'), [{
+    keys: {}, path: 'a.b.c', _: [listener]
+  }]);
 });
 
-test('wildcard wildcard wildcard sub-listener', t => {
+test('off on non-existing listener', t => {
   const listeners = Listeners();
-  t.plan(11);
-  listeners.add('a.$key.>', (val, {path, $key}) => {
-    t.deepEqual('a.b.c.d.e', path);
-    t.deepEqual('b', $key);
-    t.deepEqual(137, val);
-  });
-  listeners.add('a.$x.$y.>', (val, {path, $x, $y}) => {
-    t.deepEqual('a.b.c.d.e', path);
-    t.deepEqual('b', $x);
-    t.deepEqual('c', $y);
-    t.deepEqual(137, val);
-  });
-  listeners.add('a.$x.$y.d.>', (val, {path, $x, $y}) => {
-    t.deepEqual('a.b.c.d.e', path);
-    t.deepEqual('b', $x);
-    t.deepEqual('c', $y);
-    t.deepEqual(137, val);
-  });
-  listeners.add('a.$x.$y.e.>', () => {
-    t.pass();
-  });
-  listeners.trigger('a.b.c.d.e', 137);
+  listeners.remove('unknown');
+  t.pass();
 });
 
-test('wildcard key diff', t => {
+test('wildcard plus key', t => {
   const listeners = Listeners();
-  t.plan(5);
-  listeners.add('a.>', (val, {pathDiff}) => {
-    t.deepEqual('b.c.d.e', pathDiff);
-  });
-  listeners.add('a.$b.>', (val, {pathDiff}) => {
-    t.deepEqual('c.d.e', pathDiff);
-  });
-  listeners.add('a.$b.c.>', (val, {pathDiff}) => {
-    t.deepEqual('d.e', pathDiff);
-  });
-  listeners.add('a.$b.>', (val, {pathDiff}) => {
-    t.deepEqual('c.d.e', pathDiff);
-  });
-  listeners.add('a.$b.c.$d.>', (val, {pathDiff}) => {
-    t.deepEqual('e', pathDiff);
-  });
-  listeners.trigger('a.b.c.d.e', 137);
-});
+  const ll1 = () => true;
+  const ll2 = () => true;
+  listeners.add('users.$id.x', ll1);
+  listeners.add('users.$id.name', ll2);
 
-test('sub-listeners no trigger on last child', t => {
-  const listeners = Listeners();
-  t.plan(0);
-  listeners.add('a.b.>', (val, {path}) => {
-    t.pass();
-    t.deepEqual('a.b.c.d', path);
-    t.deepEqual(137, val);
-  });
-  listeners.trigger('a.b', 137);
-  listeners.trigger('a', {b: 137});
-});
-
-test('listener on/off test', t => {
-  const listeners = Listeners('a');
-  t.plan(2);
-  const l = listeners.add('test', (val) => {
-    t.deepEqual('a', val);
-  });
-  listeners.trigger('test', 'a');
-  listeners.add('test', (val) => {
-    t.deepEqual('b', val);
-  });
-  listeners.remove(l);
-  listeners.trigger('test', 'b');
+  t.deepEqual(listeners.get('users.1.x'),
+    [{
+      keys: { $id: '1' }, path: 'users.1.x', _: [ll1]
+    }]);
+  t.deepEqual(listeners.get('users.1.name'),
+    [{
+      keys: { $id: '1' }, path: 'users.1.name', _: [ll2]
+    }]);
 });
