@@ -421,9 +421,7 @@ test('Arrays', t => {
   const data = d();
 
   t.plan(2);
-  data.on('!+* test.$id.a', (n) => {
-    t.pass();
-  });
+  data.on('!+* test.$id.a', t.pass);
   data.set('test', [{ a: 1 }, { a: 2 }]);
   data.set('test', [{ a: 1 }, { a: 2 }]);
 });

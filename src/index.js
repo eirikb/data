@@ -1,5 +1,31 @@
 const listeners = require('./listeners');
-const { get, unset, isPlainObject } = require('./common');
+
+function isProbablyPlainObject(obj) {
+  return typeof obj === 'object' && obj !== null && obj.constructor === Object;
+}
+
+function get(input, path) {
+  path = path.split('.');
+  for (let i = 0; i < path.length; i++) {
+    input = input[path[i]];
+    if (typeof input === 'undefined') return;
+  }
+  return input;
+}
+
+function unset(input, path) {
+  if (typeof get(input, path) === 'undefined') return;
+
+  path = path.split('.');
+  for (let i = 0; i < path.length - 1; i++) {
+    const current = path[i];
+    if (!isProbablyPlainObject(input[current])) {
+      input[current] = {};
+    }
+    input = input[current];
+  }
+  delete input[path[path.length - 1]];
+}
 
 
 /***
@@ -47,8 +73,8 @@ module.exports = () => {
   function set(toCall, path, parent, key, value, byKey) {
     if (Array.isArray(value)) {
       const toSet = value.reduce((res, item, index) => {
-        const nkey = byKey ? item[byKey] : index;
-        res[nkey] = item;
+        const nKey = byKey ? item[byKey] : index;
+        res[nKey] = item;
         return res;
       }, {});
       set(toCall, path, parent, key, toSet);
@@ -66,8 +92,8 @@ module.exports = () => {
       }
     }
 
-    if (isPlainObject(value)) {
-      if (!isPlainObject(parent[key])) {
+    if (isProbablyPlainObject(value)) {
+      if (!isProbablyPlainObject(parent[key])) {
         parent[key] = {};
       }
       for (let childKey of Object.keys(value)) {
@@ -148,7 +174,7 @@ module.exports = () => {
       getListenerByFlag(flag).add(path, listener)
     ).join(' ');
 
-    if (flags.match(/!/)) {
+    if (flags.includes('!')) {
       const ref = _immediateListeners.add(path, listener);
       triggerImmediate(path.split('.'));
       _immediateListeners.remove(ref);
@@ -196,7 +222,7 @@ module.exports = () => {
   self.unset = (path) => {
     const unsetRecursive = (parent, key, path) => {
       const data = get(parent, key);
-      if (isPlainObject(data)) {
+      if (isProbablyPlainObject(data)) {
         for (let key of Object.keys(data)) {
           unsetRecursive(data, key, path + '.' + key);
         }
