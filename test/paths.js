@@ -72,6 +72,13 @@ test('keys', t => {
   ]);
 });
 
+test('remove wildcard end', t => {
+  const paths = Paths();
+  paths.add('a.*', 'ref', { ok: 1 });
+  paths.remove('ref');
+  t.pass();
+});
+
 test('multiple wildcard key end', t => {
   const paths = Paths();
   paths.add('*.b.*.*', 'ref', { ok: 1 });

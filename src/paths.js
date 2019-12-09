@@ -83,7 +83,7 @@ module.exports = () => {
     const parts = path.split('.');
     let parent = map;
     for (let part of parts) {
-      if (part.startsWith('$')) {
+      if (part.startsWith('$') || part === '*') {
         parent = parent.$[part];
       } else if (part === '**') {
         parent = parent.$$;
