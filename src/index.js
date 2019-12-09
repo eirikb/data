@@ -1,5 +1,24 @@
 const listeners = require('./listeners');
 
+/***
+ *    Flags:
+ *    *   Value changed
+ *    !   Immediate callback if value exists
+ *    +   Value added
+ *    -   Value removed
+ *    =   Trigger only (no value set)
+ *
+ *    Path:
+ *    $x   Named wildcard
+ *    *    Wildcard
+ *    **   Recursive wildcard
+ *
+ *    Example:
+ *    on('!+* teams.$teamId.players.$playerId.**', (player, { $teamId, $playerId }) => {
+ *
+ *    });
+ */
+
 function isProbablyPlainObject(obj) {
   return typeof obj === 'object' && obj !== null && obj.constructor === Object;
 }
@@ -27,26 +46,6 @@ function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-
-/***
- *    Flags:
- *    *   Value changed
- *    !   Immediate callback if value exists
- *    +   Value added
- *    -   Value removed
- *    =   Trigger only (no value set)
- *
- *    Path:
- *    $x   Named wildcard
- *    *    Wildcard
- *    **   Recursive wildcard
- *
- *    Example:
- *    on('!+* teams.$teamId.players.$playerId.**', (player, { $teamId, $playerId }) => {
- *
- *    });
- *
- */
 module.exports = () => {
   const self = {};
   const setQueue = {};
