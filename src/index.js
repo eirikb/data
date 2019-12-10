@@ -76,6 +76,9 @@ module.exports = () => {
         res[nKey] = item;
         return res;
       }, {});
+      if (!byKey) {
+        self.unset(path);
+      }
       set(toCall, path, parent, key, toSet);
       return;
     }
@@ -251,7 +254,9 @@ module.exports = () => {
           unsetRecursive(data, key, path + '.' + key);
         }
       }
-      trigger(_removeListeners, path, data);
+      if (typeof data !== 'undefined') {
+        trigger(_removeListeners, path, data);
+      }
     };
 
     unsetRecursive(_data, path, path);

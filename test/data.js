@@ -419,7 +419,7 @@ test('Only call on change', t => {
 test('Arrays', t => {
   const data = d();
 
-  t.plan(2);
+  t.plan(4);
   data.on('!+* test.$id.a', t.pass);
   data.set('test', [{ a: 1 }, { a: 2 }]);
   data.set('test', [{ a: 1 }, { a: 2 }]);
@@ -495,4 +495,21 @@ test('values is passed in the object with byKey', t => {
   data.set('stuff',
     [{ name: 'a', hello: 'world' }, { name: 'b', hello: 'there' }],
     'name');
+});
+
+test('array without bykey must be cleared', t => {
+  const data = d();
+
+  t.plan(2);
+
+  data.on('- a', t.pass);
+  data.on('- a.*', t.pass);
+
+  t.plan(2);
+  data.on('+ stuff', (_, { keys, values }) => {
+    t.deepEqual(keys, ['0']);
+    t.deepEqual(values, [{ hello: 'world' }]);
+  });
+
+  data.set('stuff', [{ hello: 'world' }]);
 });
