@@ -470,3 +470,29 @@ test('merge does not remove at all', t => {
   data.merge('a', { b: 1, c: 2 });
   data.merge('a', { b: 2 });
 });
+
+test('values is passed in the object', t => {
+  const data = d();
+
+  t.plan(2);
+  data.on('+ stuff', (_, { keys, values }) => {
+    t.deepEqual(keys, ['0']);
+    t.deepEqual(values, [{ hello: 'world' }]);
+  });
+
+  data.set('stuff', [{ hello: 'world' }]);
+});
+
+test('values is passed in the object with byKey', t => {
+  const data = d();
+
+  t.plan(2);
+  data.on('+ stuff', (_, { keys, values }) => {
+    t.deepEqual(keys, ['a', 'b']);
+    t.deepEqual(values, [{ name: 'a', hello: 'world' }, { name: 'b', hello: 'there' }]);
+  });
+
+  data.set('stuff',
+    [{ name: 'a', hello: 'world' }, { name: 'b', hello: 'there' }],
+    'name');
+});

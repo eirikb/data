@@ -222,7 +222,13 @@ module.exports = () => {
           if (typeof val === 'undefined') {
             val = value;
           }
-          listener(val, { ...res.keys, path: res.path });
+          const valIsObject = isProbablyPlainObject(val);
+          listener(val, {
+            ...res.keys, path: res.path,
+            ...valIsObject ? {
+              values: Object.values(val), keys: Object.keys(val)
+            } : {}
+          });
         }
       }
     }
