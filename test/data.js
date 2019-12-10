@@ -300,7 +300,6 @@ test('Immediate false trigger', t => {
   t.plan(1);
   data.set('test', false);
   data.on('! test', (test) => {
-    console.log('test is', test);
     t.deepEqual(false, test);
   });
 });
