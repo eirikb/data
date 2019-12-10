@@ -69,7 +69,7 @@ module.exports = () => {
     }
   }
 
-  function set(toCall, path, parent, key, value, byKey) {
+  function set(toCall, path, parent, key, value, byKey, merge) {
     if (Array.isArray(value)) {
       const toSet = value.reduce((res, item, index) => {
         const nKey = byKey ? item[byKey] : index;
@@ -92,11 +92,26 @@ module.exports = () => {
     }
 
     if (isProbablyPlainObject(value)) {
-      if (!isProbablyPlainObject(parent[key])) {
+      const parentIsProbablyPlainObject = isProbablyPlainObject(parent[key]);
+      if (!parentIsProbablyPlainObject) {
         parent[key] = {};
       }
-      for (let childKey of Object.keys(value)) {
+      const childKeys = Object.keys(value);
+      let parentKeysMap = {};
+      if (parentKeysMap && !merge) {
+        const parentKeys = parentIsProbablyPlainObject ? Object.keys(parent[key]) : [];
+        parentKeysMap = parentKeys.reduce((res, key) => (res[key] = true) && res, {});
+      }
+      for (let childKey of childKeys) {
+        if (!merge) {
+          delete parentKeysMap[childKey];
+        }
         set(toCall, path + '.' + childKey, parent[key], childKey, value[childKey])
+      }
+      if (!merge) {
+        for (let childKey of Object.keys(parentKeysMap)) {
+          self.unset(path + '.' + childKey)
+        }
       }
       call();
     } else {
@@ -126,7 +141,11 @@ module.exports = () => {
     }
   }
 
-  self.set = (path, value, byKey) => {
+  self.merge = (path, value, byKey) => {
+    return self.set(path, value, byKey, true);
+  };
+
+  self.set = (path, value, byKey, merge = false) => {
     if (setQueue[path]) {
       setQueue[path] = { qVal: value };
       return;
@@ -148,7 +167,7 @@ module.exports = () => {
     }
 
     const toCall = [];
-    set(toCall, path, parent, parts[parts.length - 1], value, byKey);
+    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
     for (let { listeners, path, value } of toCall) {
       trigger(listeners, path, value);
     }

@@ -440,3 +440,33 @@ test('Array with key', t => {
     }
   });
 });
+
+test('set replaces, but does not remove', t => {
+  const data = d();
+
+  t.plan(3);
+
+  data.on('* a', t.pass);
+  data.on('* a.b', t.pass);
+  data.on('- a', t.pass);
+  data.on('- a.b', t.pass);
+  data.on('- a.c', t.pass);
+
+  data.set('a', { b: 1, c: 2 });
+  data.set('a', { b: 2 });
+});
+
+test('merge does not remove at all', t => {
+  const data = d();
+
+  t.plan(2);
+
+  data.on('* a', t.pass);
+  data.on('* a.b', t.pass);
+  data.on('- a', t.pass);
+  data.on('- a.b', t.pass);
+  data.on('- a.c', t.pass);
+
+  data.merge('a', { b: 1, c: 2 });
+  data.merge('a', { b: 2 });
+});
