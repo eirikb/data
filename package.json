@@ -1,11 +1,10 @@
 {
   "name": "@eirikb/data",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Very simple in-memory storage with change listeners",
   "main": "src/index.js",
-  "source": true,
   "scripts": {
-    "test": "ava test"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -22,6 +21,9 @@
   },
   "homepage": "https://github.com/eirikb/data#readme",
   "devDependencies": {
-    "ava": "1.4.1"
-  }
+    "ava": "2.4.0"
+  },
+  "browserslist": [
+    "ie >= 11"
+  ]
 }
