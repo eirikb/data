@@ -92,9 +92,11 @@ module.exports = () => {
         parent = parent._[part];
       }
     }
-    delete parent.h[ref];
-    if (Object.keys(parent.h).length === 0) {
-      delete parent.h;
+    if (parent && parent.h) {
+      delete parent.h[ref];
+      if (Object.keys(parent.h).length === 0) {
+        delete parent.h;
+      }
     }
   };
 
