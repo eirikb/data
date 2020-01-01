@@ -20,6 +20,7 @@ module.exports = (prefix = 'ref') => {
 
   self.remove = (ref) => {
     paths.remove(ref);
+    cache = {};
   };
 
   function get(path) {
