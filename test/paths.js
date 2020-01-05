@@ -184,3 +184,13 @@ test('recursive wildcard and wildcard', t => {
     keys: {}, path: 'a', _: { ref: {} }
   }]);
 });
+
+test('Recursive wildcard and named wildcard combined', t => {
+  const paths = Paths();
+  paths.add('test.**', 'a', {});
+  paths.add('test.$id', 'b', {});
+  t.deepEqual(paths.lookup('test.a'), [
+    { keys: { $id: 'a' }, path: 'test.a', _: { b: {} } },
+    { keys: {}, path: 'test', _: { a: {} } }
+  ]);
+});

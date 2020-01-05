@@ -31,11 +31,12 @@ module.exports = () => {
       if (parent.$) {
         for (let key of Object.keys(parent.$)) {
           const newKeys = keys.slice();
+          let newUntil = until;
           if (key !== '*' && key !== '**') {
-            until = index;
+            newUntil = index;
             newKeys[index] = key;
           }
-          lookup(result, parent.$[key], parts, index + 1, newKeys, until);
+          lookup(result, parent.$[key], parts, index + 1, newKeys, newUntil);
         }
       }
       if (parent.$$) {
