@@ -513,3 +513,14 @@ test('array without bykey must be cleared', t => {
 
   data.set('stuff', [{ hello: 'world' }]);
 });
+
+test('trigger can return', async t => {
+  const data = d();
+
+  data.on('= myTrigger', async input => {
+    return `Hello, ${input}`;
+  });
+
+  const res = await data.trigger('myTrigger', 'world!');
+  t.deepEqual('Hello, world!', res);
+});

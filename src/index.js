@@ -216,6 +216,7 @@ module.exports = () => {
 
   function trigger(listeners, path, value) {
     const results = listeners.get(path);
+    let resultValue;
     for (let res of results) {
       const listeners = res._;
       res.value = value;
@@ -226,7 +227,7 @@ module.exports = () => {
             val = value;
           }
           const valIsObject = isProbablyPlainObject(val);
-          listener(val, {
+          resultValue = listener(val, {
             ...res.keys, path: res.path,
             ...valIsObject ? {
               values: Object.values(val), keys: Object.keys(val)
@@ -235,10 +236,11 @@ module.exports = () => {
         }
       }
     }
+    return resultValue;
   }
 
   self.trigger = (path, value) => {
-    trigger(_triggerListeners, path, value);
+    return trigger(_triggerListeners, path, value);
   };
 
   self.get = (path) => {

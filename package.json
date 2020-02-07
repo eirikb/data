@@ -1,6 +1,6 @@
 {
   "name": "@eirikb/data",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "description": "Very simple in-memory storage with change listeners",
   "main": "src/index.js",
   "source": true,
