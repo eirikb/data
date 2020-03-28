@@ -524,3 +524,46 @@ test('trigger can return', async t => {
   const res = await data.trigger('myTrigger', 'world!');
   t.deepEqual('Hello, world!', res);
 });
+
+test('Hooks', t => {
+  const data = d();
+  data.hook('users', {
+    set(path, value) {
+      data.set(['yes', path].filter(p => p).join('.'), value);
+    },
+    unset(path) {
+      data.unset(['yes', path].filter(p => p).join('.'));
+    }
+  });
+  data.set('users', {
+    a: { name: 'a' },
+    b: { name: 'b' }
+  });
+  data.set('users.c.name', 'c');
+  data.unset('users.a');
+  t.deepEqual({
+    b: { name: 'b' }, c: { name: 'c' }
+  }, data.get('yes'));
+});
+
+test('Hooks clear listener', t => {
+  const data = d();
+  const ref = data.hook('users', {
+    set(path, value) {
+      data.set(['yes', path].filter(p => p).join('.'), value);
+    },
+    unset(path) {
+      data.unset(['yes', path].filter(p => p).join('.'));
+    }
+  });
+  data.set('users', {
+    a: { name: 'a' },
+    b: { name: 'b' }
+  });
+  data.set('users.c.name', 'c');
+  data.unhook(ref);
+  data.unset('users.a');
+  t.deepEqual({
+    a: { name: 'a' }, b: { name: 'b' }, c: { name: 'c' }
+  }, data.get('yes'));
+});

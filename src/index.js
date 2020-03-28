@@ -55,6 +55,7 @@ module.exports = () => {
   const _immediateListeners = listeners('immediate');
   const _removeListeners = listeners('remove');
   const _triggerListeners = listeners('trigger');
+  const hooks = listeners('hooks');
 
   function getListenerByFlag(flag) {
     switch (flag) {
@@ -66,6 +67,15 @@ module.exports = () => {
         return _removeListeners;
       case '=':
         return _triggerListeners;
+    }
+  }
+
+  function callHook(path, type, value) {
+    for (let hook of hooks.get(path)) {
+      const diffPath = path.slice(hook.path.length + 1);
+      for (let _ of hook._) {
+        if (_[type]) _[type](diffPath, value);
+      }
     }
   }
 
@@ -183,6 +193,8 @@ module.exports = () => {
     if (typeof qVal !== 'undefined') {
       self.set(path, qVal);
     }
+
+    callHook(path, 'set', value);
   };
 
   self.on = (flagsAndPath, listener) => {
@@ -263,7 +275,12 @@ module.exports = () => {
 
     unsetRecursive(_data, path, path);
     unset(_data, path);
+    callHook(path, 'unset');
   };
+
+  self.hook = (basePath, cb) => hooks.add(basePath + '.**', cb);
+
+  self.unhook = ref => hooks.remove(ref);
 
   return self;
 };
