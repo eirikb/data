@@ -1,4 +1,5 @@
 const listeners = require('./listeners');
+const Pathifier = require('../src/pathifier');
 
 /***
  *    Flags:
@@ -198,6 +199,10 @@ module.exports = () => {
   };
 
   self.on = (flagsAndPath, listener) => {
+    if (!flagsAndPath.includes(' ') && !listener) {
+      return Pathifier(self, flagsAndPath);
+    }
+
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
     if (!flags || !path) {
       throw new Error(`Missing flags or path. Usage: data.on('!+* players.$id.name', () => {})`);
