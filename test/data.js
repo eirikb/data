@@ -567,3 +567,17 @@ test('Hooks clear listener', t => {
     a: { name: 'a' }, b: { name: 'b' }, c: { name: 'c' }
   }, data.get('yes'));
 });
+
+test('Multiple instant listeners', t => {
+  t.plan(3);
+
+  const data = d();
+  data.set('yes', 'yes');
+  data.on('! yes', () => {
+    t.pass();
+    data.on('! yes', () => {
+      t.pass();
+      data.on('! yes', t.pass);
+    });
+  });
+});

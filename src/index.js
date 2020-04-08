@@ -53,7 +53,20 @@ module.exports = () => {
   const _data = {};
   const _changeListeners = listeners('change');
   const _addListeners = listeners('add');
-  const _immediateListeners = listeners('immediate');
+  const _immediateListeners = (() => {
+    const _listener = listeners('immediate');
+    let ref;
+    return {
+      add(path, listener) {
+        ref = _listener.add(path, listener);
+      },
+      get(path) {
+        const res = _listener.get(path);
+        _listener.remove(ref);
+        return res;
+      }
+    };
+  })();
   const _removeListeners = listeners('remove');
   const _triggerListeners = listeners('trigger');
   const hooks = listeners('hooks');
@@ -136,13 +149,13 @@ module.exports = () => {
     }
   }
 
-  function triggerImmediate(parts, index = 0, path = []) {
+  function triggerImmediate(listener, parts, index = 0, path = []) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
       const data = get(_data, path.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(parts, index + 1, path.concat(key))
+          triggerImmediate(listener, parts, index + 1, path.concat(key))
         );
         return;
       } else {
@@ -151,6 +164,7 @@ module.exports = () => {
     }
     path = path.join('.');
     if (typeof get(_data, path) !== 'undefined') {
+      _immediateListeners.add(parts.join('.'), listener);
       trigger(_immediateListeners, path);
     }
   }
@@ -213,9 +227,7 @@ module.exports = () => {
     ).join(' ');
 
     if (flags.includes('!')) {
-      const ref = _immediateListeners.add(path, listener);
-      triggerImmediate(path.split('.'));
-      _immediateListeners.remove(ref);
+      triggerImmediate(listener, path.split('.'));
     }
 
     return refs;
@@ -224,7 +236,6 @@ module.exports = () => {
   self.off = (refs) => {
     for (let ref of refs.split(' ').map(ref => ref.trim()).filter(ref => ref)) {
       _changeListeners.remove(ref);
-      _immediateListeners.remove(ref);
       _addListeners.remove(ref);
       _removeListeners.remove(ref);
       _triggerListeners.remove(ref);
