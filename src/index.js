@@ -34,7 +34,7 @@ function get(input, path) {
 }
 
 function unset(input, path) {
-  if (typeof get(input, path) === 'undefined') return;
+  if (typeof get(input, path) === 'undefined') return false;
 
   path = path.split('.');
   for (let i = 0; i < path.length - 1; i++) {
@@ -45,6 +45,7 @@ function unset(input, path) {
     input = input[current];
   }
   delete input[path[path.length - 1]];
+  return true;
 }
 
 module.exports = () => {
@@ -290,8 +291,9 @@ module.exports = () => {
     };
 
     unsetRecursive(_data, path, path);
-    unset(_data, path);
-    callHook(path, 'unset');
+    if (unset(_data, path)) {
+      callHook(path, 'unset');
+    }
   };
 
   self.hook = (basePath, cb) => hooks.add(basePath + '.**', cb);

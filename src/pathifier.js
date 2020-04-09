@@ -99,11 +99,11 @@ module.exports = (data, from) => {
       _on = true;
       refs.push(
         data.hook(from, {
-          set(path, value) {
+          set(path) {
             if (!path) {
               update();
             } else {
-              const updated = set(path, value);
+              const updated = set(path, data.get([from, path].join('.')));
               if (updated && _then) _then(cache);
             }
           },

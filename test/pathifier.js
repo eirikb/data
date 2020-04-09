@@ -26,6 +26,31 @@ function stower() {
   };
 }
 
+function stower2(...props) {
+  const res = [];
+  return {
+    res,
+    reset() {
+      res.splice(0, res.length);
+    },
+    toArray() {
+      function eh(t) {
+        return function (index, path, value) {
+          const input = { index, path, value };
+          const o = {};
+          props.forEach(p => o[p] = input[p]);
+          res.push({ t, ...o })
+        }
+      }
+
+      return {
+        add: eh('add'),
+        remove: eh('remove')
+      };
+    }
+  };
+}
+
 test.beforeEach(t => {
   t.context.data = Data();
 });
@@ -375,3 +400,48 @@ test('on sortOn - custom order update', t => {
   t.deepEqual([[0, '1', '7']], add);
 });
 
+test('Pathifier no sub-array', t => {
+  const { data } = t.context;
+  const { res, reset, toArray } = stower2('index', 'path');
+  data.on('players').map(p => p.name).toArray(toArray());
+  data.set('players', [
+    { name: 'a' },
+    { name: 'b' }
+  ]);
+  t.deepEqual(res, [
+    { t: 'add', index: 0, path: '0' },
+    { t: 'add', index: 1, path: '1' }
+  ]);
+  reset();
+  data.set('players', [
+    { name: 'a' },
+  ]);
+  t.deepEqual(res, [
+    { t: 'remove', index: 0, path: '0' },
+    { t: 'add', index: 0, path: '0' },
+    { t: 'remove', index: 1, path: '1' }
+  ]);
+});
+
+test('Pathifier sub-array', t => {
+  const { data } = t.context;
+  const { res, reset, toArray } = stower2('index', 'path');
+  data.on('players').map(p => p.name).toArray(toArray());
+  data.set('players', [
+    { name: 'a' },
+    { name: 'b' }
+  ]);
+  t.deepEqual(res, [
+    { t: 'add', index: 0, path: '0' },
+    { t: 'add', index: 1, path: '1' }
+  ]);
+  reset();
+  data.set('players', [
+    { name: 'a', x: [1] },
+  ]);
+  t.deepEqual(res, [
+    { t: 'remove', index: 0, path: '0' },
+    { t: 'add', index: 0, path: '0' },
+    { t: 'remove', index: 1, path: '1' }
+  ]);
+});
