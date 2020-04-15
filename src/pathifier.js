@@ -49,6 +49,7 @@ module.exports = (data, from) => {
   }
 
   const self = {
+    from: fromHacked,
     filter(filter) {
       setFilter(filter);
       return self;
