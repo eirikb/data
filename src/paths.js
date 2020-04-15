@@ -107,7 +107,7 @@ module.exports = () => {
 
 module.exports.clean = path => {
   const res = [];
-  path.split('.').some(part => {
+  path.split('.').every(part => {
     const check = part !== '*' && part !== '**' && !part.startsWith('$');
     if (check) res.push(part);
     return check;
