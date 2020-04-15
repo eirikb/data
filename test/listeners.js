@@ -7,11 +7,11 @@ test('static listener', t => {
   listeners.add('a', listener);
   listeners.add('a.b.c', listener);
   t.deepEqual(listeners.get('a'), [{
-    keys: {}, path: 'a', _: [listener]
+    keys: {}, path: 'a', _: [['ref-1', listener]], fullPath: 'a'
   }]);
   t.deepEqual(listeners.get('a.b'), []);
   t.deepEqual(listeners.get('a.b.c'), [{
-    keys: {}, path: 'a.b.c', _: [listener]
+    keys: {}, path: 'a.b.c', _: [['ref-2', listener]], fullPath: 'a.b.c'
   }]);
   t.deepEqual(listeners.get('a.b.c.d'), []);
   t.deepEqual(listeners.get('a.c.c'), []);
@@ -23,12 +23,12 @@ test('dynamic listener', t => {
   listeners.add('a.$b', listener);
   listeners.add('a.$b.$c.d', listener);
   t.deepEqual(listeners.get('a.c'), [{
-    path: 'a.c', _: [listener], keys: { $b: 'c' }
+    path: 'a.c', _: [['ref-1', listener]], keys: { $b: 'c' }, fullPath: 'a.c'
   }]);
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b.c'), []);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    path: 'a.b.c.d', _: [listener], keys: { $b: 'b', $c: 'c' }
+    path: 'a.b.c.d', _: [['ref-2', listener]], keys: { $b: 'b', $c: 'c' }, fullPath: 'a.b.c.d'
   }]);
 });
 
@@ -55,7 +55,7 @@ test('wildcard key middle', t => {
   t.deepEqual(listeners.get('a.b.c'), []);
   t.deepEqual(listeners.get('a.b.c.d'), []);
   t.deepEqual(listeners.get('a.x.b.y.c'), [{
-    keys: {}, path: 'a.x.b.y.c', _: [listener]
+    keys: {}, path: 'a.x.b.y.c', _: [['ref-1', listener]], fullPath: 'a.x.b.y.c'
   }]);
   t.deepEqual(listeners.get('a.x.b.y.c.d'), []);
 });
@@ -67,7 +67,7 @@ test('wildcard key end', t => {
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b'), []);
   t.deepEqual(listeners.get('a.b.c'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b.c'
   }]);
 });
 
@@ -80,7 +80,7 @@ test('multiple wildcard key end', t => {
   t.deepEqual(listeners.get('a.b'), []);
   t.deepEqual(listeners.get('a.b.c'), []);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b.c.d'
   }]);
 });
 
@@ -90,16 +90,16 @@ test('recursive wildcard', t => {
   listeners.add('a.b.**', listener);
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b'
   }]);
   t.deepEqual(listeners.get('a.b.c'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b.c'
   }]);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b.c.d'
   }]);
   t.deepEqual(listeners.get('a.b.c.d.e'), [{
-    keys: {}, path: 'a.b', _: [listener]
+    keys: {}, path: 'a.b', _: [['ref-1', listener]], fullPath: 'a.b.c.d.e'
   }]);
 });
 
@@ -109,16 +109,16 @@ test('recursive wildcard and wildcard', t => {
   listeners.add('a.*.**', listener);
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b'), [{
-    keys: {}, path: 'a', _: [listener]
+    keys: {}, path: 'a', _: [['ref-1', listener]], fullPath: 'a.b'
   }]);
   t.deepEqual(listeners.get('a.b.c'), [{
-    keys: {}, path: 'a', _: [listener]
+    keys: {}, path: 'a', _: [['ref-1', listener]], fullPath: 'a.b.c'
   }]);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    keys: {}, path: 'a', _: [listener]
+    keys: {}, path: 'a', _: [['ref-1', listener]], fullPath: 'a.b.c.d'
   }]);
   t.deepEqual(listeners.get('a.b.c.d.e'), [{
-    keys: {}, path: 'a', _: [listener]
+    keys: {}, path: 'a', _: [['ref-1', listener]], fullPath: 'a.b.c.d.e'
   }]);
 });
 
@@ -129,13 +129,13 @@ test('recursive wildcard and wildcard 2', t => {
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b'), []);
   t.deepEqual(listeners.get('a.b.c'), [{
-    keys: {}, path: 'a.b.c', _: [listener]
+    keys: {}, path: 'a.b.c', _: [['ref-1', listener]], fullPath: 'a.b.c'
   }]);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    keys: {}, path: 'a.b.c', _: [listener]
+    keys: {}, path: 'a.b.c', _: [['ref-1', listener]], fullPath: 'a.b.c.d'
   }]);
   t.deepEqual(listeners.get('a.b.c.d.e'), [{
-    keys: {}, path: 'a.b.c', _: [listener]
+    keys: {}, path: 'a.b.c', _: [['ref-1', listener]], fullPath: 'a.b.c.d.e'
   }]);
 });
 
@@ -154,10 +154,10 @@ test('wildcard plus key', t => {
 
   t.deepEqual(listeners.get('users.1.x'),
     [{
-      keys: { $id: '1' }, path: 'users.1.x', _: [ll1]
+      keys: { $id: '1' }, path: 'users.1.x', _: [['ref-1', ll1]], fullPath: 'users.1.x'
     }]);
   t.deepEqual(listeners.get('users.1.name'),
     [{
-      keys: { $id: '1' }, path: 'users.1.name', _: [ll2]
+      keys: { $id: '1' }, path: 'users.1.name', _: [['ref-2', ll2]], fullPath: 'users.1.name'
     }]);
 });

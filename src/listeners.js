@@ -25,7 +25,7 @@ module.exports = (prefix = 'ref') => {
 
   function get(path) {
     return paths.lookup(path).map(res => {
-      res._ = Object.values(res._).map(l => l.listener);
+      res._ = Object.entries(res._).map(([ref, res]) => [ref, res.listener]);
       return res;
     });
   }

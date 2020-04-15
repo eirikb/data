@@ -64,7 +64,8 @@ module.exports = () => {
 
       const res = {
         keys: keysMap, _: parent.h,
-        path: (until >= 0 ? parts.slice(0, until + 1) : parts).join('.')
+        path: (until >= 0 ? parts.slice(0, until + 1) : parts).join('.'),
+        ...until >= 0 ? { fullPath: parts.join('.') } : {}
       };
       result.push(res);
     }
@@ -102,4 +103,14 @@ module.exports = () => {
   };
 
   return self;
+};
+
+module.exports.clean = path => {
+  const res = [];
+  path.split('.').some(part => {
+    const check = part !== '*' && part !== '**' && !part.startsWith('$');
+    if (check) res.push(part);
+    return check;
+  });
+  return res.join('.');
 };

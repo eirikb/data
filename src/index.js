@@ -1,5 +1,6 @@
 const listeners = require('./listeners');
-const Pathifier = require('../src/pathifier');
+const Pathifier = require('./pathifier');
+const { clean } = require('./paths');
 
 /***
  *    Flags:
@@ -34,7 +35,7 @@ function get(input, path) {
 }
 
 function unset(input, path) {
-  if (typeof get(input, path) === 'undefined') return false;
+  if (typeof get(input, path) === 'undefined') return;
 
   path = path.split('.');
   for (let i = 0; i < path.length - 1; i++) {
@@ -45,7 +46,6 @@ function unset(input, path) {
     input = input[current];
   }
   delete input[path[path.length - 1]];
-  return true;
 }
 
 module.exports = () => {
@@ -54,23 +54,8 @@ module.exports = () => {
   const _data = {};
   const _changeListeners = listeners('change');
   const _addListeners = listeners('add');
-  const _immediateListeners = (() => {
-    const _listener = listeners('immediate');
-    let ref;
-    return {
-      add(path, listener) {
-        ref = _listener.add(path, listener);
-      },
-      get(path) {
-        const res = _listener.get(path);
-        _listener.remove(ref);
-        return res;
-      }
-    };
-  })();
   const _removeListeners = listeners('remove');
   const _triggerListeners = listeners('trigger');
-  const hooks = listeners('hooks');
 
   function getListenerByFlag(flag) {
     switch (flag) {
@@ -82,15 +67,6 @@ module.exports = () => {
         return _removeListeners;
       case '=':
         return _triggerListeners;
-    }
-  }
-
-  function callHook(path, type, value) {
-    for (let hook of hooks.get(path)) {
-      const diffPath = path.slice(hook.path.length + 1);
-      for (let _ of hook._) {
-        if (_[type]) _[type](diffPath, value);
-      }
     }
   }
 
@@ -150,13 +126,13 @@ module.exports = () => {
     }
   }
 
-  function triggerImmediate(listener, parts, index = 0, path = []) {
+  function triggerImmediate(target, refPaths, listener, parts, index = 0, path = []) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
       const data = get(_data, path.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(listener, parts, index + 1, path.concat(key))
+          triggerImmediate(target, refPaths, listener, parts, index + 1, path.concat(key))
         );
         return;
       } else {
@@ -165,8 +141,24 @@ module.exports = () => {
     }
     path = path.join('.');
     if (typeof get(_data, path) !== 'undefined') {
-      _immediateListeners.add(parts.join('.'), listener);
-      trigger(_immediateListeners, path);
+
+      const immediateListeners = (() => {
+        const _listener = listeners('immediate');
+        let ref;
+        return {
+          add(path, listener) {
+            ref = _listener.add(path, listener);
+          },
+          get(path) {
+            const res = _listener.get(path);
+            _listener.remove(ref);
+            return res;
+          }
+        };
+      })();
+
+      immediateListeners.add(parts.join('.'), listener);
+      trigger(target, refPaths, immediateListeners, path);
     }
   }
 
@@ -197,20 +189,20 @@ module.exports = () => {
 
     const toCall = [];
     set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
+    const refPaths = new Set();
+    const target = path;
     for (let { listeners, path, value } of toCall) {
-      trigger(listeners, path, value);
+      trigger(target, refPaths, listeners, path, value);
     }
 
     for (let path of parentsWithoutValue) {
-      trigger(_addListeners, path, value);
+      trigger(target, refPaths, _addListeners, path, value);
     }
     let { qVal } = (setQueue[path] || {});
     delete setQueue[path];
     if (typeof qVal !== 'undefined') {
       self.set(path, qVal);
     }
-
-    callHook(path, 'set', value);
   };
 
   self.on = (flagsAndPath, listener) => {
@@ -228,7 +220,9 @@ module.exports = () => {
     ).join(' ');
 
     if (flags.includes('!')) {
-      triggerImmediate(listener, path.split('.'));
+      const refPaths = new Set();
+      const target = clean(path);
+      triggerImmediate(target, refPaths, listener, path.split('.'));
     }
 
     return refs;
@@ -243,21 +237,25 @@ module.exports = () => {
     }
   };
 
-  function trigger(listeners, path, value) {
+  function trigger(target, refPaths, listeners, path, value) {
     const results = listeners.get(path);
     let resultValue;
     for (let res of results) {
       const listeners = res._;
       res.value = value;
-      for (let listener of listeners) {
-        if (listener) {
+      for (let [ref, listener] of listeners) {
+        const refPath = ref + res.path;
+        if (listener && !refPaths.has(refPath)) {
+          refPaths.add(refPath);
           let val = get(_data, res.path);
           if (typeof val === 'undefined') {
             val = value;
           }
           const valIsObject = isProbablyPlainObject(val);
           resultValue = listener(val, {
-            ...res.keys, path: res.path,
+            target,
+            path: res.path,
+            ...res.keys,
             ...valIsObject ? {
               values: Object.values(val), keys: Object.keys(val)
             } : {}
@@ -269,7 +267,7 @@ module.exports = () => {
   }
 
   self.trigger = (path, value) => {
-    return trigger(_triggerListeners, path, value);
+    return trigger(path, new Set(), _triggerListeners, path, value);
   };
 
   self.get = (path) => {
@@ -278,6 +276,8 @@ module.exports = () => {
   };
 
   self.unset = (path) => {
+    const refPaths = new Set();
+    const target = path;
     const unsetRecursive = (parent, key, path) => {
       const data = get(parent, key);
       if (isProbablyPlainObject(data)) {
@@ -286,19 +286,13 @@ module.exports = () => {
         }
       }
       if (typeof data !== 'undefined') {
-        trigger(_removeListeners, path, data);
+        trigger(target, refPaths, _removeListeners, path, data);
       }
     };
 
     unsetRecursive(_data, path, path);
-    if (unset(_data, path)) {
-      callHook(path, 'unset');
-    }
+    unset(_data, path);
   };
-
-  self.hook = (basePath, cb) => hooks.add(basePath + '.**', cb);
-
-  self.unhook = ref => hooks.remove(ref);
 
   return self;
 };

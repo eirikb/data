@@ -71,7 +71,7 @@ test('then unset', t => {
     b: { name: 'b' },
   });
   let users;
-  data.on('users').then(u => {
+  data.on('users.*').then(u => {
     users = u;
   });
   t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
@@ -98,7 +98,7 @@ test('to unset', t => {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  data.on('users').to('yes');
+  data.on('users.*').to('yes');
   data.unset('users.b');
   t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
 });
@@ -109,7 +109,7 @@ test('to unset sub-path', t => {
     a: { name: 'a', age: 12 },
     b: { name: 'b', age: 42 },
   });
-  data.on('users').to('yes');
+  data.on('users.*.*').to('yes');
   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b', age: 42 } }, data.get('yes'));
   data.unset('users.b.age');
   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, data.get('yes'));
@@ -159,7 +159,7 @@ test('to filter', t => {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  data.on('users').filter(u => u.name !== 'b').to('yes');
+  data.on('users.*').filter(u => u.name !== 'b').to('yes');
   data.set('users.c.name', 'c');
   t.deepEqual({ a: { name: 'a' }, c: { name: 'c' } }, data.get('yes'));
 });
@@ -170,7 +170,7 @@ test('to map', t => {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  data.on('users').map(user => ({ wat: user.name })).to('yes');
+  data.on('users.*').map(user => ({ wat: user.name })).to('yes');
   data.set('users.c.name', 'c');
   t.deepEqual({ a: { wat: 'a' }, b: { wat: 'b' }, c: { wat: 'c' } }, data.get('yes'));
 });
@@ -188,7 +188,7 @@ test('to map and filter', t => {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  data.on('users').map(u => ({ wat: u.name })).filter(u => u.name !== 'b').to('yes');
+  data.on('users.*').map(u => ({ wat: u.name })).filter(u => u.name !== 'b').to('yes');
   data.set('users.c.name', 'c');
   t.deepEqual({ a: { wat: 'a' }, c: { wat: 'c' } }, data.get('yes'));
 });
@@ -199,7 +199,7 @@ test('filterOn after', t => {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  data.on('users').filterOn('filter', (f, u) => u.name === f).to('yes');
+  data.on('users.*').filterOn('filter', (f, u) => u.name === f).to('yes');
   data.set('users.c.name', 'c');
   data.set('filter', 'b');
   t.deepEqual({ b: { name: 'b' } }, data.get('yes'));
@@ -212,7 +212,7 @@ test('filterOn before', t => {
     b: { name: 'b' },
   });
   data.set('filter', 'b');
-  data.on('users').filterOn('filter', (f, u) => u.name === f).to('yes');
+  data.on('users.*').filterOn('filter', (f, u) => u.name === f).to('yes');
   data.set('users.c.name', 'c');
   t.deepEqual({ b: { name: 'b' } }, data.get('yes'));
   data.set('filter', 'a');
@@ -277,7 +277,7 @@ test('toArray initial after', t => {
 test('toArray add', t => {
   const { data } = t.context;
   const { res, toArray, reset } = stower();
-  data.on('users').toArray(toArray());
+  data.on('users.*').toArray(toArray());
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
@@ -296,7 +296,7 @@ test('toArray add', t => {
 test('toArray remove', t => {
   const { data } = t.context;
   const { res, reset, toArray } = stower();
-  data.on('users').toArray(toArray());
+  data.on('users.*').toArray(toArray());
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
@@ -389,7 +389,7 @@ test('on sortOn - custom order update', t => {
   const { data } = t.context;
   const { res, reset, toArray } = stower();
 
-  data.on('players')
+  data.on('players.*')
     .map(player => player.name)
     .sortOn('test', (val, a, b) => b.name.localeCompare(a.name))
     .toArray(toArray(true));
@@ -421,7 +421,7 @@ test('on sortOn - custom order update', t => {
 test('Pathifier no sub-array', t => {
   const { data } = t.context;
   const { res, reset, toArray } = stower('index', 'path');
-  data.on('players').map(p => p.name).toArray(toArray());
+  data.on('players.*').map(p => p.name).toArray(toArray());
   data.set('players', [
     { name: 'a' },
     { name: 'b' }
@@ -444,7 +444,7 @@ test('Pathifier no sub-array', t => {
 test('Pathifier sub-array', t => {
   const { data } = t.context;
   const { res, reset, toArray } = stower('index', 'path');
-  data.on('players').map(p => p.name).toArray(toArray());
+  data.on('players.*').map(p => p.name).toArray(toArray());
   data.set('players', [
     { name: 'a' },
     { name: 'b' }

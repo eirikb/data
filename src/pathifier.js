@@ -1,4 +1,10 @@
+const { clean } = require('./paths');
+
 module.exports = (data, from) => {
+  if (from.includes('$')) {
+    throw new Error('Sorry, no named wildcard support in pathifier');
+  }
+  const fromHacked = clean(from);
   const refs = [];
 
   const cache = {};
@@ -78,39 +84,36 @@ module.exports = (data, from) => {
       if (_to) throw new Error('Sorry, only one to');
       _to = path;
       if (!_on) self.on();
-      update();
       return self;
     },
     then(then) {
       _then = then;
       if (!_on) self.on();
-      update();
       return self;
     },
     toArray(toArray) {
       if (_toArray) throw new Error('Sorry, only one toArray');
       _toArray = toArray;
       if (!_on) self.on();
-      update();
       return self;
     },
     on() {
       if (_on) return;
       _on = true;
       refs.push(
-        data.hook(from, {
-          set(path) {
-            if (!path) {
-              update();
-            } else {
-              const updated = set(path, data.get([from, path].join('.')));
-              if (updated && _then) _then(cache);
-            }
-          },
-          unset(path) {
-            const updated = unset(path);
+        data.on(`!+* ${from}`, (_, { path, target }) => {
+          if (path === target) {
+            update();
+          } else {
+            const subPath = target.slice(fromHacked.length + 1);
+            const updated = set(subPath, data.get(target));
             if (updated && _then) _then(cache);
           }
+        }),
+        data.on(`- ${from}`, (_, { path, target }) => {
+          const subPath = target.slice(fromHacked.length + 1);
+          const updated = unset(subPath);
+          if (updated && _then) _then(cache);
         })
       );
     },
@@ -125,14 +128,14 @@ module.exports = (data, from) => {
   function update() {
     if (!_to && !_toArray && !_then) return;
 
-    const fromData = data.get(from);
+    const fromData = data.get(fromHacked);
     if (!fromData) return;
 
     const a = new Set(Object.keys(fromData || {}));
     const b = new Set(Object.keys(cache || {}));
     let updated = false;
     for (let aa of a) {
-      if (set(aa, data.get(keys(from, aa)))) {
+      if (set(aa, data.get(keys(fromHacked, aa)))) {
         updated = true;
         b.delete(aa);
       }
@@ -152,14 +155,14 @@ module.exports = (data, from) => {
   function set(key, value) {
     const parts = key.split('.');
     const k = parts[0];
-    if (_filter && !_filter(data.get(keys(from, k)))) {
+    if (_filter && !_filter(data.get(keys(fromHacked, k)))) {
       return false;
     }
 
     const exists = cache[k];
     const origValue = value;
     if (_map) {
-      value = _map(data.get(keys(from, k)));
+      value = _map(data.get(keys(fromHacked, k)));
       key = k;
     }
 

@@ -525,49 +525,6 @@ test('trigger can return', async t => {
   t.deepEqual('Hello, world!', res);
 });
 
-test('Hooks', t => {
-  const data = d();
-  data.hook('users', {
-    set(path, value) {
-      data.set(['yes', path].filter(p => p).join('.'), value);
-    },
-    unset(path) {
-      data.unset(['yes', path].filter(p => p).join('.'));
-    }
-  });
-  data.set('users', {
-    a: { name: 'a' },
-    b: { name: 'b' }
-  });
-  data.set('users.c.name', 'c');
-  data.unset('users.a');
-  t.deepEqual({
-    b: { name: 'b' }, c: { name: 'c' }
-  }, data.get('yes'));
-});
-
-test('Hooks clear listener', t => {
-  const data = d();
-  const ref = data.hook('users', {
-    set(path, value) {
-      data.set(['yes', path].filter(p => p).join('.'), value);
-    },
-    unset(path) {
-      data.unset(['yes', path].filter(p => p).join('.'));
-    }
-  });
-  data.set('users', {
-    a: { name: 'a' },
-    b: { name: 'b' }
-  });
-  data.set('users.c.name', 'c');
-  data.unhook(ref);
-  data.unset('users.a');
-  t.deepEqual({
-    a: { name: 'a' }, b: { name: 'b' }, c: { name: 'c' }
-  }, data.get('yes'));
-});
-
 test('Multiple instant listeners', t => {
   t.plan(3);
 
@@ -578,6 +535,61 @@ test('Multiple instant listeners', t => {
     data.on('! yes', () => {
       t.pass();
       data.on('! yes', t.pass);
+    });
+  });
+});
+
+test('Wild-wildcard once for multiple including paths for singles', t => {
+  t.plan(3);
+  const data = d();
+
+  let hack;
+  data.on('!+* players.*', (players) => {
+    hack(players);
+  });
+
+  hack = res => t.deepEqual(res, {
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' }
+  });
+  data.set('players', {
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' }
+  });
+
+  hack = res => t.deepEqual(res, {
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' },
+    d: { name: 'd' }
+  });
+  data.set('players.d.name', 'd');
+
+  hack = res => t.deepEqual(res, {
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' },
+    d: { name: 'd' },
+    e: { name: 'e' }
+  });
+  data.set('players.e', { name: 'e' });
+});
+
+test('Wild-wildcard once for multiple including paths for singles on immediate', t => {
+  t.plan(1);
+  const data = d();
+  data.set('players', {
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' }
+  });
+  data.on('!+* players.*', (players) => {
+    t.deepEqual(players, {
+      a: { name: 'a' },
+      b: { name: 'b' },
+      c: { name: 'c' }
     });
   });
 });

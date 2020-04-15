@@ -5,7 +5,7 @@ test('add static path', t => {
   const paths = Paths();
   paths.add('a.b.c', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b.c'
+    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b.c', fullPath: 'a.b.c'
   }]);
 });
 
@@ -13,7 +13,7 @@ test('add dynamic path', t => {
   const paths = Paths();
   paths.add('a.$b.c', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: { $b: 'b' }, _: { ref: { ok: 1 } }, path: 'a.b.c'
+    keys: { $b: 'b' }, _: { ref: { ok: 1 } }, path: 'a.b.c', fullPath: 'a.b.c'
   }]);
 });
 
@@ -67,8 +67,8 @@ test('keys', t => {
   paths.add('a.$x.y', 'ref', { ok: 1 });
   paths.add('a.$x.$y', 'ref', { ok: 2 });
   t.deepEqual(paths.lookup('a.b.y'), [
-    { _: { ref: { ok: 2 } }, keys: { $x: 'b', $y: 'y' }, path: 'a.b.y' },
-    { _: { ref: { ok: 1 } }, keys: { $x: 'b' }, path: 'a.b.y' }
+    { _: { ref: { ok: 2 } }, keys: { $x: 'b', $y: 'y' }, path: 'a.b.y', fullPath: 'a.b.y' },
+    { _: { ref: { ok: 1 } }, keys: { $x: 'b' }, path: 'a.b.y', fullPath: 'a.b.y' }
   ]);
 });
 
@@ -86,7 +86,7 @@ test('multiple wildcard key end', t => {
   t.deepEqual(paths.lookup('a.b'), []);
   t.deepEqual(paths.lookup('a.b.c'), []);
   t.deepEqual(paths.lookup('a.b.c.d'), [{
-    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b'
+    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c.d'
   }]);
 });
 
@@ -94,10 +94,10 @@ test('recursive wildcard', t => {
   const paths = Paths();
   paths.add('a.b.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a'), []);
-  t.deepEqual(paths.lookup('a.b'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b' }]);
-  t.deepEqual(paths.lookup('a.b.c'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b' }]);
-  t.deepEqual(paths.lookup('a.b.c.d'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b' }]);
-  t.deepEqual(paths.lookup('a.b.c.d.e'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b' }]);
+  t.deepEqual(paths.lookup('a.b'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b' }]);
+  t.deepEqual(paths.lookup('a.b.c'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c' }]);
+  t.deepEqual(paths.lookup('a.b.c.d'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c.d' }]);
+  t.deepEqual(paths.lookup('a.b.c.d.e'), [{ keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c.d.e' }]);
 });
 
 test('recursive with named', t => {
@@ -105,9 +105,19 @@ test('recursive with named', t => {
   paths.add('a.b.$c.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), []);
-  t.deepEqual(paths.lookup('a.b.c'), [{ keys: { $c: 'c' }, _: { ref: { ok: 1 } }, path: 'a.b.c' }]);
-  t.deepEqual(paths.lookup('a.b.x.d'), [{ keys: { $c: 'x' }, _: { ref: { ok: 1 } }, path: 'a.b.x' }]);
-  t.deepEqual(paths.lookup('a.b.y.d.e'), [{ keys: { $c: 'y' }, _: { ref: { ok: 1 } }, path: 'a.b.y' }]);
+  t.deepEqual(paths.lookup('a.b.c'), [{ keys: { $c: 'c' }, _: { ref: { ok: 1 } }, path: 'a.b.c', fullPath: 'a.b.c' }]);
+  t.deepEqual(paths.lookup('a.b.x.d'), [{
+    keys: { $c: 'x' },
+    _: { ref: { ok: 1 } },
+    path: 'a.b.x',
+    fullPath: 'a.b.x.d'
+  }]);
+  t.deepEqual(paths.lookup('a.b.y.d.e'), [{
+    keys: { $c: 'y' },
+    _: { ref: { ok: 1 } },
+    path: 'a.b.y',
+    fullPath: 'a.b.y.d.e'
+  }]);
 });
 
 test('remove static path', t => {
@@ -147,7 +157,7 @@ test('until star', t => {
   const paths = Paths();
   paths.add('a.b.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b'
+    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c'
   }]);
 });
 
@@ -155,7 +165,7 @@ test('until star with wildcard', t => {
   const paths = Paths();
   paths.add('a.$b.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: { $b: 'b' }, _: { ref: { ok: 1 } }, path: 'a.b'
+    keys: { $b: 'b' }, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c'
   }]);
 });
 
@@ -163,7 +173,7 @@ test('until recursive wildcard', t => {
   const paths = Paths();
   paths.add('a.b.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b'
+    keys: {}, _: { ref: { ok: 1 } }, path: 'a.b', fullPath: 'a.b.c'
   }]);
 });
 
@@ -172,16 +182,16 @@ test('recursive wildcard and wildcard', t => {
   paths.add('a.*.**', 'ref', {});
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), [{
-    keys: {}, path: 'a', _: { ref: {} }
+    keys: {}, path: 'a', _: { ref: {} }, fullPath: 'a.b'
   }]);
   t.deepEqual(paths.lookup('a.b.c'), [{
-    keys: {}, path: 'a', _: { ref: {} }
+    keys: {}, path: 'a', _: { ref: {} }, fullPath: 'a.b.c'
   }]);
   t.deepEqual(paths.lookup('a.b.c.d'), [{
-    keys: {}, path: 'a', _: { ref: {} }
+    keys: {}, path: 'a', _: { ref: {} }, fullPath: 'a.b.c.d'
   }]);
   t.deepEqual(paths.lookup('a.b.c.d.e'), [{
-    keys: {}, path: 'a', _: { ref: {} }
+    keys: {}, path: 'a', _: { ref: {} }, fullPath: 'a.b.c.d.e'
   }]);
 });
 
@@ -190,7 +200,7 @@ test('Recursive wildcard and named wildcard combined', t => {
   paths.add('test.**', 'a', {});
   paths.add('test.$id', 'b', {});
   t.deepEqual(paths.lookup('test.a'), [
-    { keys: { $id: 'a' }, path: 'test.a', _: { b: {} } },
-    { keys: {}, path: 'test', _: { a: {} } }
+    { keys: { $id: 'a' }, path: 'test.a', _: { b: {} }, fullPath: 'test.a' },
+    { keys: {}, path: 'test', _: { a: {} }, fullPath: 'test.a' }
   ]);
 });
