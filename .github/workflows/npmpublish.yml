@@ -35,14 +35,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@master
+      - name: Set env
+        run: echo ::set-env name=PKG_VERSION::$(npm npm @eirikb/data version)
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ PKG_VERSION }}
+          release_name: Release ${{ PKG_VERSION }}
           body: |
             Changes in this Release
             - First Change
