@@ -43,8 +43,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ PKG_VERSION }}
-          release_name: Release ${{ PKG_VERSION }}
+          tag_name: ${{ env.PKG_VERSION }}
+          release_name: Release ${{ env.PKG_VERSION }}
           body: |
             Changes in this Release
             - First Change
