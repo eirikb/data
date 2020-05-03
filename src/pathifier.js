@@ -163,7 +163,8 @@ module.exports = (data, from) => {
     const exists = cache[k];
     const origValue = value;
     if (_map) {
-      value = _map(data.get(keys(fromHacked, k)));
+      const path = keys(fromHacked, k);
+      value = _map(data.get(path), path);
       key = k;
     }
 

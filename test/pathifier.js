@@ -463,3 +463,24 @@ test('Pathifier sub-array', t => {
     { t: 'remove', index: 1, path: '1' }
   ]);
 });
+
+test('map has path', t => {
+  const { data } = t.context;
+  const { reset, toArray } = stower('index', 'path');
+  let res = [];
+  data.on('players.*').map((p, path) => {
+    res.push(path);
+    return p.name;
+  }).toArray(toArray());
+  data.set('players', [
+    { name: 'a' },
+    { name: 'b' }
+  ]);
+  t.deepEqual(res, ['players.0', 'players.1']);
+  reset();
+  res = [];
+  data.set('players', [
+    { name: 'a', x: [1] },
+  ]);
+  t.deepEqual(res, ['players.0']);
+});
