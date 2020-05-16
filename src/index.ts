@@ -1,6 +1,6 @@
-import Listeners from './listeners'
+import Listeners from './listeners';
 import Pathifier from './pathifier';
-import {clean} from './paths';
+import { clean } from './paths';
 
 /***
  *    Flags:
@@ -49,19 +49,19 @@ function unset(input, path) {
 }
 
 interface Data {
-  unset(path: string)
+  unset(path: string);
 
-  merge(path: string, value: any, byKey?: string)
+  merge(path: string, value: any, byKey?: string);
 
-  set(path: string, value: any, byKey?: string, merge?: boolean)
+  set(path: string, value: any, byKey?: string, merge?: boolean);
 
-  on(flagsAndPath: string, listener?: Function)
+  on(flagsAndPath: string, listener?: Function);
 
-  off(refs: string)
+  off(refs: string);
 
-  trigger(path: string, value: any)
+  trigger(path: string, value: any);
 
-  get(path?: string)
+  get(path?: string);
 }
 
 export default () => {
@@ -105,11 +105,11 @@ export default () => {
     const hasValue = typeof parent[key] !== 'undefined';
 
     function call() {
-      const trigger = {path, value};
+      const trigger = { path, value };
       if (hasValue) {
-        toCall.push({listeners: _changeListeners, ...trigger});
+        toCall.push({ listeners: _changeListeners, ...trigger });
       } else {
-        toCall.push({listeners: _addListeners, ...trigger});
+        toCall.push({ listeners: _addListeners, ...trigger });
       }
     }
 
@@ -121,18 +121,29 @@ export default () => {
       const childKeys = Object.keys(value);
       let parentKeysMap = {};
       if (parentKeysMap && !merge) {
-        const parentKeys = parentIsProbablyPlainObject ? Object.keys(parent[key]) : [];
-        parentKeysMap = parentKeys.reduce((res, key) => (res[key] = true) && res, {});
+        const parentKeys = parentIsProbablyPlainObject
+          ? Object.keys(parent[key])
+          : [];
+        parentKeysMap = parentKeys.reduce(
+          (res, key) => (res[key] = true) && res,
+          {}
+        );
       }
       for (let childKey of childKeys) {
         if (!merge) {
           delete parentKeysMap[childKey];
         }
-        set(toCall, path + '.' + childKey, parent[key], childKey, value[childKey])
+        set(
+          toCall,
+          path + '.' + childKey,
+          parent[key],
+          childKey,
+          value[childKey]
+        );
       }
       if (!merge) {
         for (let childKey of Object.keys(parentKeysMap)) {
-          self.unset(path + '.' + childKey)
+          self.unset(path + '.' + childKey);
         }
       }
       call();
@@ -144,13 +155,27 @@ export default () => {
     }
   }
 
-  function triggerImmediate(target, refPaths, listener, parts, index = 0, paths = []) {
+  function triggerImmediate(
+    target,
+    refPaths,
+    listener,
+    parts,
+    index = 0,
+    paths = []
+  ) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
       const data = get(_data, paths.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(target, refPaths, listener, parts, index + 1, paths.concat(key))
+          triggerImmediate(
+            target,
+            refPaths,
+            listener,
+            parts,
+            index + 1,
+            paths.concat(key)
+          )
         );
         return;
       } else {
@@ -159,7 +184,6 @@ export default () => {
     }
     const path = paths.join('.');
     if (typeof get(_data, path) !== 'undefined') {
-
       const immediateListeners = (() => {
         const _listener = Listeners('immediate');
         let ref;
@@ -171,7 +195,7 @@ export default () => {
             const res = _listener.get(path);
             _listener.remove(ref);
             return res;
-          }
+          },
         };
       })();
 
@@ -186,7 +210,7 @@ export default () => {
 
   self.set = (path, value, byKey, merge = false) => {
     if (setQueue[path]) {
-      setQueue[path] = {qVal: value};
+      setQueue[path] = { qVal: value };
       return;
     }
     setQueue[path] = true;
@@ -209,14 +233,14 @@ export default () => {
     set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
     const refPaths = new Set();
     const target = path;
-    for (let {listeners, path, value} of toCall) {
+    for (let { listeners, path, value } of toCall) {
       trigger(target, refPaths, listeners, path, value);
     }
 
     for (let path of parentsWithoutValue) {
       trigger(target, refPaths, _addListeners, path, value);
     }
-    let {qVal} = (setQueue[path] || {});
+    let { qVal } = setQueue[path] || {};
     delete setQueue[path];
     if (typeof qVal !== 'undefined') {
       self.set(path, qVal);
@@ -230,12 +254,16 @@ export default () => {
 
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
     if (!flags || !path) {
-      throw new Error(`Missing flags or path. Usage: data.on('!+* players.$id.name', () => {})`);
+      throw new Error(
+        `Missing flags or path. Usage: data.on('!+* players.$id.name', () => {})`
+      );
     }
 
-    const refs = flags.split('').filter(p => p !== '!').map(flag =>
-      getListenerByFlag(flag).add(path, listener)
-    ).join(' ');
+    const refs = flags
+      .split('')
+      .filter(p => p !== '!')
+      .map(flag => getListenerByFlag(flag).add(path, listener))
+      .join(' ');
 
     if (flags.includes('!')) {
       const refPaths = new Set();
@@ -246,8 +274,11 @@ export default () => {
     return refs;
   };
 
-  self.off = (refs) => {
-    for (let ref of refs.split(' ').map(ref => ref.trim()).filter(ref => ref)) {
+  self.off = refs => {
+    for (let ref of refs
+      .split(' ')
+      .map(ref => ref.trim())
+      .filter(ref => ref)) {
       _changeListeners.remove(ref);
       _addListeners.remove(ref);
       _removeListeners.remove(ref);
@@ -274,9 +305,12 @@ export default () => {
             target,
             path: res.path,
             ...res.keys,
-            ...valIsObject ? {
-              values: Object.values(val), keys: Object.keys(val)
-            } : {}
+            ...(valIsObject
+              ? {
+                  values: Object.values(val),
+                  keys: Object.keys(val),
+                }
+              : {}),
           });
         }
       }
@@ -288,12 +322,12 @@ export default () => {
     return trigger(path, new Set(), _triggerListeners, path, value);
   };
 
-  self.get = (path) => {
+  self.get = path => {
     if (!path) return _data;
     return get(_data, path);
   };
 
-  self.unset = (path) => {
+  self.unset = path => {
     const refPaths = new Set();
     const target = path;
     const unsetRecursive = (parent, key, path) => {

@@ -1,4 +1,4 @@
-import {clean} from './paths';
+import { clean } from './paths';
 
 export default (data, from) => {
   if (from.includes('$')) {
@@ -55,7 +55,7 @@ export default (data, from) => {
       return self;
     },
     filterOn(path, filter) {
-      setFilter((value) => filter(data.get(path), value));
+      setFilter(value => filter(data.get(path), value));
       refs.push(
         data.on(`!+* ${path}`, () => {
           update();
@@ -102,7 +102,7 @@ export default (data, from) => {
       if (_on) return;
       _on = true;
       refs.push(
-        data.on(`!+* ${from}`, (_, {path, target}) => {
+        data.on(`!+* ${from}`, (_, { path, target }) => {
           if (path === target) {
             update();
           } else {
@@ -111,7 +111,7 @@ export default (data, from) => {
             if (updated && _then) _then(cache);
           }
         }),
-        data.on(`- ${from}`, (_, {target}) => {
+        data.on(`- ${from}`, (_, { target }) => {
           const subPath = target.slice(fromHacked.length + 1);
           const updated = unset(subPath);
           if (updated && _then) _then(cache);
@@ -123,7 +123,7 @@ export default (data, from) => {
         data.off(ref);
       }
       _on = false;
-    }
+    },
   };
 
   function update() {
@@ -197,7 +197,9 @@ export default (data, from) => {
   }
 
   function unsetObject(object, parts) {
-    const parent = parts.slice(0, -1).reduce((parent, key) => parent[key], object);
+    const parent = parts
+      .slice(0, -1)
+      .reduce((parent, key) => parent[key], object);
     delete parent[parts[parts.length - 1]];
   }
 

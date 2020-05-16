@@ -11,19 +11,19 @@ function stower(...props) {
     },
     toArray() {
       function eh(t) {
-        return function (index, path, value) {
-          const input = {index, path, value};
+        return function(index, path, value) {
+          const input = { index, path, value };
           const o = {};
-          props.forEach(p => o[p] = input[p]);
-          res.push({t, ...o})
-        }
+          props.forEach(p => (o[p] = input[p]));
+          res.push({ t, ...o });
+        };
       }
 
       return {
         add: eh('add'),
-        remove: eh('remove')
+        remove: eh('remove'),
       };
-    }
+    },
   };
 }
 
@@ -39,11 +39,11 @@ test('then before', t => {
 
   const data = Data();
   data.on('users').then(users => {
-    t.deepEqual({a: {name: 'a'}, b: {name: 'b'}}, users);
+    t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
   });
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
 });
 
@@ -52,72 +52,78 @@ test('then after', t => {
 
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   data.on('users').then(users => {
-    t.deepEqual({a: {name: 'a'}, b: {name: 'b'}}, users);
+    t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
   });
 });
 
 test('then unset', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   let users;
   data.on('users.*').then(u => {
     users = u;
   });
-  t.deepEqual({a: {name: 'a'}, b: {name: 'b'}}, users);
+  t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
   data.unset('users.b');
-  t.deepEqual({a: {name: 'a'}}, users);
+  t.deepEqual({ a: { name: 'a' } }, users);
 });
 
 test('then unset sub-path', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a', age: 12},
-    b: {name: 'b', age: 42},
+    a: { name: 'a', age: 12 },
+    b: { name: 'b', age: 42 },
   });
   let users;
-  data.on('users').then(u => users = u);
-  t.deepEqual({a: {name: 'a', age: 12}, b: {name: 'b', age: 42}}, users);
+  data.on('users').then(u => (users = u));
+  t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b', age: 42 } }, users);
   data.unset('users.b.age');
-  t.deepEqual({a: {name: 'a', age: 12}, b: {name: 'b'}}, users);
+  t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, users);
 });
 
 test('to unset', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   data.on('users.*').to('yes');
   data.unset('users.b');
-  t.deepEqual({a: {name: 'a'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
 });
 
 test('to unset sub-path', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a', age: 12},
-    b: {name: 'b', age: 42},
+    a: { name: 'a', age: 12 },
+    b: { name: 'b', age: 42 },
   });
   data.on('users.*.*').to('yes');
-  t.deepEqual({a: {name: 'a', age: 12}, b: {name: 'b', age: 42}}, data.get('yes'));
+  t.deepEqual(
+    { a: { name: 'a', age: 12 }, b: { name: 'b', age: 42 } },
+    data.get('yes')
+  );
   data.unset('users.b.age');
-  t.deepEqual({a: {name: 'a', age: 12}, b: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, data.get('yes'));
 });
 
 test('then not called for outfiltered data', t => {
   t.plan(1);
 
   const data = Data();
-  data.on('users').filter(user => user.name === 'a').then(users => {
-    t.deepEqual({a: {name: 'a'}}, users);
-  });
+  data
+    .on('users')
+    .filter(user => user.name === 'a')
+    .then(users => {
+      t.deepEqual({ a: { name: 'a' } }, users);
+    });
   data.set('users.a.name', 'a');
   data.set('users.b.name', 'b');
 });
@@ -126,357 +132,404 @@ test('to before ', t => {
   const data = Data();
   data.on('users').to('yes');
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  t.deepEqual({a: {name: 'a'}, b: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, data.get('yes'));
 });
 
 test('to after', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   data.on('users').to('yes');
-  t.deepEqual({a: {name: 'a'}, b: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, data.get('yes'));
 });
 
 test('to sub-path', t => {
   const data = Data();
   data.on('users').to('yes');
   data.set('users.a.name', 'b');
-  t.deepEqual({a: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'b' } }, data.get('yes'));
 });
 
 test('to filter', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  data.on('users.*').filter(u => u.name !== 'b').to('yes');
+  data
+    .on('users.*')
+    .filter(u => u.name !== 'b')
+    .to('yes');
   data.set('users.c.name', 'c');
-  t.deepEqual({a: {name: 'a'}, c: {name: 'c'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a' }, c: { name: 'c' } }, data.get('yes'));
 });
 
 test('to map', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  data.on('users.*').map(user => ({wat: user.name})).to('yes');
+  data
+    .on('users.*')
+    .map(user => ({ wat: user.name }))
+    .to('yes');
   data.set('users.c.name', 'c');
-  t.deepEqual({a: {wat: 'a'}, b: {wat: 'b'}, c: {wat: 'c'}}, data.get('yes'));
+  t.deepEqual(
+    { a: { wat: 'a' }, b: { wat: 'b' }, c: { wat: 'c' } },
+    data.get('yes')
+  );
 });
 
 test('to map called on parent of eh thingy', t => {
   const data = Data();
-  data.on('users').map(user => ({wat: user.name})).to('yes');
+  data
+    .on('users')
+    .map(user => ({ wat: user.name }))
+    .to('yes');
   data.set('users.c.name', 'c');
-  t.deepEqual({c: {wat: 'c'}}, data.get('yes'));
+  t.deepEqual({ c: { wat: 'c' } }, data.get('yes'));
 });
 
 test('to map and filter', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  data.on('users.*').map(u => ({wat: u.name})).filter(u => u.name !== 'b').to('yes');
+  data
+    .on('users.*')
+    .map(u => ({ wat: u.name }))
+    .filter(u => u.name !== 'b')
+    .to('yes');
   data.set('users.c.name', 'c');
-  t.deepEqual({a: {wat: 'a'}, c: {wat: 'c'}}, data.get('yes'));
+  t.deepEqual({ a: { wat: 'a' }, c: { wat: 'c' } }, data.get('yes'));
 });
 
 test('filterOn after', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  data.on('users.*').filterOn('filter', (f, u) => u.name === f).to('yes');
+  data
+    .on('users.*')
+    .filterOn('filter', (f, u) => u.name === f)
+    .to('yes');
   data.set('users.c.name', 'c');
   data.set('filter', 'b');
-  t.deepEqual({b: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ b: { name: 'b' } }, data.get('yes'));
 });
 
 test('filterOn before', t => {
   const data = Data();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   data.set('filter', 'b');
-  data.on('users.*').filterOn('filter', (f, u) => u.name === f).to('yes');
+  data
+    .on('users.*')
+    .filterOn('filter', (f, u) => u.name === f)
+    .to('yes');
   data.set('users.c.name', 'c');
-  t.deepEqual({b: {name: 'b'}}, data.get('yes'));
+  t.deepEqual({ b: { name: 'b' } }, data.get('yes'));
   data.set('filter', 'a');
-  t.deepEqual({a: {name: 'a'}}, data.get('yes'));
+  t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
 });
 
 test('only one filter, unfortunately', t => {
   const data = Data();
-  t.throws(() => data.on('users').filter(1).filterOn(1));
-  t.throws(() => data.on('users').filter(1).filter(1));
+  t.throws(() =>
+    data
+      .on('users')
+      .filter(1)
+      .filterOn(1)
+  );
+  t.throws(() =>
+    data
+      .on('users')
+      .filter(1)
+      .filter(1)
+  );
 });
 
 test('only one sort, unfortunately', t => {
   const data = Data();
-  t.throws(() => data.on('users').sort(1).sortOn(1));
-  t.throws(() => data.on('users').sort(1).sort(1));
+  t.throws(() =>
+    data
+      .on('users')
+      .sort(1)
+      .sortOn(1)
+  );
+  t.throws(() =>
+    data
+      .on('users')
+      .sort(1)
+      .sort(1)
+  );
 });
 
 test('only one map, unfortunately', t => {
   const data = Data();
-  t.throws(() => data.on('users').map(1).map(1));
+  t.throws(() =>
+    data
+      .on('users')
+      .map(1)
+      .map(1)
+  );
 });
 
 test('only one to, unfortunately', t => {
   const data = Data();
-  t.throws(() => data.on('users').to(1).to(1));
+  t.throws(() =>
+    data
+      .on('users')
+      .to(1)
+      .to(1)
+  );
 });
 
 test('only one array, unfortunately', t => {
   const data = Data();
-  t.throws(() => data.on('users').toArray(1).toArray(1));
+  t.throws(() =>
+    data
+      .on('users')
+      .toArray(1)
+      .toArray(1)
+  );
 });
 
 test('toArray initial before', t => {
   const data = Data();
-  const {res, toArray} = stower();
+  const { res, toArray } = stower();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   data.on('users').toArray(toArray());
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 1, path: 'b'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 1, path: 'b' },
   ]);
 });
 
 test('toArray initial after', t => {
   const data = Data();
-  const {res, toArray} = stower();
+  const { res, toArray } = stower();
   data.on('users').toArray(toArray());
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 1, path: 'b'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 1, path: 'b' },
   ]);
 });
 
 test('toArray add', t => {
   const data = Data();
-  const {res, toArray, reset} = stower();
+  const { res, toArray, reset } = stower();
   data.on('users.*').toArray(toArray());
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 1, path: 'b'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 1, path: 'b' },
   ]);
   reset();
   data.set('users.c.name', 'c');
-  t.deepEqual(res, [
-    {t: 'add', index: 2, path: 'c'}
-  ]);
+  t.deepEqual(res, [{ t: 'add', index: 2, path: 'c' }]);
 });
 
 test('toArray remove', t => {
   const data = Data();
-  const {res, reset, toArray} = stower();
+  const { res, reset, toArray } = stower();
   data.on('users.*').toArray(toArray());
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
-    c: {name: 'c'}
+    a: { name: 'a' },
+    b: { name: 'b' },
+    c: { name: 'c' },
   });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 1, path: 'b'},
-    {t: 'add', index: 2, path: 'c'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 1, path: 'b' },
+    { t: 'add', index: 2, path: 'c' },
   ]);
   reset();
   data.unset('users.b');
-  t.deepEqual(res, [
-    {t: 'remove', index: 1, path: 'b'}
-  ]);
+  t.deepEqual(res, [{ t: 'remove', index: 1, path: 'b' }]);
 });
 
 test('sort', t => {
   const data = Data();
-  const {res, toArray} = stower();
+  const { res, toArray } = stower();
   data.set('users', {
-    a: {name: 'a'},
-    b: {name: 'b'},
+    a: { name: 'a' },
+    b: { name: 'b' },
   });
-  data.on('users').sort((a, b) => b.name.localeCompare(a.name)).toArray(toArray());
+  data
+    .on('users')
+    .sort((a, b) => b.name.localeCompare(a.name))
+    .toArray(toArray());
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 0, path: 'b'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 0, path: 'b' },
   ]);
 });
 
 test('Update filterOn on update after data is set', t => {
   const data = Data();
-  const {res, reset, toArray} = stower();
-  data.on('users')
+  const { res, reset, toArray } = stower();
+  data
+    .on('users')
     .map(user => user)
-    .filterOn('test', (filter, user) =>
-      new RegExp(filter, 'i').test(user)
-    ).toArray(toArray());
+    .filterOn('test', (filter, user) => new RegExp(filter, 'i').test(user))
+    .toArray(toArray());
   data.set('test', '');
-  data.set('users', {a: 'a', b: 'b'});
+  data.set('users', { a: 'a', b: 'b' });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'a'},
-    {t: 'add', index: 1, path: 'b'}
+    { t: 'add', index: 0, path: 'a' },
+    { t: 'add', index: 1, path: 'b' },
   ]);
   reset();
   data.set('test', 'b');
   t.deepEqual(res, [
-    {t: 'remove', index: 1, path: 'b'},
-    {t: 'add', index: 1, path: 'b'},
-    {t: 'remove', index: 0, path: 'a'}
+    { t: 'remove', index: 1, path: 'b' },
+    { t: 'add', index: 1, path: 'b' },
+    { t: 'remove', index: 0, path: 'a' },
   ]);
 });
 
 test('filterOn and back', t => {
   const data = Data();
-  const {res, reset, toArray} = stower();
-  data.on('users')
+  const { res, reset, toArray } = stower();
+  data
+    .on('users')
     .map(user => user.name)
-    .filterOn('test', (filter, user) =>
-      new RegExp(filter, 'i').test(user.name)
-    ).toArray(toArray());
+    .filterOn('test', (filter, user) => new RegExp(filter, 'i').test(user.name))
+    .toArray(toArray());
 
   data.set('test', '');
-  data.set('users', {one: {name: 'One!'}, two: {name: 'Two!'}});
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'one'},
-    {t: 'add', index: 1, path: 'two'}
+    { t: 'add', index: 0, path: 'one' },
+    { t: 'add', index: 1, path: 'two' },
   ]);
   reset();
 
   data.set('test', 'two');
   t.deepEqual(res, [
-    {t: 'remove', index: 1, path: 'two'},
-    {t: 'add', index: 1, path: 'two'},
-    {t: 'remove', index: 0, path: 'one'}
+    { t: 'remove', index: 1, path: 'two' },
+    { t: 'add', index: 1, path: 'two' },
+    { t: 'remove', index: 0, path: 'one' },
   ]);
   reset();
 
   data.set('test', '');
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: 'one'},
-    {t: 'remove', index: 1, path: 'two'},
-    {t: 'add', index: 1, path: 'two'}
+    { t: 'add', index: 0, path: 'one' },
+    { t: 'remove', index: 1, path: 'two' },
+    { t: 'add', index: 1, path: 'two' },
   ]);
   t.pass();
 });
 
 test('on sortOn - custom order update', t => {
   const data = Data();
-  const {res, reset, toArray} = stower();
+  const { res, reset, toArray } = stower();
 
-  data.on('players.*')
+  data
+    .on('players.*')
     .map(player => player.name)
     .sortOn('test', (_, a, b) => b.name.localeCompare(a.name))
     .toArray(toArray());
 
-  data.set('players.1', {name: '1'});
-  data.set('players.2', {name: '2'});
-  data.set('players.3', {name: '3'});
+  data.set('players.1', { name: '1' });
+  data.set('players.2', { name: '2' });
+  data.set('players.3', { name: '3' });
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: '1'},
-    {t: 'add', index: 0, path: '2'},
-    {t: 'add', index: 0, path: '3'}
+    { t: 'add', index: 0, path: '1' },
+    { t: 'add', index: 0, path: '2' },
+    { t: 'add', index: 0, path: '3' },
   ]);
   reset();
   data.set('test', 'yes');
   reset();
 
   data.unset('players.1');
-  t.deepEqual(res, [
-    {t: 'remove', index: 2, path: '1'}
-  ]);
+  t.deepEqual(res, [{ t: 'remove', index: 2, path: '1' }]);
   reset();
 
-  data.set('players.1', {name: '7'});
-  t.deepEqual(res, [
-    {t: 'add', index: 0, path: '1'}
-  ]);
+  data.set('players.1', { name: '7' });
+  t.deepEqual(res, [{ t: 'add', index: 0, path: '1' }]);
 });
 
 test('Pathifier no sub-array', t => {
   const data = Data();
-  const {res, reset, toArray} = stower('index', 'path');
-  data.on('players.*').map(p => p.name).toArray(toArray());
-  data.set('players', [
-    {name: 'a'},
-    {name: 'b'}
-  ]);
+  const { res, reset, toArray } = stower('index', 'path');
+  data
+    .on('players.*')
+    .map(p => p.name)
+    .toArray(toArray());
+  data.set('players', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: '0'},
-    {t: 'add', index: 1, path: '1'}
+    { t: 'add', index: 0, path: '0' },
+    { t: 'add', index: 1, path: '1' },
   ]);
   reset();
-  data.set('players', [
-    {name: 'a'},
-  ]);
+  data.set('players', [{ name: 'a' }]);
   t.deepEqual(res, [
-    {t: 'remove', index: 0, path: '0'},
-    {t: 'add', index: 0, path: '0'},
-    {t: 'remove', index: 1, path: '1'}
+    { t: 'remove', index: 0, path: '0' },
+    { t: 'add', index: 0, path: '0' },
+    { t: 'remove', index: 1, path: '1' },
   ]);
 });
 
 test('Pathifier sub-array', t => {
   const data = Data();
-  const {res, reset, toArray} = stower('index', 'path');
-  data.on('players.*').map(p => p.name).toArray(toArray());
-  data.set('players', [
-    {name: 'a'},
-    {name: 'b'}
-  ]);
+  const { res, reset, toArray } = stower('index', 'path');
+  data
+    .on('players.*')
+    .map(p => p.name)
+    .toArray(toArray());
+  data.set('players', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, [
-    {t: 'add', index: 0, path: '0'},
-    {t: 'add', index: 1, path: '1'}
+    { t: 'add', index: 0, path: '0' },
+    { t: 'add', index: 1, path: '1' },
   ]);
   reset();
-  data.set('players', [
-    {name: 'a', x: [1]},
-  ]);
+  data.set('players', [{ name: 'a', x: [1] }]);
   t.deepEqual(res, [
-    {t: 'remove', index: 0, path: '0'},
-    {t: 'add', index: 0, path: '0'},
-    {t: 'remove', index: 1, path: '1'}
+    { t: 'remove', index: 0, path: '0' },
+    { t: 'add', index: 0, path: '0' },
+    { t: 'remove', index: 1, path: '1' },
   ]);
 });
 
 test('map has path', t => {
   const data = Data();
-  const {reset, toArray} = stower('index', 'path');
+  const { reset, toArray } = stower('index', 'path');
   let res = [];
-  data.on('players.*').map((p, path) => {
-    res.push(path);
-    return p.name;
-  }).toArray(toArray());
-  data.set('players', [
-    {name: 'a'},
-    {name: 'b'}
-  ]);
+  data
+    .on('players.*')
+    .map((p, path) => {
+      res.push(path);
+      return p.name;
+    })
+    .toArray(toArray());
+  data.set('players', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, ['players.0', 'players.1']);
   reset();
   res = [];
-  data.set('players', [
-    {name: 'a', x: [1]},
-  ]);
+  data.set('players', [{ name: 'a', x: [1] }]);
   t.deepEqual(res, ['players.0']);
 });

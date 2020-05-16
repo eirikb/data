@@ -1,11 +1,11 @@
-import Paths from './paths'
+import Paths from './paths';
 
 interface Listeners {
-  add(path: string, listener: Function)
+  add(path: string, listener: Function);
 
-  remove(ref: string)
+  remove(ref: string);
 
-  get(path: string)
+  get(path: string);
 }
 
 export default (prefix = 'ref') => {
@@ -22,11 +22,11 @@ export default (prefix = 'ref') => {
   self.add = (path, listener) => {
     cache = {};
     const ref = nextRef();
-    paths.add(path, ref, {listener});
+    paths.add(path, ref, { listener });
     return ref;
   };
 
-  self.remove = (ref) => {
+  self.remove = ref => {
     paths.remove(ref);
     cache = {};
   };
@@ -38,11 +38,11 @@ export default (prefix = 'ref') => {
     });
   }
 
-  self.get = (path) => {
+  self.get = path => {
     if (cache[path]) {
       return cache[path];
     }
-    return cache[path] = get(path);
+    return (cache[path] = get(path));
   };
 
   return self;
