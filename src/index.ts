@@ -53,7 +53,7 @@ interface Data {
 
   merge(path: string, value: any, byKey?: string);
 
-  set(path: string, value: any, byKey?: string, merge?: boolean);
+  set(path: string, value: any, byKey?: string);
 
   on(flagsAndPath: string, listener?: Function);
 
@@ -85,6 +85,45 @@ export default () => {
         return _triggerListeners;
       default:
         return null;
+    }
+  }
+
+  function setSet(path: string, value: any, byKey?: string, merge?: boolean) {
+    if (setQueue[path]) {
+      setQueue[path] = { qVal: value };
+      return;
+    }
+    setQueue[path] = true;
+
+    const parts = path.split('.');
+    const parentsWithoutValue = [];
+    let parent = _data;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const subPath = parts.slice(0, i + 1).join('.');
+      const p = parts[i];
+      if (!parent[p]) {
+        parentsWithoutValue.push(subPath);
+        parent[p] = {};
+      }
+      parent = parent[p];
+    }
+
+    const toCall = [];
+    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
+    const refPaths = new Set();
+    const target = path;
+    for (let { listeners, path, value } of toCall) {
+      trigger(target, refPaths, listeners, path, value);
+    }
+
+    for (let path of parentsWithoutValue) {
+      trigger(target, refPaths, _addListeners, path, value);
+    }
+    let { qVal } = setQueue[path] || {};
+    delete setQueue[path];
+    if (typeof qVal !== 'undefined') {
+      setSet(path, qVal);
     }
   }
 
@@ -205,46 +244,11 @@ export default () => {
   }
 
   self.merge = (path, value, byKey) => {
-    return self.set(path, value, byKey, true);
+    return setSet(path, value, byKey, true);
   };
 
-  self.set = (path, value, byKey, merge = false) => {
-    if (setQueue[path]) {
-      setQueue[path] = { qVal: value };
-      return;
-    }
-    setQueue[path] = true;
-
-    const parts = path.split('.');
-    const parentsWithoutValue = [];
-    let parent = _data;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const subPath = parts.slice(0, i + 1).join('.');
-      const p = parts[i];
-      if (!parent[p]) {
-        parentsWithoutValue.push(subPath);
-        parent[p] = {};
-      }
-      parent = parent[p];
-    }
-
-    const toCall = [];
-    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
-    const refPaths = new Set();
-    const target = path;
-    for (let { listeners, path, value } of toCall) {
-      trigger(target, refPaths, listeners, path, value);
-    }
-
-    for (let path of parentsWithoutValue) {
-      trigger(target, refPaths, _addListeners, path, value);
-    }
-    let { qVal } = setQueue[path] || {};
-    delete setQueue[path];
-    if (typeof qVal !== 'undefined') {
-      self.set(path, qVal);
-    }
+  self.set = (path, value, byKey) => {
+    return setSet(path, value, byKey, false);
   };
 
   self.on = (flagsAndPath, listener) => {
