@@ -1,6 +1,6 @@
-const listeners = require('./listeners');
-const Pathifier = require('./pathifier');
-const { clean } = require('./paths');
+import Listeners from './listeners'
+import Pathifier from './pathifier';
+import {clean} from './paths';
 
 /***
  *    Flags:
@@ -48,14 +48,30 @@ function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-module.exports = () => {
-  const self = {};
+interface Data {
+  unset(path: string)
+
+  merge(path: string, value: any, byKey?: string)
+
+  set(path: string, value: any, byKey?: string, merge?: boolean)
+
+  on(flagsAndPath: string, listener?: Function)
+
+  off(refs: string)
+
+  trigger(path: string, value: any)
+
+  get(path?: string)
+}
+
+export default () => {
+  const self = {} as Data;
   const setQueue = {};
   const _data = {};
-  const _changeListeners = listeners('change');
-  const _addListeners = listeners('add');
-  const _removeListeners = listeners('remove');
-  const _triggerListeners = listeners('trigger');
+  const _changeListeners = Listeners('change');
+  const _addListeners = Listeners('add');
+  const _removeListeners = Listeners('remove');
+  const _triggerListeners = Listeners('trigger');
 
   function getListenerByFlag(flag) {
     switch (flag) {
@@ -67,10 +83,12 @@ module.exports = () => {
         return _removeListeners;
       case '=':
         return _triggerListeners;
+      default:
+        return null;
     }
   }
 
-  function set(toCall, path, parent, key, value, byKey, merge) {
+  function set(toCall, path, parent, key, value, byKey = null, merge = null) {
     if (Array.isArray(value)) {
       const toSet = value.reduce((res, item, index) => {
         const nKey = byKey ? item[byKey] : index;
@@ -87,11 +105,11 @@ module.exports = () => {
     const hasValue = typeof parent[key] !== 'undefined';
 
     function call() {
-      const trigger = { path, value };
+      const trigger = {path, value};
       if (hasValue) {
-        toCall.push({ listeners: _changeListeners, ...trigger });
+        toCall.push({listeners: _changeListeners, ...trigger});
       } else {
-        toCall.push({ listeners: _addListeners, ...trigger });
+        toCall.push({listeners: _addListeners, ...trigger});
       }
     }
 
@@ -126,24 +144,24 @@ module.exports = () => {
     }
   }
 
-  function triggerImmediate(target, refPaths, listener, parts, index = 0, path = []) {
+  function triggerImmediate(target, refPaths, listener, parts, index = 0, paths = []) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
-      const data = get(_data, path.join('.'));
+      const data = get(_data, paths.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(target, refPaths, listener, parts, index + 1, path.concat(key))
+          triggerImmediate(target, refPaths, listener, parts, index + 1, paths.concat(key))
         );
         return;
       } else {
-        path.push(part);
+        paths.push(part);
       }
     }
-    path = path.join('.');
+    const path = paths.join('.');
     if (typeof get(_data, path) !== 'undefined') {
 
       const immediateListeners = (() => {
-        const _listener = listeners('immediate');
+        const _listener = Listeners('immediate');
         let ref;
         return {
           add(path, listener) {
@@ -168,7 +186,7 @@ module.exports = () => {
 
   self.set = (path, value, byKey, merge = false) => {
     if (setQueue[path]) {
-      setQueue[path] = { qVal: value };
+      setQueue[path] = {qVal: value};
       return;
     }
     setQueue[path] = true;
@@ -191,14 +209,14 @@ module.exports = () => {
     set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
     const refPaths = new Set();
     const target = path;
-    for (let { listeners, path, value } of toCall) {
+    for (let {listeners, path, value} of toCall) {
       trigger(target, refPaths, listeners, path, value);
     }
 
     for (let path of parentsWithoutValue) {
       trigger(target, refPaths, _addListeners, path, value);
     }
-    let { qVal } = (setQueue[path] || {});
+    let {qVal} = (setQueue[path] || {});
     delete setQueue[path];
     if (typeof qVal !== 'undefined') {
       self.set(path, qVal);
@@ -237,7 +255,7 @@ module.exports = () => {
     }
   };
 
-  function trigger(target, refPaths, listeners, path, value) {
+  function trigger(target, refPaths, listeners, path, value = null) {
     const results = listeners.get(path);
     let resultValue;
     for (let res of results) {

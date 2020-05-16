@@ -23,12 +23,12 @@ test('dynamic listener', t => {
   listeners.add('a.$b', listener);
   listeners.add('a.$b.$c.d', listener);
   t.deepEqual(listeners.get('a.c'), [{
-    path: 'a.c', _: [['ref-1', listener]], keys: { $b: 'c' }, fullPath: 'a.c'
+    path: 'a.c', _: [['ref-1', listener]], keys: {$b: 'c'}, fullPath: 'a.c'
   }]);
   t.deepEqual(listeners.get('a'), []);
   t.deepEqual(listeners.get('a.b.c'), []);
   t.deepEqual(listeners.get('a.b.c.d'), [{
-    path: 'a.b.c.d', _: [['ref-2', listener]], keys: { $b: 'b', $c: 'c' }, fullPath: 'a.b.c.d'
+    path: 'a.b.c.d', _: [['ref-2', listener]], keys: {$b: 'b', $c: 'c'}, fullPath: 'a.b.c.d'
   }]);
 });
 
@@ -154,10 +154,10 @@ test('wildcard plus key', t => {
 
   t.deepEqual(listeners.get('users.1.x'),
     [{
-      keys: { $id: '1' }, path: 'users.1.x', _: [['ref-1', ll1]], fullPath: 'users.1.x'
+      keys: {$id: '1'}, path: 'users.1.x', _: [['ref-1', ll1]], fullPath: 'users.1.x'
     }]);
   t.deepEqual(listeners.get('users.1.name'),
     [{
-      keys: { $id: '1' }, path: 'users.1.name', _: [['ref-2', ll2]], fullPath: 'users.1.name'
+      keys: {$id: '1'}, path: 'users.1.name', _: [['ref-2', ll2]], fullPath: 'users.1.name'
     }]);
 });

@@ -1,5 +1,13 @@
-module.exports = () => {
-  const self = {};
+interface Paths {
+  add(path: string, ref: string, input: any)
+
+  lookup(path: string)
+
+  remove(ref: string)
+}
+
+export default () => {
+  const self = {} as Paths;
   const map = {};
   const refs = {};
 
@@ -9,17 +17,17 @@ module.exports = () => {
     let parent = map;
     for (let part of parts) {
       if (part === '*' || part.startsWith('$')) {
-        parent = parent.$ = parent.$ || {};
+        parent = parent["$"] = parent["$"] || {};
       } else if (part === '**') {
-        parent = parent.$$ = parent.$$ || {};
+        parent = parent["$$"] = parent["$$"] || {};
         break;
       } else {
-        parent = parent._ = parent._ || {};
+        parent = parent["_"] = parent["_"] || {};
       }
       parent = parent[part] = parent[part] || {};
     }
-    parent.h = parent.h || {};
-    parent.h[ref] = input;
+    parent["h"] = parent["h"] || {};
+    parent["h"][ref] = input;
   };
 
   function lookup(result, parent, parts, index = 0, keys = [], until = -1) {
@@ -65,7 +73,7 @@ module.exports = () => {
       const res = {
         keys: keysMap, _: parent.h,
         path: (until >= 0 ? parts.slice(0, until + 1) : parts).join('.'),
-        ...until >= 0 ? { fullPath: parts.join('.') } : {}
+        ...until >= 0 ? {fullPath: parts.join('.')} : {}
       };
       result.push(res);
     }
@@ -86,18 +94,18 @@ module.exports = () => {
     let parent = map;
     for (let part of parts) {
       if (part.startsWith('$') || part === '*') {
-        parent = parent.$[part];
+        parent = parent["$"][part];
       } else if (part === '**') {
-        parent = parent.$$;
+        parent = parent["$$"];
         break;
       } else {
-        parent = parent._[part];
+        parent = parent["_"][part];
       }
     }
-    if (parent && parent.h) {
-      delete parent.h[ref];
-      if (Object.keys(parent.h).length === 0) {
-        delete parent.h;
+    if (parent && parent["h"]) {
+      delete parent["h"][ref];
+      if (Object.keys(parent["h"]).length === 0) {
+        delete parent["h"];
       }
     }
   };
@@ -105,7 +113,7 @@ module.exports = () => {
   return self;
 };
 
-module.exports.clean = path => {
+export const clean = path => {
   const res = [];
   path.split('.').every(part => {
     const check = part !== '*' && part !== '**' && !part.startsWith('$');

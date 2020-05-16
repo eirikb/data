@@ -1,7 +1,15 @@
-const Paths = require('./paths');
+import Paths from './paths'
 
-module.exports = (prefix = 'ref') => {
-  const self = {};
+interface Listeners {
+  add(path: string, listener: Function)
+
+  remove(ref: string)
+
+  get(path: string)
+}
+
+export default (prefix = 'ref') => {
+  const self = {} as Listeners;
   let cache = {};
   const paths = Paths();
   let next = 0;
@@ -14,7 +22,7 @@ module.exports = (prefix = 'ref') => {
   self.add = (path, listener) => {
     cache = {};
     const ref = nextRef();
-    paths.add(path, ref, { listener });
+    paths.add(path, ref, {listener});
     return ref;
   };
 
@@ -25,7 +33,7 @@ module.exports = (prefix = 'ref') => {
 
   function get(path) {
     return paths.lookup(path).map(res => {
-      res._ = Object.entries(res._).map(([ref, res]) => [ref, res.listener]);
+      res._ = Object.entries(res._).map(([ref, res]) => [ref, res['listener']]);
       return res;
     });
   }
