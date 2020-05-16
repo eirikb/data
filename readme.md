@@ -21,10 +21,7 @@ import Data from '@eirikb/data';
 
 const data = Data();
 
-data.on('!+* teams.$teamId.players.$playerId.**', (player, { $teamId, $playerId, path, value }) => {
-  console.log('Added or changed', path, player, $teamId, $playerId, value);
-});
+data.on('!+* hello', (value) => console.log(value));
 
-data.set('teams', { t1: { players: { p1: { nick: 'Nick' } } } });
-data.set('teams.t1.players.p2', { nick: 'It' });
+data.set('hello', 'world');
 ```
