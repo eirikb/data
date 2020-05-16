@@ -13,8 +13,18 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - run: npm ci
-      - run: npm test
+
+      - name: install
+        run: npm ci
+
+      - name: lint
+        run: npm lint
+
+      - name: test
+        run: npm test
+
+      - name: build
+        run: npm run build
 
   publish-npm:
     needs: build

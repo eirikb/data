@@ -1,6 +1,6 @@
-const listeners = require('./listeners');
-const Pathifier = require('./pathifier');
-const { clean } = require('./paths');
+import Listeners from './listeners';
+import Pathifier from './pathifier';
+import { clean } from './paths';
 
 /***
  *    Flags:
@@ -48,14 +48,30 @@ function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-module.exports = () => {
-  const self = {};
+interface Data {
+  unset(path: string);
+
+  merge(path: string, value: any, byKey?: string);
+
+  set(path: string, value: any, byKey?: string);
+
+  on(flagsAndPath: string, listener?: Function);
+
+  off(refs: string);
+
+  trigger(path: string, value: any);
+
+  get(path?: string);
+}
+
+export default () => {
+  const self = {} as Data;
   const setQueue = {};
   const _data = {};
-  const _changeListeners = listeners('change');
-  const _addListeners = listeners('add');
-  const _removeListeners = listeners('remove');
-  const _triggerListeners = listeners('trigger');
+  const _changeListeners = Listeners('change');
+  const _addListeners = Listeners('add');
+  const _removeListeners = Listeners('remove');
+  const _triggerListeners = Listeners('trigger');
 
   function getListenerByFlag(flag) {
     switch (flag) {
@@ -67,10 +83,51 @@ module.exports = () => {
         return _removeListeners;
       case '=':
         return _triggerListeners;
+      default:
+        return null;
     }
   }
 
-  function set(toCall, path, parent, key, value, byKey, merge) {
+  function setSet(path: string, value: any, byKey?: string, merge?: boolean) {
+    if (setQueue[path]) {
+      setQueue[path] = { qVal: value };
+      return;
+    }
+    setQueue[path] = true;
+
+    const parts = path.split('.');
+    const parentsWithoutValue = [];
+    let parent = _data;
+
+    for (let i = 0; i < parts.length - 1; i++) {
+      const subPath = parts.slice(0, i + 1).join('.');
+      const p = parts[i];
+      if (!parent[p]) {
+        parentsWithoutValue.push(subPath);
+        parent[p] = {};
+      }
+      parent = parent[p];
+    }
+
+    const toCall = [];
+    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
+    const refPaths = new Set();
+    const target = path;
+    for (let { listeners, path, value } of toCall) {
+      trigger(target, refPaths, listeners, path, value);
+    }
+
+    for (let path of parentsWithoutValue) {
+      trigger(target, refPaths, _addListeners, path, value);
+    }
+    let { qVal } = setQueue[path] || {};
+    delete setQueue[path];
+    if (typeof qVal !== 'undefined') {
+      setSet(path, qVal);
+    }
+  }
+
+  function set(toCall, path, parent, key, value, byKey = null, merge = null) {
     if (Array.isArray(value)) {
       const toSet = value.reduce((res, item, index) => {
         const nKey = byKey ? item[byKey] : index;
@@ -103,18 +160,29 @@ module.exports = () => {
       const childKeys = Object.keys(value);
       let parentKeysMap = {};
       if (parentKeysMap && !merge) {
-        const parentKeys = parentIsProbablyPlainObject ? Object.keys(parent[key]) : [];
-        parentKeysMap = parentKeys.reduce((res, key) => (res[key] = true) && res, {});
+        const parentKeys = parentIsProbablyPlainObject
+          ? Object.keys(parent[key])
+          : [];
+        parentKeysMap = parentKeys.reduce(
+          (res, key) => (res[key] = true) && res,
+          {}
+        );
       }
       for (let childKey of childKeys) {
         if (!merge) {
           delete parentKeysMap[childKey];
         }
-        set(toCall, path + '.' + childKey, parent[key], childKey, value[childKey])
+        set(
+          toCall,
+          path + '.' + childKey,
+          parent[key],
+          childKey,
+          value[childKey]
+        );
       }
       if (!merge) {
         for (let childKey of Object.keys(parentKeysMap)) {
-          self.unset(path + '.' + childKey)
+          self.unset(path + '.' + childKey);
         }
       }
       call();
@@ -126,24 +194,37 @@ module.exports = () => {
     }
   }
 
-  function triggerImmediate(target, refPaths, listener, parts, index = 0, path = []) {
+  function triggerImmediate(
+    target,
+    refPaths,
+    listener,
+    parts,
+    index = 0,
+    paths = []
+  ) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
-      const data = get(_data, path.join('.'));
+      const data = get(_data, paths.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(target, refPaths, listener, parts, index + 1, path.concat(key))
+          triggerImmediate(
+            target,
+            refPaths,
+            listener,
+            parts,
+            index + 1,
+            paths.concat(key)
+          )
         );
         return;
       } else {
-        path.push(part);
+        paths.push(part);
       }
     }
-    path = path.join('.');
+    const path = paths.join('.');
     if (typeof get(_data, path) !== 'undefined') {
-
       const immediateListeners = (() => {
-        const _listener = listeners('immediate');
+        const _listener = Listeners('immediate');
         let ref;
         return {
           add(path, listener) {
@@ -153,7 +234,7 @@ module.exports = () => {
             const res = _listener.get(path);
             _listener.remove(ref);
             return res;
-          }
+          },
         };
       })();
 
@@ -163,46 +244,11 @@ module.exports = () => {
   }
 
   self.merge = (path, value, byKey) => {
-    return self.set(path, value, byKey, true);
+    return setSet(path, value, byKey, true);
   };
 
-  self.set = (path, value, byKey, merge = false) => {
-    if (setQueue[path]) {
-      setQueue[path] = { qVal: value };
-      return;
-    }
-    setQueue[path] = true;
-
-    const parts = path.split('.');
-    const parentsWithoutValue = [];
-    let parent = _data;
-
-    for (let i = 0; i < parts.length - 1; i++) {
-      const subPath = parts.slice(0, i + 1).join('.');
-      const p = parts[i];
-      if (!parent[p]) {
-        parentsWithoutValue.push(subPath);
-        parent[p] = {};
-      }
-      parent = parent[p];
-    }
-
-    const toCall = [];
-    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
-    const refPaths = new Set();
-    const target = path;
-    for (let { listeners, path, value } of toCall) {
-      trigger(target, refPaths, listeners, path, value);
-    }
-
-    for (let path of parentsWithoutValue) {
-      trigger(target, refPaths, _addListeners, path, value);
-    }
-    let { qVal } = (setQueue[path] || {});
-    delete setQueue[path];
-    if (typeof qVal !== 'undefined') {
-      self.set(path, qVal);
-    }
+  self.set = (path, value, byKey) => {
+    return setSet(path, value, byKey, false);
   };
 
   self.on = (flagsAndPath, listener) => {
@@ -212,12 +258,16 @@ module.exports = () => {
 
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
     if (!flags || !path) {
-      throw new Error(`Missing flags or path. Usage: data.on('!+* players.$id.name', () => {})`);
+      throw new Error(
+        `Missing flags or path. Usage: data.on('!+* players.$id.name', () => {})`
+      );
     }
 
-    const refs = flags.split('').filter(p => p !== '!').map(flag =>
-      getListenerByFlag(flag).add(path, listener)
-    ).join(' ');
+    const refs = flags
+      .split('')
+      .filter(p => p !== '!')
+      .map(flag => getListenerByFlag(flag).add(path, listener))
+      .join(' ');
 
     if (flags.includes('!')) {
       const refPaths = new Set();
@@ -228,8 +278,11 @@ module.exports = () => {
     return refs;
   };
 
-  self.off = (refs) => {
-    for (let ref of refs.split(' ').map(ref => ref.trim()).filter(ref => ref)) {
+  self.off = refs => {
+    for (let ref of refs
+      .split(' ')
+      .map(ref => ref.trim())
+      .filter(ref => ref)) {
       _changeListeners.remove(ref);
       _addListeners.remove(ref);
       _removeListeners.remove(ref);
@@ -237,7 +290,7 @@ module.exports = () => {
     }
   };
 
-  function trigger(target, refPaths, listeners, path, value) {
+  function trigger(target, refPaths, listeners, path, value = null) {
     const results = listeners.get(path);
     let resultValue;
     for (let res of results) {
@@ -256,9 +309,12 @@ module.exports = () => {
             target,
             path: res.path,
             ...res.keys,
-            ...valIsObject ? {
-              values: Object.values(val), keys: Object.keys(val)
-            } : {}
+            ...(valIsObject
+              ? {
+                  values: Object.values(val),
+                  keys: Object.keys(val),
+                }
+              : {}),
           });
         }
       }
@@ -270,12 +326,12 @@ module.exports = () => {
     return trigger(path, new Set(), _triggerListeners, path, value);
   };
 
-  self.get = (path) => {
+  self.get = path => {
     if (!path) return _data;
     return get(_data, path);
   };
 
-  self.unset = (path) => {
+  self.unset = path => {
     const refPaths = new Set();
     const target = path;
     const unsetRecursive = (parent, key, path) => {

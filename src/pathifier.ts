@@ -1,6 +1,6 @@
-const { clean } = require('./paths');
+import { clean } from './paths';
 
-module.exports = (data, from) => {
+export default (data, from) => {
   if (from.includes('$')) {
     throw new Error('Sorry, no named wildcard support in pathifier');
   }
@@ -24,7 +24,7 @@ module.exports = (data, from) => {
     let sort = _sort;
     // Default sort if none is specified
     if (!sort) {
-      sort = (a, b, aPath, bPath) => aPath.localeCompare(bPath);
+      sort = (_, __, aPath, bPath) => aPath.localeCompare(bPath);
     }
 
     while (low < high) {
@@ -55,7 +55,7 @@ module.exports = (data, from) => {
       return self;
     },
     filterOn(path, filter) {
-      setFilter((value) => filter(data.get(path), value));
+      setFilter(value => filter(data.get(path), value));
       refs.push(
         data.on(`!+* ${path}`, () => {
           update();
@@ -111,7 +111,7 @@ module.exports = (data, from) => {
             if (updated && _then) _then(cache);
           }
         }),
-        data.on(`- ${from}`, (_, { path, target }) => {
+        data.on(`- ${from}`, (_, { target }) => {
           const subPath = target.slice(fromHacked.length + 1);
           const updated = unset(subPath);
           if (updated && _then) _then(cache);
@@ -123,7 +123,7 @@ module.exports = (data, from) => {
         data.off(ref);
       }
       _on = false;
-    }
+    },
   };
 
   function update() {
@@ -135,13 +135,13 @@ module.exports = (data, from) => {
     const a = new Set(Object.keys(fromData || {}));
     const b = new Set(Object.keys(cache || {}));
     let updated = false;
-    for (let aa of a) {
+    for (let aa of Array.from(a)) {
       if (set(aa, data.get(keys(fromHacked, aa)))) {
         updated = true;
         b.delete(aa);
       }
     }
-    for (let bb of b) {
+    for (let bb of Array.from(b)) {
       unset(bb);
     }
     if (updated && _then) {
@@ -197,16 +197,18 @@ module.exports = (data, from) => {
   }
 
   function unsetObject(object, parts) {
-    const parent = parts.slice(0, -1).reduce((parent, key) => parent[key], object);
+    const parent = parts
+      .slice(0, -1)
+      .reduce((parent, key) => parent[key], object);
     delete parent[parts[parts.length - 1]];
   }
 
-  function unset(path) {
+  function unset(path): boolean {
     if (!_to && !_toArray && !_then) return false;
 
     const parts = path.split('.');
     const k = parts[0];
-    if (!cache[k]) return;
+    if (!cache[k]) return true;
 
     if (_toArray) {
       const index = cacheArray.indexOf(k);
@@ -216,6 +218,7 @@ module.exports = (data, from) => {
     unsetObject(cache, parts);
     unsetObject(cacheNoMap, parts);
     if (_to) data.unset(keys(_to, path));
+    return true;
   }
 
   return self;

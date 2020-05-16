@@ -21,14 +21,14 @@ test('change flag not trigger on existing', t => {
   const data = d();
   let value = null;
   data.set('a', 'hello');
-  data.on('* a', val => value = val);
+  data.on('* a', val => (value = val));
   t.deepEqual(null, value);
 });
 
 test('change flag not trigger on add', t => {
   const data = d();
   let value = null;
-  data.on('* a', val => value = val);
+  data.on('* a', val => (value = val));
   data.set('a', 'hello');
   t.deepEqual(null, value);
 });
@@ -36,7 +36,7 @@ test('change flag not trigger on add', t => {
 test('change flag not trigger on trigger', t => {
   const data = d();
   let value = null;
-  data.on('* a', val => value = val);
+  data.on('* a', val => (value = val));
   data.trigger('a', 'hello');
   t.deepEqual(null, value);
 });
@@ -45,7 +45,7 @@ test('change flag trigger on change', t => {
   const data = d();
   let value = null;
   data.set('a', 'hello');
-  data.on('* a', val => value = val);
+  data.on('* a', val => (value = val));
   data.set('a', 'world');
   t.deepEqual('world', value);
 });
@@ -53,7 +53,7 @@ test('change flag trigger on change', t => {
 test('add flag', t => {
   const data = d();
   let value = null;
-  data.on('+ a', val => value = val);
+  data.on('+ a', val => (value = val));
   data.set('a', 'hello');
   data.set('a', 'world');
   t.deepEqual('hello', value);
@@ -63,14 +63,14 @@ test('immediate flag', t => {
   const data = d();
   let value = null;
   data.set('a', 'hello');
-  data.on('! a', val => value = val);
+  data.on('! a', val => (value = val));
   t.deepEqual('hello', value);
 });
 
 test('trigger flag', t => {
   const data = d();
   let value = null;
-  data.on('= a', val => value = val);
+  data.on('= a', val => (value = val));
   data.trigger('a', 'hello');
   t.deepEqual('hello', value);
 });
@@ -79,7 +79,7 @@ test('remove flag', t => {
   const data = d();
   let value = null;
   data.set('a', 'hello');
-  data.on('- a', () => value = 'removed');
+  data.on('- a', () => (value = 'removed'));
   data.unset('a');
   t.deepEqual('removed', value);
 });
@@ -88,14 +88,14 @@ test('combine flags', t => {
   const data = d();
   let value = null;
   data.set('b', 'one');
-  data.on('!*- b', val => value = val);
+  data.on('!*- b', val => (value = val));
   t.deepEqual('one', value);
   data.set('b', 'two');
   t.deepEqual('two', value);
   data.unset('b');
   t.deepEqual('two', value);
 
-  data.on('+* a', val => value = val);
+  data.on('+* a', val => (value = val));
   data.set('a', 'one');
   t.deepEqual('one', value);
   data.set('a', 'two');
@@ -120,14 +120,16 @@ test('special key paths', t => {
 test('remove listener', t => {
   const data = d();
   let value;
-  data.on('+* a', val => value = val);
-  const ref = data.on('+* b', val => value = val);
+  data.on('+* a', val => (value = val));
+  const ref = data.on('+* b', val => (value = val));
 
   data.set('a', 'ok');
   t.deepEqual('ok', data.get('a'));
+  t.deepEqual('ok', value);
   data.off(ref);
   data.set('b', 'ignored');
   t.deepEqual('ok', data.get('a'));
+  t.deepEqual('ok', value);
 });
 
 test('on child data', t => {
@@ -148,7 +150,7 @@ test('remove includes item', t => {
   const data = d();
   data.set('a.b', { hello: 'world' });
   let value;
-  data.on('- a.b', val => value = val);
+  data.on('- a.b', val => (value = val));
   data.unset('a.b');
   t.deepEqual({ hello: 'world' }, value);
 });
@@ -185,7 +187,7 @@ test('previous data can be falsey', t => {
   t.plan(1);
   data.set('a', 0);
   data.on('* a', value => t.deepEqual(1337, value));
-  data.set('a', 1337)
+  data.set('a', 1337);
 });
 
 test('trigger on object property change', t => {
@@ -235,9 +237,7 @@ test('methods support destructuring', t => {
 test('adding sub-child triggers add on parent if parent missing', t => {
   const { on, set } = d();
   t.plan(1);
-  on('+ x.$key', val =>
-    t.deepEqual('ok', val.a)
-  );
+  on('+ x.$key', val => t.deepEqual('ok', val.a));
   set('x.test.a', 'ok');
 });
 
@@ -245,15 +245,11 @@ test('on/off on test', t => {
   const { on, off, set } = d();
   t.plan(2);
   set('test', 'a');
-  const l = on('* test', val =>
-    t.deepEqual('b', val)
-  );
+  const l = on('* test', val => t.deepEqual('b', val));
 
   set('test', 'b');
 
-  on('* test', val =>
-    t.deepEqual('c', val)
-  );
+  on('* test', val => t.deepEqual('c', val));
   off(l);
 
   set('test', 'c');
@@ -278,7 +274,7 @@ test('immediate with multiple', t => {
   t.plan(2);
   data.set('players', {
     '20': 'twenty',
-    '30': 'thirty'
+    '30': 'thirty',
   });
   data.on('! players.$eh', () => t.pass());
 });
@@ -288,9 +284,9 @@ test('Wildcard immediate listeners never go wild', t => {
   t.plan(2);
   data.set('test', {
     1: 'hello',
-    2: 'world'
+    2: 'world',
   });
-  data.on('! test.$id', (test, { path }) => {
+  data.on('! test.$id', (_, { path }) => {
     t.notDeepEqual(path, 'test.1.2');
   });
 });
@@ -299,7 +295,7 @@ test('Immediate false trigger', t => {
   const data = d();
   t.plan(1);
   data.set('test', false);
-  data.on('! test', (test) => {
+  data.on('! test', test => {
     t.deepEqual(false, test);
   });
 });
@@ -329,8 +325,8 @@ test('Listeners trigger order', t => {
   data.set('a', false);
   data.set('a', {
     b: {
-      c: 'd'
-    }
+      c: 'd',
+    },
   });
 });
 
@@ -356,7 +352,7 @@ test('Update bundle changes', t => {
 
   data.set('users.1', {
     name: 'world',
-    x: 137
+    x: 137,
   });
 });
 
@@ -373,9 +369,8 @@ test('Listeners only called once', t => {
 
   let counter = 0;
   data.on('!+* a', () => {
-      counter++
-    }
-  );
+    counter++;
+  });
 
   data.set('a', { 1: 'yes', 2: 'no' });
   t.deepEqual(1, counter);
@@ -394,7 +389,7 @@ test('Setting value while listening', t => {
 
   data.on('+* hello', i => {
     if (i < 2) {
-      data.set('hello', 2)
+      data.set('hello', 2);
     }
   });
 
@@ -428,16 +423,25 @@ test('Arrays', t => {
 test('Array with key', t => {
   const data = d();
 
-  data.set('a', [{ a: 'a', name: 'ok' }, { a: 'b', name: 'yes' }], 'a');
+  data.set(
+    'a',
+    [
+      { a: 'a', name: 'ok' },
+      { a: 'b', name: 'yes' },
+    ],
+    'a'
+  );
   t.deepEqual(data.get(), {
     a: {
       a: {
-        a: 'a', name: 'ok'
+        a: 'a',
+        name: 'ok',
       },
       b: {
-        a: 'b', name: 'yes'
-      }
-    }
+        a: 'b',
+        name: 'yes',
+      },
+    },
   });
 });
 
@@ -489,12 +493,20 @@ test('values is passed in the object with byKey', t => {
   t.plan(2);
   data.on('+ stuff', (_, { keys, values }) => {
     t.deepEqual(keys, ['a', 'b']);
-    t.deepEqual(values, [{ name: 'a', hello: 'world' }, { name: 'b', hello: 'there' }]);
+    t.deepEqual(values, [
+      { name: 'a', hello: 'world' },
+      { name: 'b', hello: 'there' },
+    ]);
   });
 
-  data.set('stuff',
-    [{ name: 'a', hello: 'world' }, { name: 'b', hello: 'there' }],
-    'name');
+  data.set(
+    'stuff',
+    [
+      { name: 'a', hello: 'world' },
+      { name: 'b', hello: 'there' },
+    ],
+    'name'
+  );
 });
 
 test('array without bykey must be cleared', t => {
@@ -544,36 +556,39 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
   const data = d();
 
   let hack;
-  data.on('!+* players.*', (players) => {
+  data.on('!+* players.*', players => {
     hack(players);
   });
 
-  hack = res => t.deepEqual(res, {
-    a: { name: 'a' },
-    b: { name: 'b' },
-    c: { name: 'c' }
-  });
+  hack = res =>
+    t.deepEqual(res, {
+      a: { name: 'a' },
+      b: { name: 'b' },
+      c: { name: 'c' },
+    });
   data.set('players', {
     a: { name: 'a' },
     b: { name: 'b' },
-    c: { name: 'c' }
+    c: { name: 'c' },
   });
 
-  hack = res => t.deepEqual(res, {
-    a: { name: 'a' },
-    b: { name: 'b' },
-    c: { name: 'c' },
-    d: { name: 'd' }
-  });
+  hack = res =>
+    t.deepEqual(res, {
+      a: { name: 'a' },
+      b: { name: 'b' },
+      c: { name: 'c' },
+      d: { name: 'd' },
+    });
   data.set('players.d.name', 'd');
 
-  hack = res => t.deepEqual(res, {
-    a: { name: 'a' },
-    b: { name: 'b' },
-    c: { name: 'c' },
-    d: { name: 'd' },
-    e: { name: 'e' }
-  });
+  hack = res =>
+    t.deepEqual(res, {
+      a: { name: 'a' },
+      b: { name: 'b' },
+      c: { name: 'c' },
+      d: { name: 'd' },
+      e: { name: 'e' },
+    });
   data.set('players.e', { name: 'e' });
 });
 
@@ -583,13 +598,13 @@ test('Wild-wildcard once for multiple including paths for singles on immediate',
   data.set('players', {
     a: { name: 'a' },
     b: { name: 'b' },
-    c: { name: 'c' }
+    c: { name: 'c' },
   });
-  data.on('!+* players.*', (players) => {
+  data.on('!+* players.*', players => {
     t.deepEqual(players, {
       a: { name: 'a' },
       b: { name: 'b' },
-      c: { name: 'c' }
+      c: { name: 'c' },
     });
   });
 });

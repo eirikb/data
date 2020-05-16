@@ -1,3 +1,6 @@
+[![npm](https://img.shields.io/npm/v/@eirikb/data.svg)](https://npmjs.org/package/@eirikb/data)
+[![Build](https://github.com/eirikb/data/workflows/Build/badge.svg)](https://github.com/eirikb/data/actions?query=workflow%3ABuild)
+
 In-memory observable JavaScript object.  
 Observe by type (added, changed, etc.), and some type of dynamic path.
 ```
@@ -21,10 +24,7 @@ import Data from '@eirikb/data';
 
 const data = Data();
 
-data.on('!+* teams.$teamId.players.$playerId.**', (player, { $teamId, $playerId, path, value }) => {
-  console.log('Added or changed', path, player, $teamId, $playerId, value);
-});
+data.on('!+* hello', (value) => console.log(value));
 
-data.set('teams', { t1: { players: { p1: { nick: 'Nick' } } } });
-data.set('teams.t1.players.p2', { nick: 'It' });
+data.set('hello', 'world');
 ```
