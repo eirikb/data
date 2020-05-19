@@ -48,7 +48,7 @@ function unset(input, path) {
   delete input[path[path.length - 1]];
 }
 
-interface Data {
+export interface Data {
   unset(path: string);
 
   merge(path: string, value: any, byKey?: string);
