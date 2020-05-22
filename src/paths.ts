@@ -1,15 +1,9 @@
-interface Paths {
-  add(path: string, ref: string, input: any);
-
-  lookup(path: string);
-
-  remove(ref: string);
-}
+import { Lookup, LooseObject, Paths } from 'types';
 
 export default () => {
   const self = {} as Paths;
-  const map = {};
-  const refs = {};
+  const map: LooseObject = {};
+  const refs: LooseObject = {};
 
   self.add = (path, ref, input) => {
     refs[ref] = path;
@@ -30,7 +24,14 @@ export default () => {
     parent['h'][ref] = input;
   };
 
-  function lookup(result, parent, parts, index = 0, keys = [], until = -1) {
+  function lookup(
+    result: Lookup[],
+    parent: LooseObject,
+    parts: string[],
+    index = 0,
+    keys: string[] = [],
+    until = -1
+  ) {
     for (; index < parts.length; index++) {
       if (!parent) {
         return;
@@ -38,7 +39,7 @@ export default () => {
       const part = parts[index];
       if (parent.$) {
         for (let key of Object.keys(parent.$)) {
-          const newKeys = keys.slice();
+          const newKeys: string[] = keys.slice();
           let newUntil = until;
           if (key !== '*' && key !== '**') {
             newUntil = index;
@@ -68,7 +69,7 @@ export default () => {
       const keysMap = keys.reduce((res, val, index) => {
         if (val) res[val] = parts[index];
         return res;
-      }, {});
+      }, {} as LooseObject);
 
       const res = {
         keys: keysMap,
@@ -82,7 +83,7 @@ export default () => {
 
   self.lookup = path => {
     const parts = path.split('.');
-    const result = [];
+    const result: Lookup[] = [];
     lookup(result, map, parts);
     return result;
   };
@@ -114,8 +115,8 @@ export default () => {
   return self;
 };
 
-export const clean = path => {
-  const res = [];
+export const clean = (path: string) => {
+  const res: string[] = [];
   path.split('.').every(part => {
     const check = part !== '*' && part !== '**' && !part.startsWith('$');
     if (check) res.push(part);

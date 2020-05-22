@@ -1,21 +1,34 @@
 import { clean } from './paths';
+import {
+  Data,
+  Filter,
+  FilterOn,
+  LooseObject,
+  Sorter,
+  SorterOn,
+  Stower,
+} from 'types';
 
-export default (data, from) => {
+export default (data: Data, from: string) => {
   if (from.includes('$')) {
     throw new Error('Sorry, no named wildcard support in pathifier');
   }
   const fromHacked = clean(from);
-  const refs = [];
+  const refs: string[] = [];
 
-  const cache = {};
-  const cacheNoMap = {};
-  const cacheArray = [];
+  const cache: LooseObject = {};
+  const cacheNoMap: LooseObject = {};
+  const cacheArray: string[] = [];
 
-  let _to, _filter, _sort, _toArray, _map, _then, _on;
+  let _to: string;
+  let _filter: Filter;
+  let _sort: Sorter;
+  let _toArray: Stower;
+  let _map: Function;
+  let _then: Function;
+  let _on: boolean = false;
 
-  _on = false;
-
-  function sortedIndex(path) {
+  function sortedIndex(path: string) {
     const d = cacheNoMap;
     const paths = cacheArray;
 
@@ -38,23 +51,23 @@ export default (data, from) => {
     return low;
   }
 
-  function setFilter(filter) {
-    if (_filter) throw new Error('Sorry, only one filter');
+  function setFilter(filter: Filter) {
+    if (_filter !== undefined) throw new Error('Sorry, only one filter');
     _filter = filter;
   }
 
-  function setSort(sort) {
-    if (_sort) throw new Error('Sorry, only one sort');
+  function setSort(sort: Sorter) {
+    if (_sort !== undefined) throw new Error('Sorry, only one sort');
     _sort = sort;
   }
 
   const self = {
     from: fromHacked,
-    filter(filter) {
+    filter(filter: Filter) {
       setFilter(filter);
       return self;
     },
-    filterOn(path, filter) {
+    filterOn(path: string, filter: FilterOn) {
       setFilter(value => filter(data.get(path), value));
       refs.push(
         data.on(`!+* ${path}`, () => {
@@ -63,16 +76,16 @@ export default (data, from) => {
       );
       return self;
     },
-    map(map) {
+    map(map: Function) {
       if (_map) throw new Error('Sorry, only one map');
       _map = map;
       return self;
     },
-    sort(sort) {
+    sort(sort: Sorter) {
       setSort(sort);
       return self;
     },
-    sortOn(path, sort) {
+    sortOn(path: string, sort: SorterOn) {
       setSort((a, b, aPath, bPath) => sort(data.get(path), a, b, aPath, bPath));
       refs.push(
         data.on(`!+* ${path}`, () => {
@@ -81,18 +94,18 @@ export default (data, from) => {
       );
       return self;
     },
-    to(path) {
+    to(path: string) {
       if (_to) throw new Error('Sorry, only one to');
       _to = path;
       if (!_on) self.on();
       return self;
     },
-    then(then) {
+    then(then: Function) {
       _then = then;
       if (!_on) self.on();
       return self;
     },
-    toArray(toArray) {
+    toArray(toArray: Stower) {
       if (_toArray) throw new Error('Sorry, only one toArray');
       _toArray = toArray;
       if (!_on) self.on();
@@ -149,11 +162,11 @@ export default (data, from) => {
     }
   }
 
-  function keys(...args) {
+  function keys(...args: string[]) {
     return args.filter(p => p).join('.');
   }
 
-  function set(key, value) {
+  function set(key: string, value: any) {
     const parts = key.split('.');
     const k = parts[0];
     if (_filter && !_filter(data.get(keys(fromHacked, k)))) {
@@ -188,7 +201,7 @@ export default (data, from) => {
     return true;
   }
 
-  function setObject(object, parts, value) {
+  function setObject(object: LooseObject, parts: string[], value: any) {
     const parent = parts.slice(0, -1).reduce((parent, key) => {
       if (!parent[key]) parent[key] = {};
       return parent[key];
@@ -196,14 +209,14 @@ export default (data, from) => {
     parent[parts[parts.length - 1]] = value;
   }
 
-  function unsetObject(object, parts) {
+  function unsetObject(object: LooseObject, parts: string[]) {
     const parent = parts
       .slice(0, -1)
       .reduce((parent, key) => parent[key], object);
     delete parent[parts[parts.length - 1]];
   }
 
-  function unset(path): boolean {
+  function unset(path: string): boolean {
     if (!_to && !_toArray && !_then) return false;
 
     const parts = path.split('.');

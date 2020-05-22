@@ -1,79 +1,45 @@
-import Listeners from './listeners';
-import Pathifier from './pathifier';
+import createListeners from './listeners';
+import createPathifier from './pathifier';
 import { clean } from './paths';
+import { Callback, Data, Listeners, LooseObject, Pathifier, ToCall } from 'types';
 
-/***
- *    Flags:
- *    *   Value changed
- *    !   Immediate callback if value exists
- *    +   Value added
- *    -   Value removed
- *    =   Trigger only (no value set)
- *
- *    Path:
- *    $x   Named wildcard
- *    *    Wildcard
- *    **   Recursive wildcard
- *
- *    Example:
- *    on('!+* teams.$teamId.players.$playerId.**', (player, { $teamId, $playerId }) => {
- *
- *    });
- */
-
-function isProbablyPlainObject(obj) {
+function isProbablyPlainObject(obj: any) {
   return typeof obj === 'object' && obj !== null && obj.constructor === Object;
 }
 
-function get(input, path) {
-  path = path.split('.');
-  for (let i = 0; i < path.length; i++) {
-    input = input[path[i]];
+function get(input: LooseObject, path: string) {
+  const paths = path.split('.');
+  for (let i = 0; i < paths.length; i++) {
+    input = input[paths[i]];
     if (typeof input === 'undefined') return;
   }
   return input;
 }
 
-function unset(input, path) {
+function unset(input: LooseObject, path: string) {
   if (typeof get(input, path) === 'undefined') return;
 
-  path = path.split('.');
-  for (let i = 0; i < path.length - 1; i++) {
-    const current = path[i];
+  const paths = path.split('.');
+  for (let i = 0; i < paths.length - 1; i++) {
+    const current = paths[i];
     if (!isProbablyPlainObject(input[current])) {
       input[current] = {};
     }
     input = input[current];
   }
-  delete input[path[path.length - 1]];
-}
-
-export interface Data {
-  unset(path: string);
-
-  merge(path: string, value: any, byKey?: string);
-
-  set(path: string, value: any, byKey?: string);
-
-  on(flagsAndPath: string, listener?: Function);
-
-  off(refs: string);
-
-  trigger(path: string, value: any);
-
-  get(path?: string);
+  delete input[paths[paths.length - 1]];
 }
 
 export default () => {
   const self = {} as Data;
-  const setQueue = {};
-  const _data = {};
-  const _changeListeners = Listeners('change');
-  const _addListeners = Listeners('add');
-  const _removeListeners = Listeners('remove');
-  const _triggerListeners = Listeners('trigger');
+  const setQueue: LooseObject = {};
+  const _data: LooseObject = {};
+  const _changeListeners = createListeners('change');
+  const _addListeners = createListeners('add');
+  const _removeListeners = createListeners('remove');
+  const _triggerListeners = createListeners('trigger');
 
-  function getListenerByFlag(flag) {
+  function getListenerByFlag(flag: string) {
     switch (flag) {
       case '*':
         return _changeListeners;
@@ -82,9 +48,8 @@ export default () => {
       case '-':
         return _removeListeners;
       case '=':
-        return _triggerListeners;
       default:
-        return null;
+        return _triggerListeners;
     }
   }
 
@@ -109,9 +74,9 @@ export default () => {
       parent = parent[p];
     }
 
-    const toCall = [];
+    const toCall: ToCall[] = [];
     set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
-    const refPaths = new Set();
+    const refPaths = new Set<string>();
     const target = path;
     for (let { listeners, path, value } of toCall) {
       trigger(target, refPaths, listeners, path, value);
@@ -127,7 +92,15 @@ export default () => {
     }
   }
 
-  function set(toCall, path, parent, key, value, byKey = null, merge = null) {
+  function set(
+    toCall: ToCall[],
+    path: string,
+    parent: LooseObject,
+    key: string,
+    value: any,
+    byKey?: string,
+    merge = false
+  ) {
     if (Array.isArray(value)) {
       const toSet = value.reduce((res, item, index) => {
         const nKey = byKey ? item[byKey] : index;
@@ -158,14 +131,14 @@ export default () => {
         parent[key] = {};
       }
       const childKeys = Object.keys(value);
-      let parentKeysMap = {};
+      let parentKeysMap: LooseObject = {};
       if (parentKeysMap && !merge) {
         const parentKeys = parentIsProbablyPlainObject
           ? Object.keys(parent[key])
           : [];
         parentKeysMap = parentKeys.reduce(
           (res, key) => (res[key] = true) && res,
-          {}
+          {} as LooseObject
         );
       }
       for (let childKey of childKeys) {
@@ -195,12 +168,12 @@ export default () => {
   }
 
   function triggerImmediate(
-    target,
-    refPaths,
-    listener,
-    parts,
+    target: string,
+    refPaths: Set<string>,
+    listener: Function,
+    parts: string[],
     index = 0,
-    paths = []
+    paths: string[] = []
   ) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
@@ -223,14 +196,17 @@ export default () => {
     }
     const path = paths.join('.');
     if (typeof get(_data, path) !== 'undefined') {
-      const immediateListeners = (() => {
-        const _listener = Listeners('immediate');
-        let ref;
+      const immediateListeners = ((): Listeners => {
+        const _listener = createListeners('immediate');
+        let ref: string;
         return {
-          add(path, listener) {
-            ref = _listener.add(path, listener);
+          remove(_: string): void {
           },
-          get(path) {
+          add(path: string, listener: Function): string {
+            ref = _listener.add(path, listener);
+            return ref;
+          },
+          get(path: string) {
             const res = _listener.get(path);
             _listener.remove(ref);
             return res;
@@ -251,9 +227,9 @@ export default () => {
     return setSet(path, value, byKey, false);
   };
 
-  self.on = (flagsAndPath, listener) => {
+  self.on = (flagsAndPath: string, listener?: Callback): Pathifier | string => {
     if (!flagsAndPath.includes(' ') && !listener) {
-      return Pathifier(self, flagsAndPath);
+      return createPathifier(self, flagsAndPath);
     }
 
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
@@ -266,13 +242,13 @@ export default () => {
     const refs = flags
       .split('')
       .filter(p => p !== '!')
-      .map(flag => getListenerByFlag(flag).add(path, listener))
+      .map(flag => getListenerByFlag(flag).add(path, listener!))
       .join(' ');
 
     if (flags.includes('!')) {
-      const refPaths = new Set();
+      const refPaths = new Set<string>();
       const target = clean(path);
-      triggerImmediate(target, refPaths, listener, path.split('.'));
+      triggerImmediate(target, refPaths, listener!, path.split('.'));
     }
 
     return refs;
@@ -290,13 +266,19 @@ export default () => {
     }
   };
 
-  function trigger(target, refPaths, listeners, path, value = null) {
+  function trigger(
+    target: string,
+    refPaths: Set<string>,
+    listeners: Listeners,
+    path: string,
+    value: any = null
+  ) {
     const results = listeners.get(path);
     let resultValue;
     for (let res of results) {
       const listeners = res._;
       res.value = value;
-      for (let [ref, listener] of listeners) {
+      for (let [ref, listener] of listeners._) {
         const refPath = ref + res.path;
         if (listener && !refPaths.has(refPath)) {
           refPaths.add(refPath);
@@ -311,9 +293,9 @@ export default () => {
             ...res.keys,
             ...(valIsObject
               ? {
-                  values: Object.values(val),
-                  keys: Object.keys(val),
-                }
+                values: Object.values(val as LooseObject),
+                keys: Object.keys(val as LooseObject),
+              }
               : {}),
           });
         }
@@ -332,10 +314,10 @@ export default () => {
   };
 
   self.unset = path => {
-    const refPaths = new Set();
+    const refPaths = new Set<string>();
     const target = path;
-    const unsetRecursive = (parent, key, path) => {
-      const data = get(parent, key);
+    const unsetRecursive = (parent: LooseObject, key: string, path: string) => {
+      const data = get(parent, key) as LooseObject;
       if (isProbablyPlainObject(data)) {
         for (let key of Object.keys(data)) {
           unsetRecursive(data, key, path + '.' + key);
