@@ -1,7 +1,14 @@
 import createListeners from './listeners';
 import createPathifier from './pathifier';
 import { clean } from './paths';
-import { Callback, Data, Listeners, LooseObject, Pathifier, ToCall } from 'types';
+import {
+  Callback,
+  Data,
+  Listeners,
+  LooseObject,
+  Pathifier,
+  ToCall,
+} from 'types';
 
 function isProbablyPlainObject(obj: any) {
   return typeof obj === 'object' && obj !== null && obj.constructor === Object;
@@ -200,8 +207,7 @@ export default () => {
         const _listener = createListeners('immediate');
         let ref: string;
         return {
-          remove(_: string): void {
-          },
+          remove(_: string): void {},
           add(path: string, listener: Function): string {
             ref = _listener.add(path, listener);
             return ref;
@@ -227,6 +233,8 @@ export default () => {
     return setSet(path, value, byKey, false);
   };
 
+  // TODO: Why doesn't this pick up all the "on"s?
+  // @ts-ignore
   self.on = (flagsAndPath: string, listener?: Callback): Pathifier | string => {
     if (!flagsAndPath.includes(' ') && !listener) {
       return createPathifier(self, flagsAndPath);
@@ -278,7 +286,7 @@ export default () => {
     for (let res of results) {
       const listeners = res._;
       res.value = value;
-      for (let [ref, listener] of listeners._) {
+      for (let [ref, listener] of listeners) {
         const refPath = ref + res.path;
         if (listener && !refPaths.has(refPath)) {
           refPaths.add(refPath);
@@ -293,9 +301,9 @@ export default () => {
             ...res.keys,
             ...(valIsObject
               ? {
-                values: Object.values(val as LooseObject),
-                keys: Object.keys(val as LooseObject),
-              }
+                  values: Object.values(val as LooseObject),
+                  keys: Object.keys(val as LooseObject),
+                }
               : {}),
           });
         }

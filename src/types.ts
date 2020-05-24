@@ -36,7 +36,7 @@ export interface Data {
 
   off(refs: string): void;
 
-  trigger(path: string, value: any): void;
+  trigger(path: string, value: any): any;
 
   get(path?: string): any;
 }
@@ -81,7 +81,7 @@ export interface Stower {
 
 export interface H {
   keys: LooseObject;
-  _: LooseObject;
+  _: [string, Function][];
   path: string;
   fullPath?: string;
 }
