@@ -46,7 +46,7 @@ export interface Listeners {
 
   remove(ref: string): void;
 
-  get(path: string): H2[];
+  get(path: string): H[];
 }
 
 export interface ToCall {
@@ -84,9 +84,6 @@ export interface H {
   _: [string, Function][];
   path: string;
   fullPath?: string;
-}
-
-export interface H2 extends H {
-  __: [any, Function][];
-  value: any;
+  __?: [any, Function][];
+  value?: any;
 }
