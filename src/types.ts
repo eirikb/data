@@ -19,7 +19,23 @@ export interface LooseObject {
   [key: string]: any;
 }
 
-export interface Pathifier {}
+export interface Pathifier {
+  to(to: string): Pathifier;
+
+  filter(filter: Filter): Pathifier;
+
+  filterOn(path: string, filter: FilterOn): Pathifier;
+
+  sort(sort: Sorter): Pathifier;
+
+  sortOn(path: string, sort: SorterOn): Pathifier;
+
+  toArray(toArray: Stower): Pathifier;
+
+  map(map: Callback): Pathifier;
+
+  then(then: Callback): Pathifier;
+}
 
 export interface Data {
   unset(path: string): void;

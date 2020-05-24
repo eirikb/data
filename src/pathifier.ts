@@ -1,5 +1,6 @@
 import { clean } from './paths';
 import {
+  Callback,
   Data,
   Filter,
   FilterOn,
@@ -76,7 +77,7 @@ export default (data: Data, from: string) => {
       );
       return self;
     },
-    map(map: Function) {
+    map(map: Callback) {
       if (_map) throw new Error('Sorry, only one map');
       _map = map;
       return self;
@@ -100,7 +101,7 @@ export default (data: Data, from: string) => {
       if (!_on) self.on();
       return self;
     },
-    then(then: Function) {
+    then(then: Callback) {
       _then = then;
       if (!_on) self.on();
       return self;
