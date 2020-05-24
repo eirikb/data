@@ -1,16 +1,9 @@
 import Paths from './paths';
-
-interface Listeners {
-  add(path: string, listener: Function);
-
-  remove(ref: string);
-
-  get(path: string);
-}
+import { Listeners, LooseObject } from 'types';
 
 export default (prefix = 'ref') => {
   const self = {} as Listeners;
-  let cache = {};
+  let cache: LooseObject = {};
   const paths = Paths();
   let next = 0;
 
@@ -31,7 +24,7 @@ export default (prefix = 'ref') => {
     cache = {};
   };
 
-  function get(path) {
+  function get(path: string) {
     return paths.lookup(path).map(res => {
       res._ = Object.entries(res._).map(([ref, res]) => [ref, res['listener']]);
       return res;

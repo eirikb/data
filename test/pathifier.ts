@@ -1,19 +1,21 @@
 import test from 'ava';
 import Data from '../src';
+import { LooseObject, Stower } from '../src/types';
 
-function stower(...props) {
+function stower(...props: string[]) {
   if (props.length === 0) props = ['index', 'path'];
-  const res = [];
+  const res: any[] = [];
   return {
     res,
     reset() {
       res.splice(0, res.length);
     },
-    toArray() {
-      function eh(t) {
-        return function(index, path, value) {
+    toArray(): Stower {
+      function eh(t: string) {
+        return function(index: number, path: string, value: any) {
           const input = { index, path, value };
-          const o = {};
+          const o: LooseObject = {};
+          // @ts-ignore - Just make this one pass please
           props.forEach(p => (o[p] = input[p]));
           res.push({ t, ...o });
         };
@@ -22,7 +24,7 @@ function stower(...props) {
       return {
         add: eh('add'),
         remove: eh('remove'),
-      };
+      } as Stower;
     },
   };
 }
@@ -248,14 +250,14 @@ test('only one filter, unfortunately', t => {
   t.throws(() =>
     data
       .on('users')
-      .filter(1)
-      .filterOn(1)
+      .filter(() => true)
+      .filterOn('', () => true)
   );
   t.throws(() =>
     data
       .on('users')
-      .filter(1)
-      .filter(1)
+      .filter(() => true)
+      .filter(() => true)
   );
 });
 
@@ -264,14 +266,14 @@ test('only one sort, unfortunately', t => {
   t.throws(() =>
     data
       .on('users')
-      .sort(1)
-      .sortOn(1)
+      .sort(() => 0)
+      .sortOn('', () => 0)
   );
   t.throws(() =>
     data
       .on('users')
-      .sort(1)
-      .sort(1)
+      .sort(() => 0)
+      .sort(() => 0)
   );
 });
 
@@ -280,8 +282,8 @@ test('only one map, unfortunately', t => {
   t.throws(() =>
     data
       .on('users')
-      .map(1)
-      .map(1)
+      .map(() => true)
+      .map(() => true)
   );
 });
 
@@ -290,8 +292,8 @@ test('only one to, unfortunately', t => {
   t.throws(() =>
     data
       .on('users')
-      .to(1)
-      .to(1)
+      .to('a')
+      .to('a')
   );
 });
 
@@ -300,8 +302,8 @@ test('only one array, unfortunately', t => {
   t.throws(() =>
     data
       .on('users')
-      .toArray(1)
-      .toArray(1)
+      .toArray({} as Stower)
+      .toArray({} as Stower)
   );
 });
 
@@ -518,7 +520,7 @@ test('Pathifier sub-array', t => {
 test('map has path', t => {
   const data = Data();
   const { reset, toArray } = stower('index', 'path');
-  let res = [];
+  let res: any[] = [];
   data
     .on('players.*')
     .map((p, path) => {

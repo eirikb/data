@@ -555,12 +555,12 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
   t.plan(3);
   const data = d();
 
-  let hack;
+  let hack: Function;
   data.on('!+* players.*', players => {
     hack(players);
   });
 
-  hack = res =>
+  hack = (res: any) =>
     t.deepEqual(res, {
       a: { name: 'a' },
       b: { name: 'b' },
@@ -572,7 +572,7 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
     c: { name: 'c' },
   });
 
-  hack = res =>
+  hack = (res: any) =>
     t.deepEqual(res, {
       a: { name: 'a' },
       b: { name: 'b' },
@@ -581,7 +581,7 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
     });
   data.set('players.d.name', 'd');
 
-  hack = res =>
+  hack = (res: any) =>
     t.deepEqual(res, {
       a: { name: 'a' },
       b: { name: 'b' },
