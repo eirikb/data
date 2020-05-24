@@ -1,6 +1,6 @@
 {
   "name": "@eirikb/data",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Very extremely simple in-memory storage with change listeners",
   "repository": {
     "type": "git",
