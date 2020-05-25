@@ -9,6 +9,14 @@ import {
   Pathifier,
   ToCall,
 } from 'types';
+export {
+  Callback,
+  Data,
+  Listeners,
+  LooseObject,
+  Pathifier,
+  ToCall,
+} from 'types';
 
 function isProbablyPlainObject(obj: any) {
   return typeof obj === 'object' && obj !== null && obj.constructor === Object;
