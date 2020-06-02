@@ -12,11 +12,10 @@ function stower(...props: string[]) {
     },
     toArray(): Stower {
       function eh(t: string) {
-        return function(index: number, path: string, value: any) {
+        return function(index: number, _: number, path?: string, value?: any) {
           const input = { index, path, value };
           const o: LooseObject = {};
-          // @ts-ignore - Just make this one pass please
-          props.forEach(p => (o[p] = input[p]));
+          props.forEach(p => (o[p] = (input as any)[p]));
           res.push({ t, ...o });
         };
       }
