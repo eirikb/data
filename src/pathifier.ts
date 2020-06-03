@@ -8,7 +8,7 @@ import {
   Sorter,
   SorterOn,
   Stower,
-} from 'types';
+} from './types';
 
 export default (data: Data, from: string) => {
   if (from.includes('$')) {
@@ -108,6 +108,7 @@ export default (data: Data, from: string) => {
     },
     toArray(toArray: Stower) {
       if (_toArray) throw new Error('Sorry, only one toArray');
+
       _toArray = toArray;
       if (!_on) self.on();
       return self;
@@ -189,13 +190,13 @@ export default (data: Data, from: string) => {
       if (exists) {
         const oldIndex = cacheArray.indexOf(k);
         cacheArray.splice(oldIndex, 1);
-        _toArray.remove(oldIndex, k, cache[k]);
+        _toArray.remove(cache[k], oldIndex, 0, k);
         const index = sortedIndex(k);
-        _toArray.add(index, k, cache[k]);
+        _toArray.add(cache[k], index, 0, k);
         cacheArray.splice(index, 0, k);
       } else {
         const index = sortedIndex(k);
-        _toArray.add(index, k, cache[k]);
+        _toArray.add(cache[k], index, 0, k);
         cacheArray.splice(index, 0, k);
       }
     }
@@ -226,7 +227,7 @@ export default (data: Data, from: string) => {
 
     if (_toArray) {
       const index = cacheArray.indexOf(k);
-      _toArray.remove(index, k, cache[k]);
+      _toArray.remove(cache[k], index, 0, k);
       cacheArray.splice(index, 1);
     }
     unsetObject(cache, parts);

@@ -35,6 +35,8 @@ export interface Pathifier {
   map(map: Callback): Pathifier;
 
   then(then: Callback): Pathifier;
+
+  off(): void;
 }
 
 export interface Data {
@@ -88,9 +90,9 @@ export declare type SorterOn = (
 export declare type FilterOn = (filterValue: any, value: any) => boolean;
 
 export interface Stower {
-  add(index: number, path: string, value: any): void;
+  add(value: any, index: number, subIndex?: number, path?: string): void;
 
-  remove(index: number, path: string, value: any): void;
+  remove(value: any, index: number, subIndex?: number, path?: string): void;
 
   or(index: number, or: any): void;
 }

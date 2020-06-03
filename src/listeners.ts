@@ -1,5 +1,5 @@
 import Paths from './paths';
-import { Listeners, LooseObject } from 'types';
+import { Listeners, LooseObject } from './types';
 
 export default (prefix = 'ref') => {
   const self = {} as Listeners;

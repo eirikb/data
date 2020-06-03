@@ -1,4 +1,4 @@
-import { Lookup, LooseObject, Paths } from 'types';
+import { Lookup, LooseObject, Paths } from './types';
 
 export default () => {
   const self = {} as Paths;
