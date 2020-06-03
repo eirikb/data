@@ -8,7 +8,7 @@ import {
   Sorter,
   SorterOn,
   Stower,
-} from 'types';
+} from './types';
 
 export default (data: Data, from: string) => {
   if (from.includes('$')) {
@@ -108,6 +108,7 @@ export default (data: Data, from: string) => {
     },
     toArray(toArray: Stower) {
       if (_toArray) throw new Error('Sorry, only one toArray');
+
       _toArray = toArray;
       if (!_on) self.on();
       return self;

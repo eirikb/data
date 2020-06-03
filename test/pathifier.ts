@@ -12,7 +12,7 @@ function stower(...props: string[]) {
     },
     toArray(): Stower {
       function eh(t: string) {
-        return function(index: number, _: number, path?: string, value?: any) {
+        return function(value: any, index: number, _: number, path: string) {
           const input = { index, path, value };
           const o: LooseObject = {};
           props.forEach(p => (o[p] = (input as any)[p]));
