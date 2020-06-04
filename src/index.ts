@@ -69,7 +69,7 @@ export default () => {
     setQueue[path] = true;
 
     const parts = path.split('.');
-    const parentsWithoutValue = [];
+    const parentsWithoutValue: string[] = [];
     let parent = _data;
 
     for (let i = 0; i < parts.length - 1; i++) {
