@@ -3,7 +3,7 @@ import { LooseObject } from './types';
 
 export default class Listeners {
   cache: LooseObject = {};
-  paths = Paths();
+  paths = new Paths();
   next = 0;
   prefix: string;
 

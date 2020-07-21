@@ -1,14 +1,20 @@
-import { Lookup, LooseObject, Paths } from './types';
+import { LooseObject } from './types';
 
-export default () => {
-  const self = {} as Paths;
-  const map: LooseObject = {};
-  const refs: LooseObject = {};
+export interface Lookup {
+  keys: LooseObject;
+  _: LooseObject;
+  path: string;
+  fullPath?: string;
+}
 
-  self.add = (path, ref, input) => {
-    refs[ref] = path;
+export default class {
+  map: LooseObject = {};
+  refs: LooseObject = {};
+
+  add = (path: string, ref: string, input: any) => {
+    this.refs[ref] = path;
     const parts = path.split('.');
-    let parent = map;
+    let parent = this.map;
     for (let part of parts) {
       if (part === '*' || part.startsWith('$')) {
         parent = parent['$'] = parent['$'] || {};
@@ -24,7 +30,7 @@ export default () => {
     parent['h'][ref] = input;
   };
 
-  function lookup(
+  _lookup(
     result: Lookup[],
     parent: LooseObject,
     parts: string[],
@@ -45,7 +51,14 @@ export default () => {
             newUntil = index;
             newKeys[index] = key;
           }
-          lookup(result, parent.$[key], parts, index + 1, newKeys, newUntil);
+          this._lookup(
+            result,
+            parent.$[key],
+            parts,
+            index + 1,
+            newKeys,
+            newUntil
+          );
         }
       }
       if (parent.$$) {
@@ -81,19 +94,19 @@ export default () => {
     }
   }
 
-  self.lookup = path => {
+  lookup(path: string) {
     const parts = path.split('.');
     const result: Lookup[] = [];
-    lookup(result, map, parts);
+    this._lookup(result, this.map, parts);
     return result;
-  };
+  }
 
-  self.remove = ref => {
-    const path = refs[ref];
+  remove(ref: string) {
+    const path = this.refs[ref];
     if (!path) return;
 
     const parts = path.split('.');
-    let parent = map;
+    let parent = this.map;
     for (let part of parts) {
       if (part.startsWith('$') || part === '*') {
         parent = parent['$'][part];
@@ -110,10 +123,8 @@ export default () => {
         delete parent['h'];
       }
     }
-  };
-
-  return self;
-};
+  }
+}
 
 export const clean = (path: string) => {
   const res: string[] = [];

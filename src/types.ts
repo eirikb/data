@@ -1,21 +1,6 @@
 import Listeners from './listeners';
 
-export interface Paths {
-  add(path: string, ref: string, input: any): void;
-
-  lookup(path: string): Lookup[];
-
-  remove(ref: string): void;
-}
-
 export declare type Callback = (value: any, props: any) => void;
-
-export interface Lookup {
-  keys: LooseObject;
-  _: LooseObject;
-  path: string;
-  fullPath?: string;
-}
 
 export interface LooseObject {
   [key: string]: any;
