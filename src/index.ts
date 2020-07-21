@@ -1,14 +1,7 @@
-import createListeners from './listeners';
+import Listeners, { ImmediateListeners } from './listeners';
 import createPathifier from './pathifier';
 import { clean } from './paths';
-import {
-  Callback,
-  Data,
-  Listeners,
-  LooseObject,
-  Pathifier,
-  ToCall,
-} from './types';
+import { Callback, Data, LooseObject, Pathifier, ToCall } from './types';
 export * from './types';
 
 function isProbablyPlainObject(obj: any) {
@@ -42,10 +35,10 @@ export default () => {
   const self = {} as Data;
   const setQueue: LooseObject = {};
   const _data: LooseObject = {};
-  const _changeListeners = createListeners('change');
-  const _addListeners = createListeners('add');
-  const _removeListeners = createListeners('remove');
-  const _triggerListeners = createListeners('trigger');
+  const _changeListeners = new Listeners('change');
+  const _addListeners = new Listeners('add');
+  const _removeListeners = new Listeners('remove');
+  const _triggerListeners = new Listeners('trigger');
 
   function getListenerByFlag(flag: string) {
     switch (flag) {
@@ -204,23 +197,7 @@ export default () => {
     }
     const path = paths.join('.');
     if (typeof get(_data, path) !== 'undefined') {
-      const immediateListeners = ((): Listeners => {
-        const _listener = createListeners('immediate');
-        let ref: string;
-        return {
-          remove(_: string): void {},
-          add(path: string, listener: Function): string {
-            ref = _listener.add(path, listener);
-            return ref;
-          },
-          get(path: string) {
-            const res = _listener.get(path);
-            _listener.remove(ref);
-            return res;
-          },
-        };
-      })();
-
+      const immediateListeners = new ImmediateListeners();
       immediateListeners.add(parts.join('.'), listener);
       trigger(target, refPaths, immediateListeners, path);
     }

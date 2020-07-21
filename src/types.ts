@@ -1,3 +1,5 @@
+import Listeners from './listeners';
+
 export interface Paths {
   add(path: string, ref: string, input: any): void;
 
@@ -57,14 +59,6 @@ export interface Data {
   trigger(path: string, value: any): any;
 
   get(path?: string): any;
-}
-
-export interface Listeners {
-  add(path: string, listener: Function): string;
-
-  remove(ref: string): void;
-
-  get(path: string): H[];
 }
 
 export interface ToCall {
