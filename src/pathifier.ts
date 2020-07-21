@@ -1,7 +1,6 @@
 import { clean } from './paths';
 import {
   Callback,
-  Data,
   Filter,
   FilterOn,
   LooseObject,
@@ -9,6 +8,7 @@ import {
   SorterOn,
   Stower,
 } from './types';
+import Data from './';
 
 export default class {
   refs: string[] = [];
@@ -74,6 +74,7 @@ export default class {
     this.setFilter(filter);
     return this;
   }
+
   filterOn(path: string, filter: FilterOn) {
     this.setFilter(value => filter(this.data.get(path), value));
     this.refs.push(

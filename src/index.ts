@@ -1,7 +1,7 @@
 import Listeners, { ImmediateListeners } from './listeners';
 import Pathifier from './pathifier';
 import { clean } from './paths';
-import { Callback, Data, LooseObject, ToCall } from './types';
+import { Callback, LooseObject, ToCall } from './types';
 export * from './types';
 
 function isProbablyPlainObject(obj: any) {
@@ -31,39 +31,38 @@ function unset(input: LooseObject, path: string) {
   delete input[paths[paths.length - 1]];
 }
 
-export default () => {
-  const self = {} as Data;
-  const setQueue: LooseObject = {};
-  const _data: LooseObject = {};
-  const _changeListeners = new Listeners('change');
-  const _addListeners = new Listeners('add');
-  const _removeListeners = new Listeners('remove');
-  const _triggerListeners = new Listeners('trigger');
+export default class {
+  setQueue: LooseObject = {};
+  _data: LooseObject = {};
+  _changeListeners = new Listeners('change');
+  _addListeners = new Listeners('add');
+  _removeListeners = new Listeners('remove');
+  _triggerListeners = new Listeners('trigger');
 
-  function getListenerByFlag(flag: string) {
+  getListenerByFlag(flag: string) {
     switch (flag) {
       case '*':
-        return _changeListeners;
+        return this._changeListeners;
       case '+':
-        return _addListeners;
+        return this._addListeners;
       case '-':
-        return _removeListeners;
+        return this._removeListeners;
       case '=':
       default:
-        return _triggerListeners;
+        return this._triggerListeners;
     }
   }
 
-  function setSet(path: string, value: any, byKey?: string, merge?: boolean) {
-    if (setQueue[path]) {
-      setQueue[path] = { qVal: value };
+  setSet(path: string, value: any, byKey?: string, merge?: boolean) {
+    if (this.setQueue[path]) {
+      this.setQueue[path] = { qVal: value };
       return;
     }
-    setQueue[path] = true;
+    this.setQueue[path] = true;
 
     const parts = path.split('.');
     const parentsWithoutValue: string[] = [];
-    let parent = _data;
+    let parent = this._data;
 
     for (let i = 0; i < parts.length - 1; i++) {
       const subPath = parts.slice(0, i + 1).join('.');
@@ -76,24 +75,32 @@ export default () => {
     }
 
     const toCall: ToCall[] = [];
-    set(toCall, path, parent, parts[parts.length - 1], value, byKey, merge);
+    this._set(
+      toCall,
+      path,
+      parent,
+      parts[parts.length - 1],
+      value,
+      byKey,
+      merge
+    );
     const refPaths = new Set<string>();
     const target = path;
     for (let { listeners, path, value } of toCall) {
-      trigger(target, refPaths, listeners, path, value);
+      this._trigger(target, refPaths, listeners, path, value);
     }
 
     for (let path of parentsWithoutValue) {
-      trigger(target, refPaths, _addListeners, path, value);
+      this._trigger(target, refPaths, this._addListeners, path, value);
     }
-    let { qVal } = setQueue[path] || {};
-    delete setQueue[path];
+    let { qVal } = this.setQueue[path] || {};
+    delete this.setQueue[path];
     if (typeof qVal !== 'undefined') {
-      setSet(path, qVal);
+      this.setSet(path, qVal);
     }
   }
 
-  function set(
+  _set(
     toCall: ToCall[],
     path: string,
     parent: LooseObject,
@@ -109,22 +116,22 @@ export default () => {
         return res;
       }, {});
       if (!byKey) {
-        self.unset(path);
+        this.unset(path);
       }
-      set(toCall, path, parent, key, toSet);
+      this._set(toCall, path, parent, key, toSet);
       return;
     }
 
     const hasValue = typeof parent[key] !== 'undefined';
 
-    function call() {
+    const call = () => {
       const trigger = { path, value };
       if (hasValue) {
-        toCall.push({ listeners: _changeListeners, ...trigger });
+        toCall.push({ listeners: this._changeListeners, ...trigger });
       } else {
-        toCall.push({ listeners: _addListeners, ...trigger });
+        toCall.push({ listeners: this._addListeners, ...trigger });
       }
-    }
+    };
 
     if (isProbablyPlainObject(value)) {
       const parentIsProbablyPlainObject = isProbablyPlainObject(parent[key]);
@@ -146,7 +153,7 @@ export default () => {
         if (!merge) {
           delete parentKeysMap[childKey];
         }
-        set(
+        this._set(
           toCall,
           path + '.' + childKey,
           parent[key],
@@ -156,7 +163,7 @@ export default () => {
       }
       if (!merge) {
         for (let childKey of Object.keys(parentKeysMap)) {
-          self.unset(path + '.' + childKey);
+          this.unset(path + '.' + childKey);
         }
       }
       call();
@@ -168,7 +175,7 @@ export default () => {
     }
   }
 
-  function triggerImmediate(
+  triggerImmediate(
     target: string,
     refPaths: Set<string>,
     listener: Function,
@@ -178,10 +185,10 @@ export default () => {
   ) {
     for (index; index < parts.length; index++) {
       const part = parts[index];
-      const data = get(_data, paths.join('.'));
+      const data = get(this._data, paths.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
         Object.keys(data || {}).forEach(key =>
-          triggerImmediate(
+          this.triggerImmediate(
             target,
             refPaths,
             listener,
@@ -196,26 +203,28 @@ export default () => {
       }
     }
     const path = paths.join('.');
-    if (typeof get(_data, path) !== 'undefined') {
+    if (typeof get(this._data, path) !== 'undefined') {
       const immediateListeners = new ImmediateListeners();
       immediateListeners.add(parts.join('.'), listener);
-      trigger(target, refPaths, immediateListeners, path);
+      this._trigger(target, refPaths, immediateListeners, path);
     }
   }
 
-  self.merge = (path, value, byKey) => {
-    return setSet(path, value, byKey, true);
-  };
+  merge(path: string, value: any, byKey?: string) {
+    return this.setSet(path, value, byKey, true);
+  }
 
-  self.set = (path, value, byKey) => {
-    return setSet(path, value, byKey, false);
-  };
+  set(path: string, value: any, byKey?: string) {
+    return this.setSet(path, value, byKey, false);
+  }
 
-  // TODO: Why doesn't this pick up all the "on"s?
-  // @ts-ignore
-  self.on = (flagsAndPath: string, listener?: Callback): Pathifier | string => {
+  on(flagsAndPath: string): Pathifier;
+
+  on(flagsAndPath: string, listener: Callback): string;
+
+  on(flagsAndPath: string, listener?: Callback): Pathifier | string {
     if (!flagsAndPath.includes(' ') && !listener) {
-      return new Pathifier(self, flagsAndPath);
+      return new Pathifier(this, flagsAndPath);
     }
 
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
@@ -228,31 +237,31 @@ export default () => {
     const refs = flags
       .split('')
       .filter(p => p !== '!')
-      .map(flag => getListenerByFlag(flag).add(path, listener!))
+      .map(flag => this.getListenerByFlag(flag).add(path, listener!))
       .join(' ');
 
     if (flags.includes('!')) {
       const refPaths = new Set<string>();
       const target = clean(path);
-      triggerImmediate(target, refPaths, listener!, path.split('.'));
+      this.triggerImmediate(target, refPaths, listener!, path.split('.'));
     }
 
     return refs;
-  };
+  }
 
-  self.off = refs => {
+  off(refs: string) {
     for (let ref of refs
       .split(' ')
       .map(ref => ref.trim())
       .filter(ref => ref)) {
-      _changeListeners.remove(ref);
-      _addListeners.remove(ref);
-      _removeListeners.remove(ref);
-      _triggerListeners.remove(ref);
+      this._changeListeners.remove(ref);
+      this._addListeners.remove(ref);
+      this._removeListeners.remove(ref);
+      this._triggerListeners.remove(ref);
     }
-  };
+  }
 
-  function trigger(
+  _trigger(
     target: string,
     refPaths: Set<string>,
     listeners: Listeners,
@@ -268,7 +277,7 @@ export default () => {
         const refPath = ref + res.path;
         if (listener && !refPaths.has(refPath)) {
           refPaths.add(refPath);
-          let val = get(_data, res.path);
+          let val = get(this._data, res.path);
           if (typeof val === 'undefined') {
             val = value;
           }
@@ -290,16 +299,16 @@ export default () => {
     return resultValue;
   }
 
-  self.trigger = (path, value) => {
-    return trigger(path, new Set(), _triggerListeners, path, value);
-  };
+  trigger(path: string, value: any) {
+    return this._trigger(path, new Set(), this._triggerListeners, path, value);
+  }
 
-  self.get = path => {
-    if (!path) return _data;
-    return get(_data, path);
-  };
+  get(path?: string): any {
+    if (!path) return this._data;
+    return get(this._data, path);
+  }
 
-  self.unset = path => {
+  unset(path: string) {
     const refPaths = new Set<string>();
     const target = path;
     const unsetRecursive = (parent: LooseObject, key: string, path: string) => {
@@ -310,13 +319,11 @@ export default () => {
         }
       }
       if (typeof data !== 'undefined') {
-        trigger(target, refPaths, _removeListeners, path, data);
+        this._trigger(target, refPaths, this._removeListeners, path, data);
       }
     };
 
-    unsetRecursive(_data, path, path);
-    unset(_data, path);
-  };
-
-  return self;
-};
+    unsetRecursive(this._data, path, path);
+    unset(this._data, path);
+  }
+}

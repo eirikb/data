@@ -1,30 +1,9 @@
 import Listeners from './listeners';
-import Pathifier from './pathifier';
 
 export declare type Callback = (value: any, props: any) => void;
 
 export interface LooseObject {
   [key: string]: any;
-}
-
-export interface Data {
-  unset(path: string): void;
-
-  merge(path: string, value: any, byKey?: string): void;
-
-  set(path: string, value: any, byKey?: string): void;
-
-  on(flagsAndPath: string): Pathifier;
-
-  on(flagsAndPath: string, listener?: Callback): string;
-
-  on(flagsAndPath: string, listener?: Callback): Pathifier | string;
-
-  off(refs: string): void;
-
-  trigger(path: string, value: any): any;
-
-  get(path?: string): any;
 }
 
 export interface ToCall {
