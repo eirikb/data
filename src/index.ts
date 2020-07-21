@@ -1,7 +1,7 @@
 import Listeners, { ImmediateListeners } from './listeners';
-import createPathifier from './pathifier';
+import Pathifier from './pathifier';
 import { clean } from './paths';
-import { Callback, Data, LooseObject, Pathifier, ToCall } from './types';
+import { Callback, Data, LooseObject, ToCall } from './types';
 export * from './types';
 
 function isProbablyPlainObject(obj: any) {
@@ -215,7 +215,7 @@ export default () => {
   // @ts-ignore
   self.on = (flagsAndPath: string, listener?: Callback): Pathifier | string => {
     if (!flagsAndPath.includes(' ') && !listener) {
-      return createPathifier(self, flagsAndPath);
+      return new Pathifier(self, flagsAndPath);
     }
 
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
