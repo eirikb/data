@@ -8,7 +8,7 @@ import {
   SorterOn,
   Stower,
 } from './types';
-import Data from './';
+import Data from './data';
 
 export default class {
   refs: string[] = [];

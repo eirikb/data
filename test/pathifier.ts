@@ -1,5 +1,5 @@
 import test from 'ava';
-import Data from '../src/';
+import Data from '../src/data';
 import { LooseObject, Stower } from '../src/types';
 
 function stower(...props: string[]) {

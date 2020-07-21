@@ -35,12 +35,3 @@ export interface Stower {
 
   or(index: number, or: any): void;
 }
-
-export interface H {
-  keys: LooseObject;
-  _: [string, Function][];
-  path: string;
-  fullPath?: string;
-  __?: [any, Function][];
-  value?: any;
-}
