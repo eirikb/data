@@ -1,7 +1,6 @@
 import { clean } from './paths';
 import {
   Callback,
-  Data,
   Filter,
   FilterOn,
   LooseObject,
@@ -9,33 +8,42 @@ import {
   SorterOn,
   Stower,
 } from './types';
+import Data from './data';
 
-export default (data: Data, from: string) => {
-  if (from.includes('$')) {
-    throw new Error('Sorry, no named wildcard support in pathifier');
+export default class {
+  refs: string[] = [];
+
+  cache: LooseObject = {};
+  cacheNoMap: LooseObject = {};
+  cacheArray: string[] = [];
+
+  _to?: string;
+  _filter?: Filter;
+  _sort?: Sorter;
+  _toArray?: Stower;
+  _map?: Function;
+  _then?: Function;
+  _on: boolean = false;
+  data: Data;
+  from: string;
+  cleanFrom: any;
+
+  constructor(data: Data, from: string) {
+    if (from.includes('$')) {
+      throw new Error('Sorry, no named wildcard support in pathifier');
+    }
+    this.data = data;
+    this.from = from;
+    this.cleanFrom = clean(from);
   }
-  const fromHacked = clean(from);
-  const refs: string[] = [];
 
-  const cache: LooseObject = {};
-  const cacheNoMap: LooseObject = {};
-  const cacheArray: string[] = [];
-
-  let _to: string;
-  let _filter: Filter;
-  let _sort: Sorter;
-  let _toArray: Stower;
-  let _map: Function;
-  let _then: Function;
-  let _on: boolean = false;
-
-  function sortedIndex(path: string) {
-    const d = cacheNoMap;
-    const paths = cacheArray;
+  sortedIndex(path: string) {
+    const d = this.cacheNoMap;
+    const paths = this.cacheArray;
 
     let low = 0;
     let high = paths.length;
-    let sort = _sort;
+    let sort = this._sort;
     // Default sort if none is specified
     if (!sort) {
       sort = (_, __, aPath, bPath) => aPath.localeCompare(bPath);
@@ -52,158 +60,169 @@ export default (data: Data, from: string) => {
     return low;
   }
 
-  function setFilter(filter: Filter) {
-    if (_filter !== undefined) throw new Error('Sorry, only one filter');
-    _filter = filter;
+  setFilter(filter: Filter) {
+    if (this._filter !== undefined) throw new Error('Sorry, only one filter');
+    this._filter = filter;
   }
 
-  function setSort(sort: Sorter) {
-    if (_sort !== undefined) throw new Error('Sorry, only one sort');
-    _sort = sort;
+  setSort(sort: Sorter) {
+    if (this._sort !== undefined) throw new Error('Sorry, only one sort');
+    this._sort = sort;
   }
 
-  const self = {
-    from: fromHacked,
-    filter(filter: Filter) {
-      setFilter(filter);
-      return self;
-    },
-    filterOn(path: string, filter: FilterOn) {
-      setFilter(value => filter(data.get(path), value));
-      refs.push(
-        data.on(`!+* ${path}`, () => {
-          update();
-        })
-      );
-      return self;
-    },
-    map(map: Callback) {
-      if (_map) throw new Error('Sorry, only one map');
-      _map = map;
-      return self;
-    },
-    sort(sort: Sorter) {
-      setSort(sort);
-      return self;
-    },
-    sortOn(path: string, sort: SorterOn) {
-      setSort((a, b, aPath, bPath) => sort(data.get(path), a, b, aPath, bPath));
-      refs.push(
-        data.on(`!+* ${path}`, () => {
-          update();
-        })
-      );
-      return self;
-    },
-    to(path: string) {
-      if (_to) throw new Error('Sorry, only one to');
-      _to = path;
-      if (!_on) self.on();
-      return self;
-    },
-    then(then: Callback) {
-      _then = then;
-      if (!_on) self.on();
-      return self;
-    },
-    toArray(toArray: Stower) {
-      if (_toArray) throw new Error('Sorry, only one toArray');
+  filter(filter: Filter) {
+    this.setFilter(filter);
+    return this;
+  }
 
-      _toArray = toArray;
-      if (!_on) self.on();
-      return self;
-    },
-    on() {
-      if (_on) return;
-      _on = true;
-      refs.push(
-        data.on(`!+* ${from}`, (_, { path, target }) => {
-          if (path === target) {
-            update();
-          } else {
-            const subPath = target.slice(fromHacked.length + 1);
-            const updated = set(subPath, data.get(target));
-            if (updated && _then) _then(cache);
-          }
-        }),
-        data.on(`- ${from}`, (_, { target }) => {
-          const subPath = target.slice(fromHacked.length + 1);
-          const updated = unset(subPath);
-          if (updated && _then) _then(cache);
-        })
-      );
-    },
-    off() {
-      for (let ref of refs) {
-        data.off(ref);
-      }
-      _on = false;
-    },
-  };
+  filterOn(path: string, filter: FilterOn) {
+    this.setFilter(value => filter(this.data.get(path), value));
+    this.refs.push(
+      this.data.on(`!+* ${path}`, () => {
+        this.update();
+      })
+    );
+    return this;
+  }
 
-  function update() {
-    if (!_to && !_toArray && !_then) return;
+  map(map: Callback) {
+    if (this._map) throw new Error('Sorry, only one map');
+    this._map = map;
+    return this;
+  }
 
-    const fromData = data.get(fromHacked);
+  sort(sort: Sorter) {
+    this.setSort(sort);
+    return this;
+  }
+
+  sortOn(path: string, sort: SorterOn) {
+    this.setSort((a, b, aPath, bPath) =>
+      sort(this.data.get(path), a, b, aPath, bPath)
+    );
+    this.refs.push(
+      this.data.on(`!+* ${path}`, () => {
+        this.update();
+      })
+    );
+    return this;
+  }
+
+  to(path: string) {
+    if (this._to) throw new Error('Sorry, only one to');
+    this._to = path;
+    if (!this._on) this.on();
+    return this;
+  }
+
+  then(then: Callback) {
+    this._then = then;
+    if (!this._on) this.on();
+    return this;
+  }
+
+  toArray(toArray: Stower) {
+    if (this._toArray) throw new Error('Sorry, only one toArray');
+
+    this._toArray = toArray;
+    if (!this._on) this.on();
+    return this;
+  }
+
+  on() {
+    if (this._on) return;
+    this._on = true;
+    this.refs.push(
+      this.data.on(`!+* ${this.from}`, (_, { path, target }) => {
+        if (path === target) {
+          this.update();
+        } else {
+          const subPath = target.slice(this.cleanFrom.length + 1);
+          const updated = this.set(subPath, this.data.get(target));
+          if (updated && this._then) this._then(this.cache);
+        }
+      }),
+      this.data.on(`- ${this.from}`, (_, { target }) => {
+        const subPath = target.slice(this.cleanFrom.length + 1);
+        const updated = this.unset(subPath);
+        if (updated && this._then) this._then(this.cache);
+      })
+    );
+  }
+
+  off() {
+    for (let ref of this.refs) {
+      this.data.off(ref);
+    }
+    this._on = false;
+  }
+
+  update() {
+    if (!this._to && !this._toArray && !this._then) return;
+
+    const fromData = this.data.get(this.cleanFrom);
     if (!fromData) return;
 
     const a = new Set(Object.keys(fromData || {}));
-    const b = new Set(Object.keys(cache || {}));
+    const b = new Set(Object.keys(this.cache || {}));
     let updated = false;
     for (let aa of Array.from(a)) {
-      if (set(aa, data.get(keys(fromHacked, aa)))) {
+      if (this.set(aa, this.data.get(this.keys(this.cleanFrom, aa)))) {
         updated = true;
         b.delete(aa);
       }
     }
     for (let bb of Array.from(b)) {
-      unset(bb);
+      this.unset(bb);
     }
-    if (updated && _then) {
-      _then(cache);
+    if (updated && this._then) {
+      this._then(this.cache);
     }
   }
 
-  function keys(...args: string[]) {
+  keys(...args: string[]) {
     return args.filter(p => p).join('.');
   }
 
-  function set(key: string, value: any) {
+  set(key: string, value: any) {
     const parts = key.split('.');
     const k = parts[0];
-    if (_filter && !_filter(data.get(keys(fromHacked, k)))) {
+    if (
+      this._filter &&
+      !this._filter(this.data.get(this.keys(this.cleanFrom, k)))
+    ) {
       return false;
     }
 
-    const exists = cache[k];
+    const exists = this.cache[k];
     const origValue = value;
-    if (_map) {
-      const path = keys(fromHacked, k);
-      value = _map(data.get(path), path);
+    if (this._map) {
+      const path = this.keys(this.cleanFrom, k);
+      value = this._map(this.data.get(path), path);
       key = k;
     }
 
-    if (_to) data.set(keys(_to, key), value);
-    setObject(cache, parts, value);
-    setObject(cacheNoMap, parts, origValue);
-    if (_toArray) {
+    if (this._to) this.data.set(this.keys(this._to, key), value);
+    this.setObject(this.cache, parts, value);
+    this.setObject(this.cacheNoMap, parts, origValue);
+    if (this._toArray) {
       if (exists) {
-        const oldIndex = cacheArray.indexOf(k);
-        cacheArray.splice(oldIndex, 1);
-        _toArray.remove(cache[k], oldIndex, 0, k);
-        const index = sortedIndex(k);
-        _toArray.add(cache[k], index, 0, k);
-        cacheArray.splice(index, 0, k);
+        const oldIndex = this.cacheArray.indexOf(k);
+        this.cacheArray.splice(oldIndex, 1);
+        this._toArray.remove(this.cache[k], oldIndex, 0, k);
+        const index = this.sortedIndex(k);
+        this._toArray.add(this.cache[k], index, 0, k);
+        this.cacheArray.splice(index, 0, k);
       } else {
-        const index = sortedIndex(k);
-        _toArray.add(cache[k], index, 0, k);
-        cacheArray.splice(index, 0, k);
+        const index = this.sortedIndex(k);
+        this._toArray.add(this.cache[k], index, 0, k);
+        this.cacheArray.splice(index, 0, k);
       }
     }
     return true;
   }
 
-  function setObject(object: LooseObject, parts: string[], value: any) {
+  setObject(object: LooseObject, parts: string[], value: any) {
     const parent = parts.slice(0, -1).reduce((parent, key) => {
       if (!parent[key]) parent[key] = {};
       return parent[key];
@@ -211,30 +230,28 @@ export default (data: Data, from: string) => {
     parent[parts[parts.length - 1]] = value;
   }
 
-  function unsetObject(object: LooseObject, parts: string[]) {
+  unsetObject(object: LooseObject, parts: string[]) {
     const parent = parts
       .slice(0, -1)
       .reduce((parent, key) => parent[key], object);
     delete parent[parts[parts.length - 1]];
   }
 
-  function unset(path: string): boolean {
-    if (!_to && !_toArray && !_then) return false;
+  unset(path: string): boolean {
+    if (!this._to && !this._toArray && !this._then) return false;
 
     const parts = path.split('.');
     const k = parts[0];
-    if (!cache[k]) return true;
+    if (!this.cache[k]) return true;
 
-    if (_toArray) {
-      const index = cacheArray.indexOf(k);
-      _toArray.remove(cache[k], index, 0, k);
-      cacheArray.splice(index, 1);
+    if (this._toArray) {
+      const index = this.cacheArray.indexOf(k);
+      this._toArray.remove(this.cache[k], index, 0, k);
+      this.cacheArray.splice(index, 1);
     }
-    unsetObject(cache, parts);
-    unsetObject(cacheNoMap, parts);
-    if (_to) data.unset(keys(_to, path));
+    this.unsetObject(this.cache, parts);
+    this.unsetObject(this.cacheNoMap, parts);
+    if (this._to) this.data.unset(this.keys(this._to, path));
     return true;
   }
-
-  return self;
-};
+}

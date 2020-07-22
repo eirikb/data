@@ -2,7 +2,7 @@ import test from 'ava';
 import Paths from '../src/paths';
 
 test('add static path', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.c', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [
     {
@@ -15,7 +15,7 @@ test('add static path', t => {
 });
 
 test('add dynamic path', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$b.c', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [
     {
@@ -28,7 +28,7 @@ test('add dynamic path', t => {
 });
 
 test('add multiple dynamic paths', t => {
-  const paths = Paths();
+  const paths = new Paths();
   const a = { ok: 1 };
   const b = {};
   paths.add('a.$x.c', 'ref', a);
@@ -41,7 +41,7 @@ test('add multiple dynamic paths', t => {
 });
 
 test('dynamic paths exact match', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$x', 'ref', {});
   t.is(0, paths.lookup('a.b.c').length);
   t.is(0, paths.lookup('a').length);
@@ -49,7 +49,7 @@ test('dynamic paths exact match', t => {
 });
 
 test('dynamic paths exact match 2', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$x.$y.b', 'ref', {});
   t.is(0, paths.lookup('a.b.c').length);
   t.is(0, paths.lookup('a').length);
@@ -61,7 +61,7 @@ test('dynamic paths exact match 2', t => {
 });
 
 test('dynamic paths exact match 3', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$x.b.$y', 'ref', {});
   t.is(0, paths.lookup('a.b.c').length);
   t.is(0, paths.lookup('a').length);
@@ -73,7 +73,7 @@ test('dynamic paths exact match 3', t => {
 });
 
 test('keys', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$x.y', 'ref', { ok: 1 });
   paths.add('a.$x.$y', 'ref', { ok: 2 });
   t.deepEqual(paths.lookup('a.b.y'), [
@@ -93,14 +93,14 @@ test('keys', t => {
 });
 
 test('remove wildcard end', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.*', 'ref', { ok: 1 });
   paths.remove('ref');
   t.pass();
 });
 
 test('multiple wildcard key end', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('*.b.*.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), []);
@@ -116,7 +116,7 @@ test('multiple wildcard key end', t => {
 });
 
 test('recursive wildcard', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), [
@@ -134,7 +134,7 @@ test('recursive wildcard', t => {
 });
 
 test('recursive with named', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.$c.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), []);
@@ -165,7 +165,7 @@ test('recursive with named', t => {
 });
 
 test('remove static path', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.c', 'ref', {});
   t.is(paths.lookup('a.b.c').length, 1);
   paths.remove('ref');
@@ -173,7 +173,7 @@ test('remove static path', t => {
 });
 
 test('remove static path but not all', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.c', 'ref', {});
   paths.add('a.b.c', 'raf', {});
   t.is(Object.keys(paths.lookup('a.b.c')[0]._).length, 2);
@@ -182,7 +182,7 @@ test('remove static path but not all', t => {
 });
 
 test('remove $ path', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$b.c', 'ref', {});
   t.is(paths.lookup('a.$b.c').length, 1);
   paths.remove('ref');
@@ -190,7 +190,7 @@ test('remove $ path', t => {
 });
 
 test('remove $$ path', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.**', 'ref', {});
   t.is(paths.lookup('a.b.c').length, 1);
   paths.remove('ref');
@@ -198,7 +198,7 @@ test('remove $$ path', t => {
 });
 
 test('until star', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [
     {
@@ -211,7 +211,7 @@ test('until star', t => {
 });
 
 test('until star with wildcard', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.$b.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [
     {
@@ -224,7 +224,7 @@ test('until star with wildcard', t => {
 });
 
 test('until recursive wildcard', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.b.**', 'ref', { ok: 1 });
   t.deepEqual(paths.lookup('a.b.c'), [
     {
@@ -237,7 +237,7 @@ test('until recursive wildcard', t => {
 });
 
 test('recursive wildcard and wildcard', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('a.*.**', 'ref', {});
   t.deepEqual(paths.lookup('a'), []);
   t.deepEqual(paths.lookup('a.b'), [
@@ -275,7 +275,7 @@ test('recursive wildcard and wildcard', t => {
 });
 
 test('Recursive wildcard and named wildcard combined', t => {
-  const paths = Paths();
+  const paths = new Paths();
   paths.add('test.**', 'a', {});
   paths.add('test.$id', 'b', {});
   t.deepEqual(paths.lookup('test.a'), [

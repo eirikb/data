@@ -2,7 +2,7 @@ import test from 'ava';
 import Listeners from '../src/listeners';
 
 test('static listener', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a', listener);
   listeners.add('a.b.c', listener);
@@ -28,7 +28,7 @@ test('static listener', t => {
 });
 
 test('dynamic listener', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.$b', listener);
   listeners.add('a.$b.$c.d', listener);
@@ -53,21 +53,21 @@ test('dynamic listener', t => {
 });
 
 test('add and remove listener', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const ref = listeners.add('hello', () => t.pass());
   listeners.remove(ref);
   t.deepEqual(0, listeners.get('hello').length);
 });
 
 test('add and remove dynamic listener', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const ref = listeners.add('hello.$x', () => t.pass());
   listeners.remove(ref);
   t.deepEqual(0, listeners.get('hello.world').length);
 });
 
 test('wildcard key middle', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.*.b.*.c', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -86,7 +86,7 @@ test('wildcard key middle', t => {
 });
 
 test('wildcard key end', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.b.*', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -102,7 +102,7 @@ test('wildcard key end', t => {
 });
 
 test('multiple wildcard key end', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('*.b.*.*', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -119,7 +119,7 @@ test('multiple wildcard key end', t => {
 });
 
 test('recursive wildcard', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.b.**', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -158,7 +158,7 @@ test('recursive wildcard', t => {
 });
 
 test('recursive wildcard and wildcard', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.*.**', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -197,7 +197,7 @@ test('recursive wildcard and wildcard', t => {
 });
 
 test('recursive wildcard and wildcard 2', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const listener = () => true;
   listeners.add('a.*.c.**', listener);
   t.deepEqual(listeners.get('a'), []);
@@ -229,13 +229,13 @@ test('recursive wildcard and wildcard 2', t => {
 });
 
 test('off on non-existing listener', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   listeners.remove('unknown');
   t.pass();
 });
 
 test('wildcard plus key', t => {
-  const listeners = Listeners();
+  const listeners = new Listeners();
   const ll1 = () => true;
   const ll2 = () => true;
   listeners.add('users.$id.x', ll1);
