@@ -187,7 +187,7 @@ export default class {
       const part = parts[index];
       const data = get(this._data, paths.join('.'));
       if (/(^\$|^\*$|^\*\*$)/.test(part)) {
-        Object.keys(data || {}).forEach(key =>
+        for (const key of Object.keys(data || {})) {
           this.triggerImmediate(
             target,
             refPaths,
@@ -195,8 +195,8 @@ export default class {
             parts,
             index + 1,
             paths.concat(key)
-          )
-        );
+          );
+        }
         return;
       } else {
         paths.push(part);
