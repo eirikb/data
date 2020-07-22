@@ -43,10 +43,10 @@
   },
   "module": "dist/data.esm.js",
   "devDependencies": {
-    "ava": "3.8.2",
-    "ts-node": "^8.10.1",
+    "ava": "^3.10.1",
+    "ts-node": "^8.10.2",
     "tsdx": "^0.13.2",
     "tslib": "^2.0.0",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.7"
   }
 }
