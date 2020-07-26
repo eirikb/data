@@ -1,7 +1,7 @@
-import Paths from './paths';
+import { Paths } from './paths';
 import { LooseObject } from './types';
 
-export default class Listeners {
+export class Listeners {
   cache: LooseObject = {};
   paths = new Paths();
   next = 0;

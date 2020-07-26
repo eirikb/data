@@ -1,5 +1,5 @@
 import test from 'ava';
-import Data from '../src/data';
+import { Data } from '../src/data';
 
 test('hello', t => {
   const data = new Data();

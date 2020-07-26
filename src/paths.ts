@@ -7,7 +7,7 @@ export interface Lookup {
   fullPath?: string;
 }
 
-export default class {
+export class Paths {
   map: LooseObject = {};
   refs: LooseObject = {};
 

@@ -1,5 +1,5 @@
 import test from 'ava';
-import Paths from '../src/paths';
+import { Paths } from '../src/paths';
 
 test('add static path', t => {
   const paths = new Paths();

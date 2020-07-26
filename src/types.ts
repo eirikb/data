@@ -1,6 +1,6 @@
-import Listeners from './listeners';
+import { Listeners } from './listeners';
 
-export declare type Callback = (value: any, props: any) => void;
+export type Callback = (value: any, props: any) => void;
 
 export interface LooseObject {
   [key: string]: any;
@@ -12,21 +12,18 @@ export interface ToCall {
   value: any;
 }
 
-export declare type Sorter = (
-  a: any,
-  b: any,
-  aPath: string,
-  bPath: string
-) => number;
-export declare type Filter = (value: any) => boolean;
-export declare type SorterOn = (
+export type Sorter = (a: any, b: any, aPath: string, bPath: string) => number;
+
+export type Filter = (value: any) => boolean;
+
+export type SorterOn = (
   sortValue: any,
   a: any,
   b: any,
   aPath: string,
   bPath: string
 ) => number;
-export declare type FilterOn = (filterValue: any, value: any) => boolean;
+export type FilterOn = (filterValue: any, value: any) => boolean;
 
 export interface Stower {
   add(value: any, index: number, subIndex?: number, path?: string): void;

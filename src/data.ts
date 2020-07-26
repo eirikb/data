@@ -1,5 +1,5 @@
-import Listeners, { ImmediateListeners } from './listeners';
-import Pathifier from './pathifier';
+import { Listeners, ImmediateListeners } from './listeners';
+import { Pathifier } from './pathifier';
 import { clean } from './paths';
 import { Callback, LooseObject, ToCall } from './types';
 export * from './types';
@@ -31,7 +31,7 @@ function unset(input: LooseObject, path: string) {
   delete input[paths[paths.length - 1]];
 }
 
-export default class {
+export class Data {
   setQueue: LooseObject = {};
   _data: LooseObject = {};
   _changeListeners = new Listeners('change');

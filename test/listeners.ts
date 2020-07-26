@@ -1,5 +1,5 @@
 import test from 'ava';
-import Listeners from '../src/listeners';
+import { Listeners } from '../src/listeners';
 
 test('static listener', t => {
   const listeners = new Listeners();

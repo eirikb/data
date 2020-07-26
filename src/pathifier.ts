@@ -8,9 +8,9 @@ import {
   SorterOn,
   Stower,
 } from './types';
-import Data from './data';
+import { Data } from 'data';
 
-export default class {
+export class Pathifier {
   refs: string[] = [];
 
   cache: LooseObject = {};
