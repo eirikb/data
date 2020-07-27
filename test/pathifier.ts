@@ -116,13 +116,14 @@ test('to unset sub-path', t => {
 });
 
 test('then not called for outfiltered data', t => {
-  t.plan(1);
+  t.plan(2);
 
   const data = new Data();
   data
     .on('users')
     .filter(user => user.name === 'a')
-    .then(users => {
+    .then((users, { path }) => {
+      t.is(path, 'a.name');
       t.deepEqual({ a: { name: 'a' } }, users);
     });
   data.set('users.a.name', 'a');
@@ -522,7 +523,7 @@ test('map has path', t => {
   let res: any[] = [];
   data
     .on('players.*')
-    .map((p, path) => {
+    .map((p, { path }) => {
       res.push(path);
       return p.name;
     })

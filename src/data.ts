@@ -1,7 +1,7 @@
-import { Listeners, ImmediateListeners } from './listeners';
+import { ListenerCallback, Listeners, ImmediateListeners } from './listeners';
 import { Pathifier } from './pathifier';
 import { clean } from './paths';
-import { Callback, LooseObject, ToCall } from './types';
+import { LooseObject, ToCall } from './types';
 export * from './types';
 
 function isProbablyPlainObject(obj: any) {
@@ -178,7 +178,7 @@ export class Data {
   triggerImmediate(
     target: string,
     refPaths: Set<string>,
-    listener: Function,
+    listener: ListenerCallback,
     parts: string[],
     index = 0,
     paths: string[] = []
@@ -220,9 +220,9 @@ export class Data {
 
   on(flagsAndPath: string): Pathifier;
 
-  on(flagsAndPath: string, listener: Callback): string;
+  on(flagsAndPath: string, listener: ListenerCallback): string;
 
-  on(flagsAndPath: string, listener?: Callback): Pathifier | string {
+  on(flagsAndPath: string, listener?: ListenerCallback): Pathifier | string {
     if (!flagsAndPath.includes(' ') && !listener) {
       return new Pathifier(this, flagsAndPath);
     }

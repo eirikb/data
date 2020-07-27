@@ -554,7 +554,7 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
   t.plan(3);
   const data = new Data();
 
-  let hack: Function;
+  let hack: (res: any) => void;
   data.on('!+* players.*', players => {
     hack(players);
   });

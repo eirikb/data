@@ -1,7 +1,5 @@
 import { Listeners } from './listeners';
 
-export type Callback = (value: any, props: any) => void;
-
 export interface LooseObject {
   [key: string]: any;
 }

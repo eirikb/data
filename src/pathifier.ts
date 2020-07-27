@@ -1,6 +1,6 @@
 import { clean } from './paths';
+import { ListenerCallback } from 'listeners';
 import {
-  Callback,
   Filter,
   FilterOn,
   LooseObject,
@@ -21,8 +21,8 @@ export class Pathifier {
   _filter?: Filter;
   _sort?: Sorter;
   _toArray?: Stower;
-  _map?: Function;
-  _then?: Function;
+  _map?: ListenerCallback;
+  _then?: ListenerCallback;
   _on: boolean = false;
   data: Data;
   from: string;
@@ -85,7 +85,7 @@ export class Pathifier {
     return this;
   }
 
-  map(map: Callback) {
+  map(map: ListenerCallback) {
     if (this._map) throw new Error('Sorry, only one map');
     this._map = map;
     return this;
@@ -115,7 +115,7 @@ export class Pathifier {
     return this;
   }
 
-  then(then: Callback) {
+  then(then: ListenerCallback) {
     this._then = then;
     if (!this._on) this.on();
     return this;
@@ -139,13 +139,15 @@ export class Pathifier {
         } else {
           const subPath = target.slice(this.cleanFrom.length + 1);
           const updated = this.set(subPath, this.data.get(target));
-          if (updated && this._then) this._then(this.cache);
+          if (updated && this._then) this._then(this.cache, { path: subPath });
         }
       }),
       this.data.on(`- ${this.from}`, (_, { target }) => {
         const subPath = target.slice(this.cleanFrom.length + 1);
         const updated = this.unset(subPath);
-        if (updated && this._then) this._then(this.cache);
+        if (updated && this._then) {
+          this._then(this.cache, { path: subPath });
+        }
       })
     );
   }
@@ -176,7 +178,7 @@ export class Pathifier {
       this.unset(bb);
     }
     if (updated && this._then) {
-      this._then(this.cache);
+      this._then(this.cache, { path: '' });
     }
   }
 
@@ -198,7 +200,7 @@ export class Pathifier {
     const origValue = value;
     if (this._map) {
       const path = this.keys(this.cleanFrom, k);
-      value = this._map(this.data.get(path), path);
+      value = this._map(this.data.get(path), { path });
       key = k;
     }
 

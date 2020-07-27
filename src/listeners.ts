@@ -1,6 +1,14 @@
 import { Paths } from './paths';
 import { LooseObject } from './types';
 
+export type ListenerCallback = (
+  value: any,
+  props: {
+    path: string;
+    [key: string]: any;
+  }
+) => void;
+
 export class Listeners {
   cache: LooseObject = {};
   paths = new Paths();
@@ -16,7 +24,7 @@ export class Listeners {
     return `${this.prefix}-${this.next}`;
   }
 
-  add(path: string, listener: Function) {
+  add(path: string, listener: ListenerCallback) {
     this.cache = {};
     const ref = this.nextRef();
     this.paths.add(path, ref, { listener });
@@ -50,7 +58,7 @@ export class ImmediateListeners extends Listeners {
     super('immediate');
   }
 
-  add(path: string, listener: Function): string {
+  add(path: string, listener: ListenerCallback): string {
     this.ref = super.add(path, listener);
     return this.ref;
   }
