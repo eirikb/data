@@ -175,10 +175,10 @@ export class Data {
     }
   }
 
-  triggerImmediate(
+  triggerImmediate<T>(
     target: string,
     refPaths: Set<string>,
-    listener: ListenerCallback,
+    listener: ListenerCallback<T>,
     parts: string[],
     index = 0,
     paths: string[] = []
@@ -218,11 +218,14 @@ export class Data {
     return this.setSet(path, value, byKey, false);
   }
 
-  on(flagsAndPath: string): Pathifier;
+  on<T = any>(flagsAndPath: string): Pathifier<T>;
 
-  on(flagsAndPath: string, listener: ListenerCallback): string;
+  on<T = any>(flagsAndPath: string, listener: ListenerCallback<T>): string;
 
-  on(flagsAndPath: string, listener?: ListenerCallback): Pathifier | string {
+  on<T = any>(
+    flagsAndPath: string,
+    listener?: ListenerCallback<T>
+  ): Pathifier<T> | string {
     if (!flagsAndPath.includes(' ') && !listener) {
       return new Pathifier(this, flagsAndPath);
     }
@@ -303,9 +306,9 @@ export class Data {
     return this._trigger(path, new Set(), this._triggerListeners, path, value);
   }
 
-  get(path?: string): any {
-    if (!path) return this._data;
-    return get(this._data, path);
+  get<T = any>(path?: string): T {
+    if (!path) return this._data as T;
+    return get(this._data, path) as T;
   }
 
   unset(path: string) {
