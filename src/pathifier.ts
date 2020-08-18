@@ -10,19 +10,19 @@ import {
 } from './types';
 import { Data } from 'data';
 
-export class Pathifier {
+export class Pathifier<T> {
   refs: string[] = [];
 
-  cache: LooseObject = {};
-  cacheNoMap: LooseObject = {};
+  cache: { [key: string]: T } = {};
+  cacheNoMap: { [key: string]: T } = {};
   cacheArray: string[] = [];
 
   _to?: string;
   _filter?: Filter;
   _sort?: Sorter;
   _toArray?: Stower;
-  _map?: ListenerCallback;
-  _then?: ListenerCallback;
+  _map?: ListenerCallback<T>;
+  _then?: ListenerCallback<{ [key: string]: T }>;
   _on: boolean = false;
   data: Data;
   from: string;
@@ -85,7 +85,7 @@ export class Pathifier {
     return this;
   }
 
-  map(map: ListenerCallback) {
+  map(map: ListenerCallback<T>) {
     if (this._map) throw new Error('Sorry, only one map');
     this._map = map;
     return this;
@@ -115,7 +115,7 @@ export class Pathifier {
     return this;
   }
 
-  then(then: ListenerCallback) {
+  then(then: ListenerCallback<{ [key: string]: T }>) {
     this._then = then;
     if (!this._on) this.on();
     return this;

@@ -607,3 +607,49 @@ test('Wild-wildcard once for multiple including paths for singles on immediate',
     });
   });
 });
+
+test('Generic get', t => {
+  const data = new Data();
+  interface Ok {
+    name: string;
+  }
+
+  const ok: Ok = {
+    name: 'Hello',
+  };
+
+  data.set('ok', ok);
+  t.is('Hello', data.get<Ok>('ok').name);
+});
+
+test('Generic on', t => {
+  const data = new Data();
+  interface Ok {
+    name: string;
+  }
+
+  const ok: Ok = {
+    name: 'Hello',
+  };
+
+  data.on<Ok>('!+* ok', ok => {
+    t.is(ok.name, 'Hello');
+  });
+  data.set('ok', ok);
+});
+
+test('Generic pathifier', t => {
+  const data = new Data();
+  interface Ok {
+    name: string;
+  }
+
+  const ok: Ok = {
+    name: 'Hello',
+  };
+
+  data.on<Ok>('oks').then(res => {
+    t.is('Hello', res.a.name);
+  });
+  data.set('oks.a', ok);
+});
