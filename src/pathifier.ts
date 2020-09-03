@@ -139,14 +139,15 @@ export class Pathifier<T> {
         } else {
           const subPath = target.slice(this.cleanFrom.length + 1);
           const updated = this.set(subPath, this.data.get(target));
-          if (updated && this._then) this._then(this.cache, { path: subPath });
+          if (updated && this._then)
+            this._then(this.cache, { path, fullPath: target, subPath, target });
         }
       }),
-      this.data.on(`- ${this.from}`, (_, { target }) => {
+      this.data.on(`- ${this.from}`, (_, { path, fullPath, target }) => {
         const subPath = target.slice(this.cleanFrom.length + 1);
         const updated = this.unset(subPath);
         if (updated && this._then) {
-          this._then(this.cache, { path: subPath });
+          this._then(this.cache, { path, fullPath, subPath, target: fullPath });
         }
       })
     );
@@ -178,7 +179,7 @@ export class Pathifier<T> {
       this.unset(bb);
     }
     if (updated && this._then) {
-      this._then(this.cache, { path: '' });
+      this._then(this.cache, { path: '', fullPath: '', subPath: '' });
     }
   }
 
@@ -200,7 +201,11 @@ export class Pathifier<T> {
     const origValue = value;
     if (this._map) {
       const path = this.keys(this.cleanFrom, k);
-      value = this._map(this.data.get(path), { path });
+      value = this._map(this.data.get(path), {
+        path,
+        fullPath: path,
+        subPath: '',
+      });
       key = k;
     }
 

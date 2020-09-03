@@ -610,6 +610,7 @@ test('Wild-wildcard once for multiple including paths for singles on immediate',
 
 test('Generic get', t => {
   const data = new Data();
+
   interface Ok {
     name: string;
   }
@@ -624,6 +625,7 @@ test('Generic get', t => {
 
 test('Generic on', t => {
   const data = new Data();
+
   interface Ok {
     name: string;
   }
@@ -640,6 +642,7 @@ test('Generic on', t => {
 
 test('Generic pathifier', t => {
   const data = new Data();
+
   interface Ok {
     name: string;
   }
@@ -652,4 +655,16 @@ test('Generic pathifier', t => {
     t.is('Hello', res.a.name);
   });
   data.set('oks.a', ok);
+});
+
+test('full path', t => {
+  t.plan(3);
+
+  const data = new Data();
+  data.on('!+* test.*', (_, { fullPath, path, subPath }) => {
+    t.is(fullPath, 'test.a');
+    t.is('test', path);
+    t.is('.a', subPath);
+  });
+  data.set('test.a', { yes: 'no' });
 });

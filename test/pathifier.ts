@@ -116,14 +116,16 @@ test('to unset sub-path', t => {
 });
 
 test('then not called for outfiltered data', t => {
-  t.plan(2);
+  t.plan(4);
 
   const data = new Data();
   data
     .on('users')
     .filter(user => user.name === 'a')
-    .then((users, { path }) => {
-      t.is(path, 'a.name');
+    .then((users, { path, target, subPath }) => {
+      t.is(path, 'users');
+      t.is(target, 'users.a.name');
+      t.is(subPath, 'a.name');
       t.deepEqual({ a: { name: 'a' } }, users);
     });
   data.set('users.a.name', 'a');

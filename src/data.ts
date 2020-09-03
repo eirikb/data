@@ -2,6 +2,7 @@ import { ListenerCallback, Listeners, ImmediateListeners } from './listeners';
 import { Pathifier } from './pathifier';
 import { clean } from './paths';
 import { LooseObject, ToCall } from './types';
+
 export * from './types';
 
 function isProbablyPlainObject(obj: any) {
@@ -274,8 +275,8 @@ export class Data {
     const results = listeners.get(path);
     let resultValue;
     for (let res of results) {
+      const { path, fullPath } = res;
       const listeners = res._;
-      res.value = value;
       for (let [ref, listener] of listeners) {
         const refPath = ref + res.path;
         if (listener && !refPaths.has(refPath)) {
@@ -287,7 +288,9 @@ export class Data {
           const valIsObject = isProbablyPlainObject(val);
           resultValue = listener(val, {
             target,
-            path: res.path,
+            subPath: fullPath.slice(path.length),
+            path,
+            fullPath,
             ...res.keys,
             ...(valIsObject
               ? {

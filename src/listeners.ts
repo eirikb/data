@@ -4,6 +4,8 @@ import { LooseObject } from './types';
 export type ListenerCallback<T> = (
   value: T,
   props: {
+    subPath: string;
+    fullPath: string;
     path: string;
     [key: string]: any;
   }
