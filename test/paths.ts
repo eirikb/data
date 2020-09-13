@@ -288,3 +288,14 @@ test('Recursive wildcard and named wildcard combined', t => {
     },
   ]);
 });
+
+test('Recursive wildcard plus static', t => {
+  const paths = new Paths();
+  paths.add('a.**', 'a', 'yes');
+  paths.add('a.b', 'b', 'no');
+
+  t.deepEqual(paths.lookup('a.b'), [
+    { keys: {}, path: 'a', value: { a: 'yes' }, fullPath: 'a.b' },
+    { keys: {}, path: 'a.b', value: { b: 'no' }, fullPath: 'a.b' },
+  ]);
+});
