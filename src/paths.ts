@@ -112,63 +112,7 @@ export class Paths<T> {
     parent.value[ref] = input;
   };
 
-  // for (; index < parts.length; index++) {
-  //   const part = parts[index];
-
-  // const part = parts[index];
-  // if (parent.$) {
-  //   for (let key of Object.keys(parent.$)) {
-  //     const newKeys: string[] = keys.slice();
-  //     let newUntil = until;
-  //     if (key !== '*' && key !== '**') {
-  //       newUntil = index;
-  //       newKeys[index] = key;
-  //     }
-  //     this._lookup(
-  //       result,
-  //       parent.$(key),
-  //       parts,
-  //       index + 1,
-  //       newKeys,
-  //       newUntil
-  //     );
-  //   }
-  // }
-  // if (parent.$$) {
-  //   if (parent.$$.h) {
-  //     break;
-  //   }
-  // }
-  // if (parent.children()) {
-  //   until = index;
-  //   parent = parent._[part];
-  // } else {
-  //   return;
-  // }
-  // }
-
-  // if (parent && !parent.h && parent.$$) {
-  //   parent = parent.$$;
-  // }
-
-  // if (parent && parent.h) {
-  //   const keysMap = keys.reduce((res, val, index) => {
-  //     if (val) res[val] = parts[index];
-  //     return res;
-  //   }, {} as any);
-  //
-  //   const res = {
-  //     keys: keysMap,
-  //     value: parent.h,
-  //     path: (until >= 0 ? parts.slice(0, until + 1) : parts).join('.'),
-  //     ...(until >= 0 ? { fullPath: parts.join('.') } : {}),
-  //   } as Lookup;
-  //   result.push(res);
-  // }
-  // }
-
   lookup(path: string) {
-    console.dir(this.map, { depth: null });
     const parts = path.split('.');
     const lookup = new Lookuper<T>(this.map, parts);
     return lookup.lookup();
@@ -179,7 +123,6 @@ export class Paths<T> {
     if (!path) return;
 
     const parts = path.split('.');
-    console.dir(this.map, { depth: null });
     let parent: Path<T> | undefined = this.map;
     for (let part of parts) {
       if (part.startsWith('$')) {
@@ -193,7 +136,6 @@ export class Paths<T> {
         parent = parent?.children[part];
       }
     }
-    console.log(111, parent);
     if (parent && parent.value) {
       delete parent.value[ref];
       if (Object.keys(parent.value).length === 0) {
