@@ -1,56 +1,59 @@
-class Path<T> {
+class Path {
   children: {
-    [key: string]: Path<T>;
+    [key: string]: Path;
   } = {};
   $: {
-    [key: string]: Path<T>;
+    [key: string]: Path;
   } = {};
 
-  $x?: Path<T>;
-  $xx?: Path<T>;
+  $x?: Path;
+  $xx?: Path;
 
   value?: {
-    [ref: string]: T;
+    [ref: string]: unknown;
   };
 }
 
-export interface Lookup<T> {
+export interface Lookup {
   keys: { [key: string]: string };
-  value: { [ref: string]: T };
+  value: { [ref: string]: unknown };
   path: string;
   fullPath: string;
 }
 
-class Lookuper<T> {
-  private readonly parent: Path<T>;
+class Lookuper {
+  private readonly parent: Path;
   private readonly parts: string[];
-  private result: Lookup<T>[] = [];
+  private result: Lookup[] = [];
 
-  constructor(parent: Path<T>, parts: string[]) {
+  constructor(parent: Path, parts: string[]) {
     this.parent = parent;
     this.parts = parts;
   }
 
   private _addResult(
     keys: string[][],
-    value: { [ref: string]: T },
+    value: { [ref: string]: unknown },
     pathUntil: number
   ) {
     this.result.push({
-      keys: Object.fromEntries(keys),
+      keys: keys.reduce((res: { [key: string]: string }, [name, value]) => {
+        res[name] = value;
+        return res;
+      }, {}),
       value,
       path: this.parts.slice(0, pathUntil).join('.'),
       fullPath: this.parts.join('.'),
     });
   }
 
-  lookup(): Lookup<T>[] {
+  lookup(): Lookup[] {
     this._lookup(this.parent);
     return this.result;
   }
 
   private _lookup(
-    parent: Path<T>,
+    parent: Path,
     index = 0,
     keys: string[][] = [],
     pathUntil = 0
@@ -89,11 +92,11 @@ class Lookuper<T> {
   }
 }
 
-export class Paths<T> {
-  private map: Path<T> = new Path();
+export class Paths {
+  private map: Path = new Path();
   private refs: { [key: string]: string } = {};
 
-  add = (path: string, ref: string, input: T) => {
+  add = (path: string, ref: string, input: unknown) => {
     this.refs[ref] = path;
     const parts = path.split('.');
     let parent = this.map;
@@ -114,7 +117,7 @@ export class Paths<T> {
 
   lookup(path: string) {
     const parts = path.split('.');
-    const lookup = new Lookuper<T>(this.map, parts);
+    const lookup = new Lookuper(this.map, parts);
     return lookup.lookup();
   }
 
@@ -123,7 +126,7 @@ export class Paths<T> {
     if (!path) return;
 
     const parts = path.split('.');
-    let parent: Path<T> | undefined = this.map;
+    let parent: Path | undefined = this.map;
     for (let part of parts) {
       if (part.startsWith('$')) {
         parent = parent?.$[part];
