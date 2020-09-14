@@ -1,38 +1,35 @@
-import { Paths } from './paths';
-import { LooseObject } from './types';
+import { Lookup, Paths } from './paths';
 
 export interface ListenerCallbackProps {
   subPath: string;
   fullPath: string;
   path: string;
-
-  [key: string]: any;
 }
 
-export type ListenerCallback<T> = (
-  value: T,
+export type ListenerCallback = (
+  value: unknown,
   props: ListenerCallbackProps
 ) => any;
 
 export class Listeners {
-  cache: LooseObject = {};
-  paths = new Paths();
-  next = 0;
-  prefix: string;
+  private cache: { [key: string]: Lookup[] } = {};
+  private paths = new Paths();
+  private next = 0;
+  private prefix: string;
 
   constructor(prefix = 'ref') {
     this.prefix = prefix;
   }
 
-  nextRef() {
+  private nextRef() {
     this.next++;
     return `${this.prefix}-${this.next}`;
   }
 
-  add<T>(path: string, listener: ListenerCallback<T>) {
+  add(path: string, listener: ListenerCallback) {
     this.cache = {};
     const ref = this.nextRef();
-    this.paths.add(path, ref, { listener });
+    this.paths.add(path, ref, listener);
     return ref;
   }
 
@@ -41,14 +38,11 @@ export class Listeners {
     this.cache = {};
   }
 
-  _get(path: string) {
-    return this.paths.lookup(path).map(res => {
-      res._ = Object.entries(res._).map(([ref, res]) => [ref, res['listener']]);
-      return res;
-    });
+  private _get(path: string) {
+    return this.paths.lookup(path);
   }
 
-  get(path: string) {
+  get(path: string): Lookup[] {
     if (this.cache[path]) {
       return this.cache[path];
     }
@@ -63,7 +57,7 @@ export class ImmediateListeners extends Listeners {
     super('immediate');
   }
 
-  add<T>(path: string, listener: ListenerCallback<T>): string {
+  add(path: string, listener: ListenerCallback): string {
     this.ref = super.add(path, listener);
     return this.ref;
   }
