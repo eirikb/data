@@ -223,14 +223,14 @@ export class Data {
     return this.setSet(path, value, byKey, false);
   }
 
-  on<T = any>(flagsAndPath: string): Pathifier;
+  on<T = unknown>(flagsAndPath: string): Pathifier;
 
-  on<T = any>(
+  on<T = unknown>(
     flagsAndPath: string,
     listener: ListenerCallbackWithType<T>
   ): string;
 
-  on<T = any>(
+  on<T = unknown>(
     flagsAndPath: string,
     listener?: ListenerCallbackWithType<T>
   ): Pathifier | string {

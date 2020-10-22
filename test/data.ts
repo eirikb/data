@@ -165,7 +165,7 @@ test('instant callback upon adding listener to existing data', t => {
 test('bop paths', t => {
   const data = new Data();
   t.plan(2);
-  data.on('+* quest.bops.$key', (bopData, { $key }) => {
+  data.on<any>('+* quest.bops.$key', (bopData, { $key }) => {
     t.deepEqual('-LNRK0flHBSZniioW6YS', $key);
     t.deepEqual('mini', bopData.name);
   });
@@ -175,7 +175,7 @@ test('bop paths', t => {
 test('bop paths 2', t => {
   const data = new Data();
   t.plan(2);
-  data.on('+* quest.bops.$key', (bopData, { $key }) => {
+  data.on<any>('+* quest.bops.$key', (bopData, { $key }) => {
     t.deepEqual('-LNRK0flH-BSZniioW6YS', $key);
     t.deepEqual('mini', bopData.name);
   });
@@ -186,7 +186,7 @@ test('previous data can be falsey', t => {
   const data = new Data();
   t.plan(1);
   data.set('a', 0);
-  data.on('* a', value => t.deepEqual(1337, value));
+  data.on<any>('* a', value => t.deepEqual(1337, value));
   data.set('a', 1337);
 });
 
@@ -236,7 +236,7 @@ test('methods support destructuring', t => {
 test('adding sub-child triggers add on parent if parent missing', t => {
   const data = new Data();
   t.plan(1);
-  data.on('+ x.$key', val => t.deepEqual('ok', val.a));
+  data.on<any>('+ x.$key', val => t.deepEqual('ok', val.a));
   data.set('x.test.a', 'ok');
 });
 
@@ -333,7 +333,7 @@ test('Adding sub-thing trigger change on parent', t => {
   const data = new Data();
   data.set('users.1.name', 'Hello');
   t.plan(2);
-  data.on('+ users.$id.*', (user, { $id }) => {
+  data.on<any>('+ users.$id.*', (user, { $id }) => {
     t.deepEqual('1', $id);
     t.deepEqual('137', user.x);
   });
@@ -386,7 +386,7 @@ test('Overwrite parent path should not clear data', t => {
 test('Setting value while listening', t => {
   const data = new Data();
 
-  data.on('+* hello', i => {
+  data.on<any>('+* hello', i => {
     if (i < 2) {
       data.set('hello', 2);
     }
