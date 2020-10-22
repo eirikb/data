@@ -10,7 +10,7 @@ test('static listener', t => {
     {
       keys: {},
       path: 'a',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a',
     },
   ]);
@@ -19,7 +19,7 @@ test('static listener', t => {
     {
       keys: {},
       path: 'a.b.c',
-      _: [['ref-2', listener]],
+      value: { 'ref-2': listener },
       fullPath: 'a.b.c',
     },
   ]);
@@ -35,7 +35,7 @@ test('dynamic listener', t => {
   t.deepEqual(listeners.get('a.c'), [
     {
       path: 'a.c',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       keys: { $b: 'c' },
       fullPath: 'a.c',
     },
@@ -45,7 +45,7 @@ test('dynamic listener', t => {
   t.deepEqual(listeners.get('a.b.c.d'), [
     {
       path: 'a.b.c.d',
-      _: [['ref-2', listener]],
+      value: { 'ref-2': listener },
       keys: { $b: 'b', $c: 'c' },
       fullPath: 'a.b.c.d',
     },
@@ -78,7 +78,7 @@ test('wildcard key middle', t => {
     {
       keys: {},
       path: 'a.x.b.y.c',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.x.b.y.c',
     },
   ]);
@@ -95,7 +95,7 @@ test('wildcard key end', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c',
     },
   ]);
@@ -112,7 +112,7 @@ test('multiple wildcard key end', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d',
     },
   ]);
@@ -127,7 +127,7 @@ test('recursive wildcard', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b',
     },
   ]);
@@ -135,7 +135,7 @@ test('recursive wildcard', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c',
     },
   ]);
@@ -143,7 +143,7 @@ test('recursive wildcard', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d',
     },
   ]);
@@ -151,7 +151,7 @@ test('recursive wildcard', t => {
     {
       keys: {},
       path: 'a.b',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d.e',
     },
   ]);
@@ -166,7 +166,7 @@ test('recursive wildcard and wildcard', t => {
     {
       keys: {},
       path: 'a',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b',
     },
   ]);
@@ -174,7 +174,7 @@ test('recursive wildcard and wildcard', t => {
     {
       keys: {},
       path: 'a',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c',
     },
   ]);
@@ -182,7 +182,7 @@ test('recursive wildcard and wildcard', t => {
     {
       keys: {},
       path: 'a',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d',
     },
   ]);
@@ -190,7 +190,7 @@ test('recursive wildcard and wildcard', t => {
     {
       keys: {},
       path: 'a',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d.e',
     },
   ]);
@@ -206,7 +206,7 @@ test('recursive wildcard and wildcard 2', t => {
     {
       keys: {},
       path: 'a.b.c',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c',
     },
   ]);
@@ -214,7 +214,7 @@ test('recursive wildcard and wildcard 2', t => {
     {
       keys: {},
       path: 'a.b.c',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d',
     },
   ]);
@@ -222,7 +222,7 @@ test('recursive wildcard and wildcard 2', t => {
     {
       keys: {},
       path: 'a.b.c',
-      _: [['ref-1', listener]],
+      value: { 'ref-1': listener },
       fullPath: 'a.b.c.d.e',
     },
   ]);
@@ -245,7 +245,7 @@ test('wildcard plus key', t => {
     {
       keys: { $id: '1' },
       path: 'users.1.x',
-      _: [['ref-1', ll1]],
+      value: { 'ref-1': ll1 },
       fullPath: 'users.1.x',
     },
   ]);
@@ -253,7 +253,7 @@ test('wildcard plus key', t => {
     {
       keys: { $id: '1' },
       path: 'users.1.name',
-      _: [['ref-2', ll2]],
+      value: { 'ref-2': ll2 },
       fullPath: 'users.1.name',
     },
   ]);

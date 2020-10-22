@@ -1,6 +1,6 @@
 {
   "name": "@eirikb/data",
-  "version": "3.5.1",
+  "version": "3.6.0",
   "description": "Very extremely simple in-memory storage with change listeners",
   "repository": {
     "type": "git",
@@ -32,7 +32,7 @@
   },
   "scripts": {
     "build": "tsdx build",
-    "lint": "tsdx lint",
+    "lint": "tsdx lint src test",
     "test": "ava"
   },
   "prettier": {

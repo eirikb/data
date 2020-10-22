@@ -122,9 +122,9 @@ test('then not called for outfiltered data', t => {
   data
     .on('users')
     .filter(user => user.name === 'a')
-    .then((users, { path, target, subPath }) => {
+    .then((users, { path, fullPath, subPath }) => {
       t.is(path, 'users');
-      t.is(target, 'users.a.name');
+      t.is(fullPath, 'users.a.name');
       t.is(subPath, 'a.name');
       t.deepEqual({ a: { name: 'a' } }, users);
     });
