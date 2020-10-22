@@ -4,16 +4,23 @@ export interface ListenerCallbackProps {
   subPath: string;
   fullPath: string;
   path: string;
+
+  [key: string]: unknown;
 }
 
 export type ListenerCallback = (
-  value: unknown,
+  value: any,
+  props: ListenerCallbackProps
+) => any;
+
+export type ListenerCallbackWithType<T> = (
+  value: T,
   props: ListenerCallbackProps
 ) => any;
 
 export class Listeners {
-  private cache: { [key: string]: Lookup[] } = {};
-  private paths = new Paths();
+  private cache: { [key: string]: Lookup<ListenerCallback>[] } = {};
+  private paths = new Paths<ListenerCallback>();
   private next = 0;
   private prefix: string;
 
@@ -42,29 +49,10 @@ export class Listeners {
     return this.paths.lookup(path);
   }
 
-  get(path: string): Lookup[] {
+  get(path: string): Lookup<ListenerCallback>[] {
     if (this.cache[path]) {
       return this.cache[path];
     }
     return (this.cache[path] = this._get(path));
-  }
-}
-
-export class ImmediateListeners extends Listeners {
-  ref = '';
-
-  constructor() {
-    super('immediate');
-  }
-
-  add(path: string, listener: ListenerCallback): string {
-    this.ref = super.add(path, listener);
-    return this.ref;
-  }
-
-  get(path: string) {
-    const res = super.get(path);
-    this.remove(this.ref);
-    return res;
   }
 }

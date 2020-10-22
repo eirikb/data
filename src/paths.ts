@@ -1,39 +1,39 @@
-class Path {
+class Path<T> {
   children: {
-    [key: string]: Path;
+    [key: string]: Path<T>;
   } = {};
   $: {
-    [key: string]: Path;
+    [key: string]: Path<T>;
   } = {};
 
-  $x?: Path;
-  $xx?: Path;
+  $x?: Path<T>;
+  $xx?: Path<T>;
 
   value?: {
-    [ref: string]: unknown;
+    [ref: string]: T;
   };
 }
 
-export interface Lookup {
+export interface Lookup<T> {
   keys: { [key: string]: string };
-  value: { [ref: string]: unknown };
+  value: { [ref: string]: T };
   path: string;
   fullPath: string;
 }
 
-class Lookuper {
-  private readonly parent: Path;
+class Lookuper<T> {
+  private readonly parent: Path<T>;
   private readonly parts: string[];
-  private result: Lookup[] = [];
+  private result: Lookup<T>[] = [];
 
-  constructor(parent: Path, parts: string[]) {
+  constructor(parent: Path<T>, parts: string[]) {
     this.parent = parent;
     this.parts = parts;
   }
 
   private _addResult(
     keys: string[][],
-    value: { [ref: string]: unknown },
+    value: { [ref: string]: T },
     pathUntil: number
   ) {
     this.result.push({
@@ -47,13 +47,13 @@ class Lookuper {
     });
   }
 
-  lookup(): Lookup[] {
+  lookup(): Lookup<T>[] {
     this._lookup(this.parent);
     return this.result;
   }
 
   private _lookup(
-    parent: Path,
+    parent: Path<T>,
     index = 0,
     keys: string[][] = [],
     pathUntil = 0
@@ -92,11 +92,11 @@ class Lookuper {
   }
 }
 
-export class Paths {
-  private map: Path = new Path();
+export class Paths<T> {
+  private map: Path<T> = new Path<T>();
   private refs: { [key: string]: string } = {};
 
-  add = (path: string, ref: string, input: unknown) => {
+  add = (path: string, ref: string, input: T) => {
     this.refs[ref] = path;
     const parts = path.split('.');
     let parent = this.map;
@@ -126,7 +126,7 @@ export class Paths {
     if (!path) return;
 
     const parts = path.split('.');
-    let parent: Path | undefined = this.map;
+    let parent: Path<T> | undefined = this.map;
     for (let part of parts) {
       if (part.startsWith('$')) {
         parent = parent?.$[part];

@@ -1,4 +1,8 @@
-import { ListenerCallback, Listeners, ImmediateListeners } from './listeners';
+import {
+  ListenerCallback,
+  ListenerCallbackWithType,
+  Listeners,
+} from './listeners';
 import { Pathifier } from './pathifier';
 import { clean } from './paths';
 import { LooseObject, ToCall } from './types';
@@ -176,10 +180,10 @@ export class Data {
     }
   }
 
-  triggerImmediate<T>(
+  triggerImmediate(
     target: string,
     refPaths: Set<string>,
-    listener: ListenerCallback<T>,
+    listener: ListenerCallback,
     parts: string[],
     index = 0,
     paths: string[] = []
@@ -205,7 +209,7 @@ export class Data {
     }
     const path = paths.join('.');
     if (typeof get(this._data, path) !== 'undefined') {
-      const immediateListeners = new ImmediateListeners();
+      const immediateListeners = new Listeners();
       immediateListeners.add(parts.join('.'), listener);
       this._trigger(target, refPaths, immediateListeners, path);
     }
@@ -219,14 +223,17 @@ export class Data {
     return this.setSet(path, value, byKey, false);
   }
 
-  on<T = any>(flagsAndPath: string): Pathifier<T>;
-
-  on<T = any>(flagsAndPath: string, listener: ListenerCallback<T>): string;
+  on<T = any>(flagsAndPath: string): Pathifier;
 
   on<T = any>(
     flagsAndPath: string,
-    listener?: ListenerCallback<T>
-  ): Pathifier<T> | string {
+    listener: ListenerCallbackWithType<T>
+  ): string;
+
+  on<T = any>(
+    flagsAndPath: string,
+    listener?: ListenerCallbackWithType<T>
+  ): Pathifier | string {
     if (!flagsAndPath.includes(' ') && !listener) {
       return new Pathifier(this, flagsAndPath);
     }
@@ -241,13 +248,24 @@ export class Data {
     const refs = flags
       .split('')
       .filter(p => p !== '!')
-      .map(flag => this.getListenerByFlag(flag).add(path, listener!))
+
+      .map(flag =>
+        this.getListenerByFlag(flag).add(path, (value, props) =>
+          listener!(value as T, props)
+        )
+      )
+
       .join(' ');
 
     if (flags.includes('!')) {
       const refPaths = new Set<string>();
       const target = clean(path);
-      this.triggerImmediate(target, refPaths, listener!, path.split('.'));
+      this.triggerImmediate(
+        target,
+        refPaths,
+        (value, props) => listener!(value as T, props),
+        path.split('.')
+      );
     }
 
     return refs;
@@ -276,8 +294,8 @@ export class Data {
     let resultValue;
     for (let res of results) {
       const { path, fullPath } = res;
-      const listeners = res._;
-      for (let [ref, listener] of listeners) {
+      const listeners = res.value;
+      for (let [ref, listener] of Object.entries(listeners)) {
         const refPath = ref + res.path;
         if (listener && !refPaths.has(refPath)) {
           refPaths.add(refPath);
@@ -287,10 +305,9 @@ export class Data {
           }
           const valIsObject = isProbablyPlainObject(val);
           resultValue = listener(val, {
-            target,
             subPath: fullPath.slice(path.length),
             path,
-            fullPath,
+            fullPath: target,
             ...res.keys,
             ...(valIsObject
               ? {

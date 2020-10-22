@@ -1,5 +1,5 @@
 import { clean } from './paths';
-import { ListenerCallback } from 'listeners';
+import { ListenerCallbackWithType } from 'listeners';
 import {
   Filter,
   FilterOn,
@@ -10,19 +10,19 @@ import {
 } from './types';
 import { Data } from 'data';
 
-export class Pathifier<T> {
+export class Pathifier {
   refs: string[] = [];
 
-  cache: { [key: string]: T } = {};
-  cacheNoMap: { [key: string]: T } = {};
+  cache: { [key: string]: unknown } = {};
+  cacheNoMap: { [key: string]: unknown } = {};
   cacheArray: string[] = [];
 
   _to?: string;
   _filter?: Filter;
   _sort?: Sorter;
   _toArray?: Stower;
-  _map?: ListenerCallback<T>;
-  _then?: ListenerCallback<{ [key: string]: T }>;
+  _map?: ListenerCallbackWithType<any>;
+  _then?: ListenerCallbackWithType<any>;
   _on: boolean = false;
   data: Data;
   from: string;
@@ -85,7 +85,7 @@ export class Pathifier<T> {
     return this;
   }
 
-  map(map: ListenerCallback<T>) {
+  map<T = any>(map: ListenerCallbackWithType<T>) {
     if (this._map) throw new Error('Sorry, only one map');
     this._map = map;
     return this;
@@ -115,7 +115,7 @@ export class Pathifier<T> {
     return this;
   }
 
-  then(then: ListenerCallback<{ [key: string]: T }>) {
+  then<T = any>(then: ListenerCallbackWithType<T>) {
     this._then = then;
     if (!this._on) this.on();
     return this;
@@ -133,21 +133,21 @@ export class Pathifier<T> {
     if (this._on) return;
     this._on = true;
     this.refs.push(
-      this.data.on(`!+* ${this.from}`, (_, { path, target }) => {
-        if (path === target) {
+      this.data.on(`!+* ${this.from}`, (_, { path, fullPath }) => {
+        if (path === fullPath) {
           this.update();
         } else {
-          const subPath = target.slice(this.cleanFrom.length + 1);
-          const updated = this.set(subPath, this.data.get(target));
+          const subPath = fullPath.slice(this.cleanFrom.length + 1);
+          const updated = this.set(subPath, this.data.get(fullPath));
           if (updated && this._then)
-            this._then(this.cache, { path, fullPath: target, subPath, target });
+            this._then(this.cache, { path, fullPath, subPath });
         }
       }),
-      this.data.on(`- ${this.from}`, (_, { path, fullPath, target }) => {
-        const subPath = target.slice(this.cleanFrom.length + 1);
+      this.data.on(`- ${this.from}`, (_, { path, fullPath }) => {
+        const subPath = fullPath.slice(this.cleanFrom.length + 1);
         const updated = this.unset(subPath);
         if (updated && this._then) {
-          this._then(this.cache, { path, fullPath, subPath, target: fullPath });
+          this._then(this.cache, { path, fullPath, subPath });
         }
       })
     );
