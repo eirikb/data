@@ -115,9 +115,12 @@ export class Paths<T> {
     parent.value[ref] = input;
   };
 
-  lookup(path: string) {
-    const parts = path.split('.');
-    const lookup = new Lookuper(this.map, parts);
+  lookupByString(path: string): Lookup<T>[] {
+    return this.lookup(path.split('.'));
+  }
+
+  lookup(path: string[]): Lookup<T>[] {
+    const lookup = new Lookuper<T>(this.map, path);
     return lookup.lookup();
   }
 

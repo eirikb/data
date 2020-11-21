@@ -19,10 +19,9 @@ export type ListenerCallbackWithType<T> = (
 ) => any;
 
 export class Listeners {
-  private cache: { [key: string]: Lookup<ListenerCallback>[] } = {};
   private paths = new Paths<ListenerCallback>();
   private next = 0;
-  private prefix: string;
+  private readonly prefix: string;
 
   constructor(prefix = 'ref') {
     this.prefix = prefix;
@@ -34,7 +33,6 @@ export class Listeners {
   }
 
   add(path: string, listener: ListenerCallback) {
-    this.cache = {};
     const ref = this.nextRef();
     this.paths.add(path, ref, listener);
     return ref;
@@ -42,17 +40,31 @@ export class Listeners {
 
   remove(ref: string) {
     this.paths.remove(ref);
-    this.cache = {};
   }
 
-  private _get(path: string) {
+  get(path: string[]) {
     return this.paths.lookup(path);
   }
+}
 
-  get(path: string): Lookup<ListenerCallback>[] {
-    if (this.cache[path]) {
-      return this.cache[path];
-    }
-    return (this.cache[path] = this._get(path));
+export enum ChangeType {
+  Add,
+  Remove,
+  Update,
+}
+
+export class ChangeListeners {
+  listeners = {
+    [ChangeType.Add]: new Listeners('add'),
+    [ChangeType.Remove]: new Listeners('remove'),
+    [ChangeType.Update]: new Listeners('update'),
+  };
+
+  add(changeType: ChangeType, path: string, listener: ListenerCallback) {
+    this.listeners[changeType].add(path, listener);
+  }
+
+  get(changeType: ChangeType, path: string[]): Lookup<ListenerCallback>[] {
+    return this.listeners[changeType].get(path);
   }
 }

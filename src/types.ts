@@ -1,4 +1,4 @@
-import { Listeners } from './listeners';
+import { ListenerCallback, Listeners } from './listeners';
 
 export interface LooseObject {
   [key: string]: any;
@@ -29,4 +29,9 @@ export interface Stower {
   remove(value: any, index: number, subIndex?: number, path?: string): void;
 
   or(index: number, or: any): void;
+}
+
+export interface Change {
+  paths: string[];
+  listeners: ListenerCallback[];
 }
