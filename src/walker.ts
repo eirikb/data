@@ -1,42 +1,57 @@
 import { isProbablyPlainObject } from './halp';
 import { ChangeType } from './listeners';
 
+type Eol = (path: string[]) => boolean;
+
 type WalkCb = (walkRes: {
   changeType: ChangeType;
   path: string[];
   newValue: any;
   oldValue: any;
-}) => boolean;
+}) => void;
 
-function recursiveRemove(oldValue: any, cb: WalkCb) {
+function remove(eol: Eol, path: string[], oldValue: any, cb: WalkCb) {
+  if (eol(path) || typeof oldValue === 'undefined') return;
+
   cb({
     changeType: ChangeType.Remove,
-    newValue: null,
+    newValue: undefined,
     oldValue,
-    path: [],
+    path,
   });
+  recursiveRemove(eol, path, oldValue, cb);
+}
+
+function recursiveRemove(eol: Eol, path: string[], oldValue: any, cb: WalkCb) {
+  if (isProbablyPlainObject(oldValue)) {
+    for (const [key, value] of Object.entries(oldValue)) {
+      remove(eol, path.concat(key), value, cb);
+    }
+  } else if (Array.isArray(oldValue)) {
+    for (let i = 0; i < oldValue.length; i++) {
+      remove(eol, path.concat(String(i)), oldValue[i], cb);
+    }
+  }
 }
 
 export function walk(
+  eol: Eol,
   path: string[],
   newValue: any,
   oldValue: any,
   cb: WalkCb
 ): void {
+  if (eol(path)) return;
+
   if (isProbablyPlainObject(newValue)) {
     if (isProbablyPlainObject(oldValue)) {
       const keys = new Set(Object.keys(oldValue));
       for (const [key, value] of Object.entries(newValue)) {
         keys.delete(key);
-        walk(path.concat(key), value, oldValue[key], cb);
+        walk(eol, path.concat(key), value, oldValue[key], cb);
       }
       for (const key of Array.from(keys)) {
-        cb({
-          changeType: ChangeType.Remove,
-          path: path.concat(key),
-          newValue: undefined,
-          oldValue: oldValue[key],
-        });
+        remove(eol, path.concat(key), oldValue[key], cb);
       }
     } else {
       cb({
@@ -45,19 +60,18 @@ export function walk(
         newValue,
         oldValue,
       });
+      remove(eol, path, oldValue, cb);
+      for (const [key, value] of Object.entries(newValue)) {
+        walk(eol, path.concat(key), value, undefined, cb);
+      }
     }
   } else if (Array.isArray(newValue)) {
     if (Array.isArray(oldValue)) {
       for (let i = 0; i < newValue.length; i++) {
-        walk(path.concat(String(i)), newValue[i], oldValue[i], cb);
+        walk(eol, path.concat(String(i)), newValue[i], oldValue[i], cb);
       }
       for (let i = newValue.length; i < oldValue.length; i++) {
-        cb({
-          changeType: ChangeType.Remove,
-          path: path.concat(String(i)),
-          newValue: undefined,
-          oldValue: oldValue[i],
-        });
+        remove(eol, path.concat(String(i)), oldValue[i], cb);
       }
     } else {
       cb({
@@ -66,9 +80,10 @@ export function walk(
         newValue,
         oldValue,
       });
+      remove(eol, path, oldValue, cb);
     }
   } else {
-    if (newValue && !oldValue) {
+    if (newValue && typeof oldValue === 'undefined') {
       cb({
         changeType: ChangeType.Add,
         path,
@@ -78,13 +93,11 @@ export function walk(
     } else if (newValue !== oldValue) {
       cb({
         changeType: ChangeType.Update,
-        path: [],
+        path,
         newValue,
         oldValue,
       });
-      if (isProbablyPlainObject(oldValue)) {
-        recursiveRemove(oldValue, cb);
-      }
+      recursiveRemove(eol, path, oldValue, cb);
     }
     return newValue;
   }

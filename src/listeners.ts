@@ -32,15 +32,15 @@ export class Listeners {
 
 export enum ChangeType {
   Add,
-  Remove,
   Update,
+  Remove,
 }
 
 export class ChangeListeners {
   listeners = {
     [ChangeType.Add]: new Listeners('add'),
-    [ChangeType.Remove]: new Listeners('remove'),
     [ChangeType.Update]: new Listeners('update'),
+    [ChangeType.Remove]: new Listeners('remove'),
   };
 
   add(changeType: ChangeType, path: string, listener: ListenerCallback) {

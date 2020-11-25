@@ -33,9 +33,8 @@ export interface Stower {
 
 export interface CoreOptions {
   changeListeners: ChangeListeners;
-  newItem: any;
-  oldItem?: any;
-  clone: boolean;
+  newValue: any;
+  oldValue: any;
 }
 
 export interface ListenerCallbackOptions {
@@ -60,5 +59,5 @@ export type ListenerCallbackWithType<T> = (
 
 export interface Change {
   listenerCallbackOptions: ListenerCallbackOptions;
-  listenerCallbacks: ListenerCallback[];
+  listenerCallback: ListenerCallback;
 }
