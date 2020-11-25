@@ -1,4 +1,4 @@
-import { ListenerCallback, Listeners } from './listeners';
+import { ChangeListeners, Listeners } from './listeners';
 
 export interface LooseObject {
   [key: string]: any;
@@ -31,7 +31,34 @@ export interface Stower {
   or(index: number, or: any): void;
 }
 
+export interface CoreOptions {
+  changeListeners: ChangeListeners;
+  newItem: any;
+  oldItem?: any;
+  clone: boolean;
+}
+
+export interface ListenerCallbackOptions {
+  newValue: any;
+  oldValue: any;
+  subPath: string;
+  fullPath: string;
+  path: string;
+
+  [key: string]: unknown;
+}
+
+export type ListenerCallback = (
+  value: any,
+  listenerCallbackOptions: ListenerCallbackOptions
+) => any;
+
+export type ListenerCallbackWithType<T> = (
+  value: T,
+  listenerCallbackOptions: ListenerCallbackOptions
+) => any;
+
 export interface Change {
-  paths: string[];
-  listeners: ListenerCallback[];
+  listenerCallbackOptions: ListenerCallbackOptions;
+  listenerCallbacks: ListenerCallback[];
 }

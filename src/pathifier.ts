@@ -1,6 +1,6 @@
 import { clean } from './paths';
-import { ListenerCallbackWithType } from 'listeners';
 import {
+  ListenerCallbackWithType,
   Filter,
   FilterOn,
   LooseObject,
@@ -140,14 +140,28 @@ export class Pathifier {
           const subPath = fullPath.slice(this.cleanFrom.length + 1);
           const updated = this.set(subPath, this.data.get(fullPath));
           if (updated && this._then)
-            this._then(this.cache, { path, fullPath, subPath });
+            this._then(this.cache, {
+              path,
+              newValue: this.cache as any,
+              oldValue: this.cache as any,
+
+              fullPath,
+              subPath,
+            });
         }
       }),
       this.data.on(`- ${this.from}`, (_, { path, fullPath }) => {
         const subPath = fullPath.slice(this.cleanFrom.length + 1);
         const updated = this.unset(subPath);
         if (updated && this._then) {
-          this._then(this.cache, { path, fullPath, subPath });
+          this._then(this.cache, {
+            path,
+            newValue: this.cache as any,
+            oldValue: this.cache as any,
+
+            fullPath,
+            subPath,
+          });
         }
       })
     );
@@ -179,7 +193,14 @@ export class Pathifier {
       this.unset(bb);
     }
     if (updated && this._then) {
-      this._then(this.cache, { path: '', fullPath: '', subPath: '' });
+      this._then(this.cache, {
+        newValue: this.cache as any,
+        oldValue: this.cache as any,
+
+        path: '',
+        fullPath: '',
+        subPath: '',
+      });
     }
   }
 
@@ -203,6 +224,8 @@ export class Pathifier {
       const path = this.keys(this.cleanFrom, k);
       value = this._map(this.data.get(path), {
         path,
+        newValue: this.cache as any,
+        oldValue: this.cache as any,
         fullPath: path,
         subPath: '',
       });

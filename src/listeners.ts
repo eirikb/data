@@ -1,22 +1,5 @@
 import { Lookup, Paths } from './paths';
-
-export interface ListenerCallbackProps {
-  subPath: string;
-  fullPath: string;
-  path: string;
-
-  [key: string]: unknown;
-}
-
-export type ListenerCallback = (
-  value: any,
-  props: ListenerCallbackProps
-) => any;
-
-export type ListenerCallbackWithType<T> = (
-  value: T,
-  props: ListenerCallbackProps
-) => any;
+import { ListenerCallback } from './types';
 
 export class Listeners {
   private paths = new Paths<ListenerCallback>();

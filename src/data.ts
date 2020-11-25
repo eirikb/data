@@ -1,17 +1,15 @@
+import { Listeners } from './listeners';
+import { Pathifier } from './pathifier';
+import { clean } from './paths';
 import {
   ListenerCallback,
   ListenerCallbackWithType,
-  Listeners,
-} from './listeners';
-import { Pathifier } from './pathifier';
-import { clean } from './paths';
-import { LooseObject, ToCall } from './types';
+  LooseObject,
+  ToCall,
+} from './types';
+import { isProbablyPlainObject } from './halp';
 
 export * from './types';
-
-function isProbablyPlainObject(obj: any) {
-  return typeof obj === 'object' && obj !== null && obj.constructor === Object;
-}
 
 function get(input: LooseObject, path: string) {
   const paths = path.split('.');
@@ -251,7 +249,7 @@ export class Data {
 
       .map(flag =>
         this.getListenerByFlag(flag).add(path, (value, props) =>
-          listener!(value as T, props)
+          listener!((value as any) as T, props)
         )
       )
 
@@ -263,7 +261,7 @@ export class Data {
       this.triggerImmediate(
         target,
         refPaths,
-        (value, props) => listener!(value as T, props),
+        (value, props) => listener!((value as any) as T, props),
         path.split('.')
       );
     }
@@ -290,7 +288,7 @@ export class Data {
     path: string,
     value: any = null
   ) {
-    const results = listeners.get(path);
+    const results = listeners.get(path.split('.'));
     let resultValue;
     for (let res of results) {
       const { path, fullPath } = res;
@@ -304,9 +302,11 @@ export class Data {
             val = value;
           }
           const valIsObject = isProbablyPlainObject(val);
-          resultValue = listener(val, {
+          resultValue = listener(val as any, {
             subPath: fullPath.slice(path.length),
             path,
+            newValue: value,
+            oldValue: value,
             fullPath: target,
             ...res.keys,
             ...(valIsObject
