@@ -299,3 +299,14 @@ test('Recursive wildcard plus static', t => {
     { keys: {}, path: 'a.b', value: { b: 'no' }, fullPath: 'a.b' },
   ]);
 });
+
+test('isEol', t => {
+  const paths = new Paths();
+  paths.add('a.**', 'a', 'yes');
+  paths.add('a.b', 'b', 'no');
+
+  t.false(paths.lookup(['a']).isEol);
+  t.true(paths.lookup(['a', 'b']).isEol);
+  t.true(paths.lookup(['b']).isEol);
+  t.false(paths.lookup([]).isEol);
+});

@@ -288,7 +288,7 @@ export class Data {
     path: string,
     value: any = null
   ) {
-    const results = listeners.get(path.split('.'));
+    const results = listeners.get(path.split('.')).lookups;
     let resultValue;
     for (let res of results) {
       const { path, fullPath } = res;

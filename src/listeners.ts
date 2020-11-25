@@ -48,6 +48,6 @@ export class ChangeListeners {
   }
 
   get(changeType: ChangeType, path: string[]): Lookup<ListenerCallback>[] {
-    return this.listeners[changeType].get(path);
+    return this.listeners[changeType].get(path).lookups;
   }
 }

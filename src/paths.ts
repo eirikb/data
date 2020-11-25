@@ -23,8 +23,10 @@ export interface Lookup<T> {
 
 class Lookuper<T> {
   private readonly parent: Path<T>;
+  private child?: Path<T>;
   private readonly parts: string[];
   private result: Lookup<T>[] = [];
+  isEol: boolean = false;
 
   constructor(parent: Path<T>, parts: string[]) {
     this.parent = parent;
@@ -49,6 +51,7 @@ class Lookuper<T> {
 
   lookup(): Lookup<T>[] {
     this._lookup(this.parent);
+    this.isEol = !this.child || Object.keys(this.child.children).length === 0;
     return this.result;
   }
 
@@ -60,6 +63,9 @@ class Lookuper<T> {
   ) {
     if (!parent || index >= this.parts.length + 1) {
       return;
+    }
+    if (index === this.parts.length) {
+      this.child = parent;
     }
 
     if (parent.$xx && parent.$xx.value) {
@@ -116,12 +122,16 @@ export class Paths<T> {
   };
 
   lookupByString(path: string): Lookup<T>[] {
-    return this.lookup(path.split('.'));
+    return this.lookup(path.split('.')).lookups;
   }
 
-  lookup(path: string[]): Lookup<T>[] {
+  lookup(path: string[]): { isEol: boolean; lookups: Lookup<T>[] } {
     const lookup = new Lookuper<T>(this.map, path);
-    return lookup.lookup();
+    const lookups = lookup.lookup();
+    return {
+      isEol: lookup.isEol,
+      lookups,
+    };
   }
 
   remove(ref: string) {
