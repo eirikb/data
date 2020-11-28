@@ -1,0 +1,92 @@
+import { Change } from './types';
+import { remove, walk, WalkRes } from './walker';
+import { ChangeListeners, ChangeType } from './listeners';
+import { isProbablyPlainObject } from './halp';
+
+export class Core {
+  parent: any;
+  changes: Change[] = [];
+  private readonly _changeListeners: ChangeListeners;
+  private readonly _path: string[];
+  private _eol: boolean = false;
+
+  constructor(changeListeners: ChangeListeners, parent: any, path: string[]) {
+    this._changeListeners = changeListeners;
+    this.parent = parent;
+    this._path = path;
+  }
+
+  private _ensureParent(path: string[], parent: any): any {
+    if (!isProbablyPlainObject(parent)) {
+      if (typeof parent !== 'undefined') {
+        remove(() => false, [], parent, this._callCb);
+      }
+      const newParent = {};
+      this._callCb({
+        changeType: ChangeType.Add,
+        path,
+        newValue: newParent,
+        oldValue: parent,
+      });
+      return newParent;
+    }
+    return parent;
+  }
+
+  oldValue() {
+    let parent = this.parent;
+    if (parent === undefined) {
+      return parent;
+    }
+
+    for (let path of this._path) {
+      parent = parent[path];
+      if (parent === undefined) {
+        return undefined;
+      }
+    }
+    return parent;
+  }
+
+  ensureParentObject() {
+    if (this._path.length === 0) return;
+    this.parent = this._ensureParent([], this.parent);
+    let res;
+    let parent = (res = this.parent);
+    for (let i = 0; i < this._path.length - 1; i++) {
+      const key = this._path[i];
+      res = parent[key] = this._ensureParent(
+        this._path.slice(0, i),
+        parent[key]
+      );
+    }
+    return res;
+  }
+
+  private _isEol = () => this._eol;
+
+  private _callCb = ({ changeType, path, newValue, oldValue }: WalkRes) => {
+    const lookups = this._changeListeners.get(changeType, path);
+    for (let { value, fullPath, path } of lookups.lookups) {
+      for (const listenerCallback of Object.values(value)) {
+        this.changes.push({
+          listenerCallback,
+          listenerCallbackOptions: {
+            newValue,
+            oldValue,
+            fullPath,
+            path,
+            subPath: 'wat',
+          },
+        });
+      }
+    }
+    if (lookups.isEol) {
+      this._eol = true;
+    }
+  };
+
+  set(newValue: any, oldValue: any) {
+    walk(this._isEol, this._path, newValue, oldValue, this._callCb);
+  }
+}
