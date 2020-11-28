@@ -28,14 +28,14 @@ function stower(...props: string[]) {
   };
 }
 
-test('no output no fail', t => {
+test.skip('no output no fail', t => {
   const data = new Data();
   data.on('users');
   data.set('users.a.name', 'no fail');
   t.pass();
 });
 
-test('then before', t => {
+test.skip('then before', t => {
   t.plan(1);
 
   const data = new Data();
@@ -48,7 +48,7 @@ test('then before', t => {
   });
 });
 
-test('then after', t => {
+test.skip('then after', t => {
   t.plan(1);
 
   const data = new Data();
@@ -61,7 +61,7 @@ test('then after', t => {
   });
 });
 
-test('then unset', t => {
+test.skip('then unset', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -76,7 +76,7 @@ test('then unset', t => {
   t.deepEqual({ a: { name: 'a' } }, users);
 });
 
-test('then unset sub-path', t => {
+test.skip('then unset sub-path', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a', age: 12 },
@@ -89,7 +89,7 @@ test('then unset sub-path', t => {
   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, users);
 });
 
-test('to unset', t => {
+test.skip('to unset', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -100,7 +100,7 @@ test('to unset', t => {
   t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
 });
 
-test('to unset sub-path', t => {
+test.skip('to unset sub-path', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a', age: 12 },
@@ -115,7 +115,7 @@ test('to unset sub-path', t => {
   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, data.get('yes'));
 });
 
-test('then not called for outfiltered data', t => {
+test.skip('then not called for outfiltered data', t => {
   t.plan(4);
 
   const data = new Data();
@@ -132,7 +132,7 @@ test('then not called for outfiltered data', t => {
   data.set('users.b.name', 'b');
 });
 
-test('to before ', t => {
+test.skip('to before ', t => {
   const data = new Data();
   data.on('users').to('yes');
   data.set('users', {
@@ -142,7 +142,7 @@ test('to before ', t => {
   t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, data.get('yes'));
 });
 
-test('to after', t => {
+test.skip('to after', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -152,14 +152,14 @@ test('to after', t => {
   t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, data.get('yes'));
 });
 
-test('to sub-path', t => {
+test.skip('to sub-path', t => {
   const data = new Data();
   data.on('users').to('yes');
   data.set('users.a.name', 'b');
   t.deepEqual({ a: { name: 'b' } }, data.get('yes'));
 });
 
-test('to filter', t => {
+test.skip('to filter', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -173,7 +173,7 @@ test('to filter', t => {
   t.deepEqual({ a: { name: 'a' }, c: { name: 'c' } }, data.get('yes'));
 });
 
-test('to map', t => {
+test.skip('to map', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -190,7 +190,7 @@ test('to map', t => {
   );
 });
 
-test('to map called on parent of eh thingy', t => {
+test.skip('to map called on parent of eh thingy', t => {
   const data = new Data();
   data
     .on('users')
@@ -200,7 +200,7 @@ test('to map called on parent of eh thingy', t => {
   t.deepEqual({ c: { wat: 'c' } }, data.get('yes'));
 });
 
-test('to map and filter', t => {
+test.skip('to map and filter', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -215,7 +215,7 @@ test('to map and filter', t => {
   t.deepEqual({ a: { wat: 'a' }, c: { wat: 'c' } }, data.get('yes'));
 });
 
-test('filterOn after', t => {
+test.skip('filterOn after', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -230,7 +230,7 @@ test('filterOn after', t => {
   t.deepEqual({ b: { name: 'b' } }, data.get('yes'));
 });
 
-test('filterOn before', t => {
+test.skip('filterOn before', t => {
   const data = new Data();
   data.set('users', {
     a: { name: 'a' },
@@ -247,7 +247,7 @@ test('filterOn before', t => {
   t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
 });
 
-test('only one filter, unfortunately', t => {
+test.skip('only one filter, unfortunately', t => {
   const data = new Data();
   t.throws(() =>
     data
@@ -263,7 +263,7 @@ test('only one filter, unfortunately', t => {
   );
 });
 
-test('only one sort, unfortunately', t => {
+test.skip('only one sort, unfortunately', t => {
   const data = new Data();
   t.throws(() =>
     data
@@ -279,7 +279,7 @@ test('only one sort, unfortunately', t => {
   );
 });
 
-test('only one map, unfortunately', t => {
+test.skip('only one map, unfortunately', t => {
   const data = new Data();
   t.throws(() =>
     data
@@ -289,7 +289,7 @@ test('only one map, unfortunately', t => {
   );
 });
 
-test('only one to, unfortunately', t => {
+test.skip('only one to, unfortunately', t => {
   const data = new Data();
   t.throws(() =>
     data
@@ -299,7 +299,7 @@ test('only one to, unfortunately', t => {
   );
 });
 
-test('only one array, unfortunately', t => {
+test.skip('only one array, unfortunately', t => {
   const data = new Data();
   t.throws(() =>
     data
@@ -309,7 +309,7 @@ test('only one array, unfortunately', t => {
   );
 });
 
-test('toArray initial before', t => {
+test.skip('toArray initial before', t => {
   const data = new Data();
   const { res, toArray } = stower();
   data.set('users', {
@@ -323,7 +323,7 @@ test('toArray initial before', t => {
   ]);
 });
 
-test('toArray initial after', t => {
+test.skip('toArray initial after', t => {
   const data = new Data();
   const { res, toArray } = stower();
   data.on('users').toArray(toArray());
@@ -337,7 +337,7 @@ test('toArray initial after', t => {
   ]);
 });
 
-test('toArray add', t => {
+test.skip('toArray add', t => {
   const data = new Data();
   const { res, toArray, reset } = stower();
   data.on('users.*').toArray(toArray());
@@ -354,7 +354,7 @@ test('toArray add', t => {
   t.deepEqual(res, [{ t: 'add', index: 2, path: 'c' }]);
 });
 
-test('toArray remove', t => {
+test.skip('toArray remove', t => {
   const data = new Data();
   const { res, reset, toArray } = stower();
   data.on('users.*').toArray(toArray());
@@ -373,7 +373,7 @@ test('toArray remove', t => {
   t.deepEqual(res, [{ t: 'remove', index: 1, path: 'b' }]);
 });
 
-test('sort', t => {
+test.skip('sort', t => {
   const data = new Data();
   const { res, toArray } = stower();
   data.set('users', {
@@ -390,7 +390,7 @@ test('sort', t => {
   ]);
 });
 
-test('Update filterOn on update after data is set', t => {
+test.skip('Update filterOn on update after data is set', t => {
   const data = new Data();
   const { res, reset, toArray } = stower();
   data
@@ -413,7 +413,7 @@ test('Update filterOn on update after data is set', t => {
   ]);
 });
 
-test('filterOn and back', t => {
+test.skip('filterOn and back', t => {
   const data = new Data();
   const { res, reset, toArray } = stower();
   data
@@ -447,7 +447,7 @@ test('filterOn and back', t => {
   t.pass();
 });
 
-test('on sortOn - custom order update', t => {
+test.skip('on sortOn - custom order update', t => {
   const data = new Data();
   const { res, reset, toArray } = stower();
 
@@ -477,7 +477,7 @@ test('on sortOn - custom order update', t => {
   t.deepEqual(res, [{ t: 'add', index: 0, path: '1' }]);
 });
 
-test('Pathifier no sub-array', t => {
+test.skip('Pathifier no sub-array', t => {
   const data = new Data();
   const { res, reset, toArray } = stower('index', 'path');
   data
@@ -498,7 +498,7 @@ test('Pathifier no sub-array', t => {
   ]);
 });
 
-test('Pathifier sub-array', t => {
+test.skip('Pathifier sub-array', t => {
   const data = new Data();
   const { res, reset, toArray } = stower('index', 'path');
   data
@@ -519,7 +519,7 @@ test('Pathifier sub-array', t => {
   ]);
 });
 
-test('map has path', t => {
+test.skip('map has path', t => {
   const data = new Data();
   const { reset, toArray } = stower('index', 'path');
   let res: any[] = [];

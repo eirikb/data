@@ -304,9 +304,16 @@ test('isEol', t => {
   const paths = new Paths();
   paths.add('a.**', 'a', 'yes');
   paths.add('a.b', 'b', 'no');
+  paths.add('f.$a.c.d', 'b', 'no');
+  paths.add('z.*.c.d', 'b', 'no');
 
   t.false(paths.lookup(['a']).isEol);
   t.true(paths.lookup(['a', 'b']).isEol);
+  t.false(paths.lookup(['f', 'b', 'c']).isEol);
+  t.false(paths.lookup(['f', 'x', 'c']).isEol);
+  t.false(paths.lookup(['f']).isEol);
+  t.false(paths.lookup(['z']).isEol);
+  t.true(paths.lookup(['f', 'x', 'c', 'o']).isEol);
   t.true(paths.lookup(['b']).isEol);
   t.false(paths.lookup([]).isEol);
 });

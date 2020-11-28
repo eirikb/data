@@ -1,5 +1,5 @@
 import test from 'ava';
-import { walk } from '../src/walker';
+import { walk, remove } from '../src/walker';
 import { ChangeType } from '../src';
 
 test('add string', t => {
@@ -26,6 +26,18 @@ test('update string', t => {
       t.is(changeType, ChangeType.Update);
       t.is(newValue, 'hello');
       t.is(oldValue, 'world');
+    }
+  );
+});
+
+test('remove string', t => {
+  remove(
+    () => false,
+    [],
+    'hello',
+    ({ changeType, oldValue }) => {
+      t.is(changeType, ChangeType.Remove);
+      t.is(oldValue, 'hello');
     }
   );
 });

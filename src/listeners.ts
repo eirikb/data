@@ -47,7 +47,13 @@ export class ChangeListeners {
     this.listeners[changeType].add(path, listener);
   }
 
-  get(changeType: ChangeType, path: string[]): Lookup<ListenerCallback>[] {
-    return this.listeners[changeType].get(path).lookups;
+  get(
+    changeType: ChangeType,
+    path: string[]
+  ): {
+    isEol: boolean;
+    lookups: Lookup<ListenerCallback>[];
+  } {
+    return this.listeners[changeType].get(path);
   }
 }

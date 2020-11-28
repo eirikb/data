@@ -51,7 +51,13 @@ class Lookuper<T> {
 
   lookup(): Lookup<T>[] {
     this._lookup(this.parent);
-    this.isEol = !this.child || Object.keys(this.child.children).length === 0;
+    this.isEol =
+      !this.child ||
+      (Object.keys(this.child.children).length === 0 &&
+        Object.keys(this.child.$).length === 0 &&
+        !this.child.$x &&
+        !this.child.$xx);
+
     return this.result;
   }
 

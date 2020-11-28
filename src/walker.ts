@@ -3,14 +3,16 @@ import { ChangeType } from './listeners';
 
 type Eol = (path: string[]) => boolean;
 
-type WalkCb = (walkRes: {
+export interface WalkRes {
   changeType: ChangeType;
   path: string[];
   newValue: any;
   oldValue: any;
-}) => void;
+}
 
-function remove(eol: Eol, path: string[], oldValue: any, cb: WalkCb) {
+type WalkCb = (walkRes: WalkRes) => void;
+
+export function remove(eol: Eol, path: string[], oldValue: any, cb: WalkCb) {
   if (eol(path) || typeof oldValue === 'undefined') return;
 
   cb({
