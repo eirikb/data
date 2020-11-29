@@ -108,7 +108,7 @@ test('listener', t => {
   data.set('test.ing', { hello: 'world' });
 });
 
-test('special key paths', t => {
+test.skip('special key paths', t => {
   const data = new Data();
   data.on('+ a.$b.c', (value, { $b }) => {
     t.deepEqual({ hello: 'world' }, value);
@@ -139,23 +139,23 @@ test('on child data', t => {
   data.set('player', { name: 'mini' });
 });
 
-test.skip('remove data', t => {
+test('remove data', t => {
   const data = new Data();
   data.set('a.b', 'hello');
   data.on('- a.b', () => t.pass());
   data.unset('a.b');
 });
 
-test.skip('remove includes item', t => {
+test('remove includes item', t => {
   const data = new Data();
   data.set('a.b', { hello: 'world' });
   let value;
-  data.on('- a.b', val => (value = val));
+  data.on('- a.b', (_, { oldValue }) => (value = oldValue));
   data.unset('a.b');
   t.deepEqual({ hello: 'world' }, value);
 });
 
-test.skip('instant callback upon adding listener to existing data', t => {
+test('instant callback upon adding listener to existing data', t => {
   const data = new Data();
   data.set('player.name', 'mini');
   t.plan(1);
@@ -261,14 +261,14 @@ test('set is recursive', t => {
   data.set('players', { eirik: { name: 'Eirik' } });
 });
 
-test.skip('immediate with key', t => {
+test('immediate with key', t => {
   const data = new Data();
   t.plan(1);
   data.set('players.ok', 'ok');
   data.on('! players.$eh', () => t.pass());
 });
 
-test.skip('immediate with multiple', t => {
+test('immediate with multiple', t => {
   const data = new Data();
   t.plan(2);
   data.set('players', {
@@ -278,7 +278,7 @@ test.skip('immediate with multiple', t => {
   data.on('! players.$eh', () => t.pass());
 });
 
-test.skip('Wildcard immediate listeners never go wild', t => {
+test('Wildcard immediate listeners never go wild', t => {
   const data = new Data();
   t.plan(2);
   data.set('test', {
@@ -355,7 +355,7 @@ test.skip('Update bundle changes', t => {
   });
 });
 
-test.skip('Immediate only when has data', t => {
+test('Immediate only when has data', t => {
   const data = new Data();
   t.plan(1);
   data.on('! a', t.pass);
@@ -536,7 +536,7 @@ test.skip('array without bykey must be cleared', t => {
 //   t.deepEqual('Hello, world!', res);
 // });
 
-test.skip('Multiple instant listeners', t => {
+test('Multiple instant listeners', t => {
   t.plan(3);
 
   const data = new Data();
