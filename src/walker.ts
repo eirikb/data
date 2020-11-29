@@ -92,6 +92,13 @@ export function walk(
         newValue,
         oldValue,
       });
+    } else if (newValue === undefined && oldValue) {
+      cb({
+        changeType: ChangeType.Remove,
+        path,
+        newValue,
+        oldValue,
+      });
     } else if (newValue !== oldValue) {
       cb({
         changeType: ChangeType.Update,

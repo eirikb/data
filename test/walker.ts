@@ -42,6 +42,18 @@ test('remove string', t => {
   );
 });
 
+test('remove object string', t => {
+  remove(
+    () => false,
+    ['a'],
+    'hello',
+    ({ changeType, oldValue }) => {
+      t.is(changeType, ChangeType.Remove);
+      t.is(oldValue, 'hello');
+    }
+  );
+});
+
 test('object add', t => {
   walk(
     () => false,

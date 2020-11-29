@@ -59,7 +59,7 @@ test('add flag', t => {
   t.deepEqual('hello', value);
 });
 
-test.skip('immediate flag', t => {
+test('immediate flag', t => {
   const data = new Data();
   let value = null;
   data.set('a', 'hello');
@@ -75,20 +75,20 @@ test('trigger flag', t => {
   t.deepEqual('hello', value);
 });
 
-test.skip('remove flag', t => {
+test('remove flag', t => {
   const data = new Data();
-  let value = null;
   data.set('a', 'hello');
-  data.on('- a', () => (value = 'removed'));
+  data.on('- a', () => t.pass());
   data.unset('a');
-  t.deepEqual('removed', value);
 });
 
-test.skip('combine flags', t => {
+test('combine flags', t => {
   const data = new Data();
   let value = null;
   data.set('b', 'one');
-  data.on('!*- b', val => (value = val));
+  data.on('!*- b', (val, { oldValue }) => {
+    value = val || oldValue;
+  });
   t.deepEqual('one', value);
   data.set('b', 'two');
   t.deepEqual('two', value);
@@ -108,7 +108,7 @@ test('listener', t => {
   data.set('test.ing', { hello: 'world' });
 });
 
-test.skip('special key paths', t => {
+test('special key paths', t => {
   const data = new Data();
   data.on('+ a.$b.c', (value, { $b }) => {
     t.deepEqual({ hello: 'world' }, value);
