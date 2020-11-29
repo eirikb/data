@@ -90,3 +90,54 @@ export class Core {
     walk(this._isEol, this._path, newValue, oldValue, this._callCb);
   }
 }
+
+function reverseLookupRecursive(
+  parent: any,
+  path: string[],
+  index: number,
+  newPath: (string | null)[],
+  paths: (string | null)[][]
+) {
+  if (!isProbablyPlainObject(parent)) return;
+
+  for (let i = index; i < path.length; i++) {
+    const key = path[i];
+    if (key === '*' || key.startsWith('$')) {
+      for (const [key, value] of Object.entries(parent)) {
+        const newNewPath = newPath.slice().concat(key);
+        paths.push(newNewPath);
+        reverseLookupRecursive(value, path, i + 1, newNewPath, paths);
+      }
+      if (i < path.length - 1) {
+        newPath.push(null);
+      }
+    } else if (key === '**') {
+      for (const [key, value] of Object.entries(parent)) {
+        const newNewPath = newPath.slice().concat(key);
+        paths.push(newNewPath);
+        reverseLookupRecursive(
+          value,
+          path.concat('**'),
+          i + 1,
+          newNewPath,
+          paths
+        );
+      }
+    } else {
+      if (parent && parent[key]) {
+        parent = parent[key];
+        newPath.push(key);
+      }
+    }
+  }
+}
+
+export function reverseLookup(parent: any, path: string[]): string[][] {
+  const paths: (string | null)[][] = [];
+  const newPath: (string | null)[] = [];
+  paths.push(newPath);
+  reverseLookupRecursive(parent, path, 0, newPath, paths);
+  return paths
+    .filter(path => path.every(p => p !== null))
+    .map(p => p as string[]);
+}
