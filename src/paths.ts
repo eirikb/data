@@ -54,6 +54,7 @@ class Lookuper<T> {
     this.isEol =
       !this.child ||
       (Object.keys(this.child.children).length === 0 &&
+        (!this.child.value || Object.keys(this.child.value).length === 0) &&
         Object.keys(this.child.$).length === 0 &&
         !this.child.$x &&
         !this.child.$xx);
