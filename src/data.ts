@@ -111,11 +111,12 @@ export class Data {
     }
   }
 
-  private _call(listeners: Listeners, path: string, value: any) {
+  private _call(listeners: Listeners, path: string, value: any): any {
+    let res: any = undefined;
     const { lookups } = listeners.get(path.split('.'));
     for (const lookup of lookups) {
       for (const listener of Object.values(lookup.value)) {
-        listener(value, {
+        const newRes = listener(value, {
           fullPath: path,
           newValue: value,
           oldValue: undefined,
@@ -123,12 +124,16 @@ export class Data {
           subPath: '',
           ...lookup.keys,
         });
+        if (newRes) {
+          res = newRes;
+        }
       }
     }
+    return res;
   }
 
-  trigger(path: string, value: any) {
-    this._call(this._triggerListeners, path, value);
+  trigger(path: string, value: any): any {
+    return this._call(this._triggerListeners, path, value);
   }
 
   get<T = any>(path?: string): T | undefined {

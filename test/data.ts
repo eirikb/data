@@ -465,7 +465,7 @@ test('Array with key', t => {
   });
 });
 
-test.skip('set replaces, but does not remove', t => {
+test('set replaces, but does not remove', t => {
   const data = new Data();
 
   t.plan(3);
@@ -495,67 +495,67 @@ test.skip('set replaces, but does not remove', t => {
 //   data.merge('a', { b: 2 });
 // });
 
-test.skip('values is passed in the object', t => {
-  const data = new Data();
-
-  t.plan(2);
-  data.on('+ stuff', (_, { keys, values }) => {
-    t.deepEqual(keys, ['0']);
-    t.deepEqual(values, [{ hello: 'world' }]);
-  });
-
-  data.set('stuff', [{ hello: 'world' }]);
-});
-
-test.skip('values is passed in the object with byKey', t => {
-  const data = new Data();
-
-  t.plan(2);
-  data.on('+ stuff', (_, { keys, values }) => {
-    t.deepEqual(keys, ['a', 'b']);
-    t.deepEqual(values, [
-      { name: 'a', hello: 'world' },
-      { name: 'b', hello: 'there' },
-    ]);
-  });
-
-  data.set(
-    'stuff',
-    [
-      { name: 'a', hello: 'world' },
-      { name: 'b', hello: 'there' },
-    ],
-    'name'
-  );
-});
-
-test.skip('array without bykey must be cleared', t => {
-  const data = new Data();
-
-  t.plan(2);
-
-  data.on('- a', t.pass);
-  data.on('- a.*', t.pass);
-
-  t.plan(2);
-  data.on('+ stuff', (_, { keys, values }) => {
-    t.deepEqual(keys, ['0']);
-    t.deepEqual(values, [{ hello: 'world' }]);
-  });
-
-  data.set('stuff', [{ hello: 'world' }]);
-});
-
-// test('trigger can return', async t => {
+// test('values is passed in the object', t => {
 //   const data = new Data();
 //
-//   data.on('= myTrigger', async input => {
-//     return `Hello, ${input}`;
+//   t.plan(2);
+//   data.on('+ stuff', (_, { keys, values }) => {
+//     t.deepEqual(keys, ['0']);
+//     t.deepEqual(values, [{ hello: 'world' }]);
 //   });
 //
-//   const res = await data.trigger('myTrigger', 'world!');
-//   t.deepEqual('Hello, world!', res);
+//   data.set('stuff', [{ hello: 'world' }]);
 // });
+
+// test.skip('values is passed in the object with byKey', t => {
+//   const data = new Data();
+//
+//   t.plan(2);
+//   data.on('+ stuff', (_, { keys, values }) => {
+//     t.deepEqual(keys, ['a', 'b']);
+//     t.deepEqual(values, [
+//       { name: 'a', hello: 'world' },
+//       { name: 'b', hello: 'there' },
+//     ]);
+//   });
+//
+//   data.set(
+//     'stuff',
+//     [
+//       { name: 'a', hello: 'world' },
+//       { name: 'b', hello: 'there' },
+//     ],
+//     'name'
+//   );
+// });
+
+// test('array without bykey must be cleared', t => {
+//   const data = new Data();
+//
+//   t.plan(2);
+//
+//   data.on('- a', t.pass);
+//   data.on('- a.*', t.pass);
+//
+//   t.plan(2);
+//   data.on('+ stuff', (_, { keys, values }) => {
+//     t.deepEqual(keys, ['0']);
+//     t.deepEqual(values, [{ hello: 'world' }]);
+//   });
+//
+//   data.set('stuff', [{ hello: 'world' }]);
+// });
+
+test('trigger can return', async t => {
+  const data = new Data();
+
+  data.on('= myTrigger', async input => {
+    return `Hello, ${input}`;
+  });
+
+  const res = await data.trigger('myTrigger', 'world!');
+  t.deepEqual('Hello, world!', res);
+});
 
 test('Multiple instant listeners', t => {
   t.plan(3);
