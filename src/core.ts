@@ -67,7 +67,7 @@ export class Core {
 
   private _callCb = ({ changeType, path, newValue, oldValue }: WalkRes) => {
     const lookups = this._changeListeners.get(changeType, path);
-    for (let { value, fullPath, path } of lookups.lookups) {
+    for (let { keys, value, fullPath, path } of lookups.lookups) {
       for (const listenerCallback of Object.values(value)) {
         this.changes.push({
           listenerCallback,
@@ -76,7 +76,8 @@ export class Core {
             oldValue,
             fullPath,
             path,
-            subPath: 'wat',
+            subPath: fullPath.slice(path.length + 1),
+            ...keys,
           },
         });
       }

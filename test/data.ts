@@ -108,7 +108,7 @@ test('listener', t => {
   data.set('test.ing', { hello: 'world' });
 });
 
-test.skip('special key paths', t => {
+test('special key paths', t => {
   const data = new Data();
   data.on('+ a.$b.c', (value, { $b }) => {
     t.deepEqual({ hello: 'world' }, value);
@@ -162,7 +162,7 @@ test('instant callback upon adding listener to existing data', t => {
   data.on('! player.name', val => t.deepEqual('mini', val));
 });
 
-test.skip('bop paths', t => {
+test('bop paths', t => {
   const data = new Data();
   t.plan(2);
   data.on<any>('+* quest.bops.$key', (bopData, { $key }) => {
@@ -172,7 +172,7 @@ test.skip('bop paths', t => {
   data.set('quest.bops.-LNRK0flHBSZniioW6YS', { name: 'mini' });
 });
 
-test.skip('bop paths 2', t => {
+test('bop paths 2', t => {
   const data = new Data();
   t.plan(2);
   data.on<any>('+* quest.bops.$key', (bopData, { $key }) => {

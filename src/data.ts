@@ -90,6 +90,7 @@ export class Data {
           oldValue: undefined,
           path,
           subPath: '',
+          ...lookups.keys,
         });
       }
     }
