@@ -190,7 +190,7 @@ test('previous data can be falsey', t => {
   data.set('a', 1337);
 });
 
-test.skip('trigger on object property change', t => {
+test('trigger on object property change', t => {
   const data = new Data();
   t.plan(2);
 
@@ -200,7 +200,7 @@ test.skip('trigger on object property change', t => {
   data.set('player', { x: 1337 });
 });
 
-test.skip('immediate listener with wildcard', t => {
+test('immediate listener with wildcard', t => {
   const data = new Data();
   t.plan(4);
   data.set('players.42.items.axe.power', 137);
@@ -212,7 +212,7 @@ test.skip('immediate listener with wildcard', t => {
   });
 });
 
-test.skip('unset is recursive', t => {
+test('unset is recursive', t => {
   const data = new Data();
   data.set('a.b.c', 1);
   data.set('a.b.d', 2);

@@ -16,6 +16,21 @@ export class Core {
     this._path = path;
   }
 
+  oldValue() {
+    let parent = this.parent;
+    if (parent === undefined) {
+      return parent;
+    }
+
+    for (let path of this._path) {
+      parent = parent[path];
+      if (parent === undefined) {
+        return undefined;
+      }
+    }
+    return parent;
+  }
+
   private _ensureParent(path: string[], parent: any): any {
     if (!isProbablyPlainObject(parent)) {
       if (typeof parent !== 'undefined') {
@@ -33,21 +48,6 @@ export class Core {
     return parent;
   }
 
-  oldValue() {
-    let parent = this.parent;
-    if (parent === undefined) {
-      return parent;
-    }
-
-    for (let path of this._path) {
-      parent = parent[path];
-      if (parent === undefined) {
-        return undefined;
-      }
-    }
-    return parent;
-  }
-
   ensureParentObject() {
     if (this._path.length === 0) return;
     this.parent = this._ensureParent([], this.parent);
@@ -59,6 +59,7 @@ export class Core {
         this._path.slice(0, i),
         parent[key]
       );
+      parent = res;
     }
     return res;
   }

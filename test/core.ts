@@ -14,11 +14,15 @@ test('add', t => {
 
 test('ensure parent', t => {
   const changeListeners = new ChangeListeners();
-  const l = () => true;
-  changeListeners.add(ChangeType.Remove, 'hello', l);
-  const core = new Core(changeListeners, { hello: 'b' }, ['hello', 'world']);
+  const core = new Core(changeListeners, undefined, ['a', 'b', 'c', 'd']);
   core.ensureParentObject();
-  t.pass();
+  t.deepEqual(core.parent, {
+    a: {
+      b: {
+        c: {},
+      },
+    },
+  });
 });
 
 test('reverse lookup', t => {
