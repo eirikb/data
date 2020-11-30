@@ -23,9 +23,14 @@ export class Data {
     }
     this._setQueue = [];
 
-    if (byKey) {
-      console.log('byKey?!', byKey);
+    if (byKey && Array.isArray(value)) {
+      value = value.reduce((res: any, item) => {
+        const key = item[byKey];
+        res[key] = item;
+        return res;
+      }, {});
     }
+
     const parts = path.split('.');
     const core = new Core(this._changeListeners, this._data, parts);
     const oldValue = core.oldValue();

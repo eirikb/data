@@ -88,6 +88,9 @@ export function walk(
         newValue,
         oldValue,
       });
+      for (let i = 0; i < newValue.length; i++) {
+        walk(eol, path.concat(String(i)), newValue[i], undefined, cb);
+      }
       remove(eol, path, oldValue, cb);
     }
   } else {

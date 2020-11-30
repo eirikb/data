@@ -411,16 +411,36 @@ test('Only call on change', t => {
   data.set('a', true);
 });
 
-test.skip('Arrays', t => {
+test('Arrays', t => {
   const data = new Data();
 
-  t.plan(4);
+  t.plan(2);
   data.on('!+* test.$id.a', t.pass);
-  data.set('test', [{ a: 1 }, { a: 2 }]);
   data.set('test', [{ a: 1 }, { a: 2 }]);
 });
 
-test.skip('Array with key', t => {
+test('Array without', t => {
+  const data = new Data();
+
+  data.set('a', [
+    { a: 'a', name: 'ok' },
+    { a: 'b', name: 'yes' },
+  ]);
+  t.deepEqual(data.get(), {
+    a: [
+      {
+        a: 'a',
+        name: 'ok',
+      },
+      {
+        a: 'b',
+        name: 'yes',
+      },
+    ],
+  });
+});
+
+test('Array with key', t => {
   const data = new Data();
 
   data.set(
