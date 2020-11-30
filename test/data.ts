@@ -300,35 +300,35 @@ test('Immediate false trigger', t => {
 });
 
 // This is probably specific for previous walk behaviour
-test.skip('Listeners trigger order', t => {
-  const data = new Data();
-
-  let counter = 0;
-  data.on('+* a.b.c', c => {
-    t.deepEqual('d', c);
-    t.deepEqual(0, counter);
-    counter++;
-  });
-  data.on('+* a.b', b => {
-    t.deepEqual({ c: 'd' }, b);
-    t.deepEqual(1, counter);
-    counter++;
-  });
-  data.on('+* a', a => {
-    if (a === false) return;
-
-    t.deepEqual({ b: { c: 'd' } }, a);
-    t.deepEqual(2, counter);
-    counter++;
-  });
-
-  data.set('a', false);
-  data.set('a', {
-    b: {
-      c: 'd',
-    },
-  });
-});
+// test('Listeners trigger order', t => {
+//   const data = new Data();
+//
+//   let counter = 0;
+//   data.on('+* a.b.c', c => {
+//     t.deepEqual('d', c);
+//     t.deepEqual(0, counter);
+//     counter++;
+//   });
+//   data.on('+* a.b', b => {
+//     t.deepEqual({ c: 'd' }, b);
+//     t.deepEqual(1, counter);
+//     counter++;
+//   });
+//   data.on('+* a', a => {
+//     if (a === false) return;
+//
+//     t.deepEqual({ b: { c: 'd' } }, a);
+//     t.deepEqual(2, counter);
+//     counter++;
+//   });
+//
+//   data.set('a', false);
+//   data.set('a', {
+//     b: {
+//       c: 'd',
+//     },
+//   });
+// });
 
 test('Adding sub-thing trigger change on parent', t => {
   const data = new Data();
@@ -507,7 +507,7 @@ test('set replaces, but does not remove', t => {
 //   data.set('stuff', [{ hello: 'world' }]);
 // });
 
-// test.skip('values is passed in the object with byKey', t => {
+// test('values is passed in the object with byKey', t => {
 //   const data = new Data();
 //
 //   t.plan(2);
@@ -571,7 +571,7 @@ test('Multiple instant listeners', t => {
   });
 });
 
-test.skip('Wild-wildcard once for multiple including paths for singles', t => {
+test('Wild-wildcard once for multiple including paths for singles', t => {
   t.plan(3);
   const data = new Data();
 
