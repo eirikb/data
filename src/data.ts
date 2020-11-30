@@ -24,7 +24,7 @@ export class Data {
 
     for (const change of core.changes) {
       change.listenerCallback(
-        change.listenerCallbackOptions.newValue,
+        this.get(change.listenerCallbackOptions.path),
         change.listenerCallbackOptions
       );
     }

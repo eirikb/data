@@ -240,7 +240,7 @@ test('adding sub-child triggers add on parent if parent missing', t => {
   data.set('x.test.a', 'ok');
 });
 
-test.skip('on/off on test', t => {
+test('on/off on test', t => {
   const data = new Data();
   t.plan(2);
   data.set('test', 'a');
@@ -290,7 +290,7 @@ test('Wildcard immediate listeners never go wild', t => {
   });
 });
 
-test.skip('Immediate false trigger', t => {
+test('Immediate false trigger', t => {
   const data = new Data();
   t.plan(1);
   data.set('test', false);
@@ -299,6 +299,7 @@ test.skip('Immediate false trigger', t => {
   });
 });
 
+// This is probably specific for previous walk behaviour
 test.skip('Listeners trigger order', t => {
   const data = new Data();
 
@@ -329,7 +330,7 @@ test.skip('Listeners trigger order', t => {
   });
 });
 
-test.skip('Adding sub-thing trigger change on parent', t => {
+test('Adding sub-thing trigger change on parent', t => {
   const data = new Data();
   data.set('users.1.name', 'Hello');
   t.plan(2);

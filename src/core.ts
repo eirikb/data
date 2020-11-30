@@ -126,7 +126,7 @@ function reverseLookupRecursive(
         );
       }
     } else {
-      if (parent && parent[key]) {
+      if (parent !== undefined && parent[key] !== undefined) {
         parent = parent[key];
         newPath.push(key);
       }
