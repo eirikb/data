@@ -52,16 +52,21 @@ export class Data {
       );
     }
 
+    const refs = [];
     if (listener) {
       for (const flag of flags) {
         if (flag === '*') {
-          this._changeListeners.add(ChangeType.Update, path, listener);
+          refs.push(
+            this._changeListeners.add(ChangeType.Update, path, listener)
+          );
         } else if (flag === '+') {
-          this._changeListeners.add(ChangeType.Add, path, listener);
+          refs.push(this._changeListeners.add(ChangeType.Add, path, listener));
         } else if (flag === '-') {
-          this._changeListeners.add(ChangeType.Remove, path, listener);
+          refs.push(
+            this._changeListeners.add(ChangeType.Remove, path, listener)
+          );
         } else if (flag === '=') {
-          this._triggerListeners.add(path, listener);
+          refs.push(this._triggerListeners.add(path, listener));
         } else if (flag === '!') {
           const paths = reverseLookup(this._data, path.split('.'));
           const listeners = new Listeners('immediate');
@@ -73,11 +78,14 @@ export class Data {
       }
     }
 
-    return '';
+    return refs.join(' ');
   }
 
   off(refs: string) {
-    console.log('off', refs);
+    for (const ref of refs.split(' ')) {
+      this._triggerListeners.remove(ref);
+      this._changeListeners.off(ref);
+    }
   }
 
   private _call(listeners: Listeners, path: string, value: any) {

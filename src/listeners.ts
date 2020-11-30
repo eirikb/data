@@ -44,7 +44,7 @@ export class ChangeListeners {
   };
 
   add(changeType: ChangeType, path: string, listener: ListenerCallback) {
-    this.listeners[changeType].add(path, listener);
+    return this.listeners[changeType].add(path, listener);
   }
 
   get(
@@ -55,5 +55,11 @@ export class ChangeListeners {
     lookups: Lookup<ListenerCallback>[];
   } {
     return this.listeners[changeType].get(path);
+  }
+
+  off(ref: string) {
+    for (const listeners of Object.values(this.listeners)) {
+      listeners.remove(ref);
+    }
   }
 }

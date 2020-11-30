@@ -117,7 +117,7 @@ test('special key paths', t => {
   data.set('a.hello.c', { hello: 'world' });
 });
 
-test.skip('remove listener', t => {
+test('remove listener', t => {
   const data = new Data();
   let value;
   data.on('+* a', val => (value = val));
