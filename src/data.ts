@@ -10,7 +10,19 @@ export class Data {
   private readonly _changeListeners = new ChangeListeners();
   private readonly _triggerListeners = new Listeners('trigger');
 
+  private _setQueue?: {
+    path: string;
+    value: any;
+    byKey?: string;
+  }[];
+
   set(path: string, value: any, byKey?: string) {
+    if (this._setQueue) {
+      this._setQueue.push({ path, value, byKey });
+      return;
+    }
+    this._setQueue = [];
+
     if (byKey) {
       console.log('byKey?!', byKey);
     }
@@ -27,6 +39,12 @@ export class Data {
         this.get(change.listenerCallbackOptions.path),
         change.listenerCallbackOptions
       );
+    }
+
+    const queue = this._setQueue.slice();
+    delete this._setQueue;
+    for (const toSet of queue) {
+      this.set(toSet.path, toSet.value, toSet.byKey);
     }
   }
 

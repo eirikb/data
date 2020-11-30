@@ -341,7 +341,7 @@ test('Adding sub-thing trigger change on parent', t => {
   data.set('users.1.x', '137');
 });
 
-test.skip('Update bundle changes', t => {
+test('Update bundle changes', t => {
   const data = new Data();
   data.set('users.1.name', 'Hello');
   t.plan(3);
@@ -384,7 +384,7 @@ test('Overwrite parent path should not clear data', t => {
   t.deepEqual({ b: 'yes' }, data.get('a'));
 });
 
-test.skip('Setting value while listening', t => {
+test('Setting value while listening', t => {
   const data = new Data();
 
   data.on<any>('+* hello', i => {
