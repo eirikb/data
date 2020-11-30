@@ -56,7 +56,7 @@ export class Core {
     for (let i = 0; i < this._path.length - 1; i++) {
       const key = this._path[i];
       res = parent[key] = this._ensureParent(
-        this._path.slice(0, i),
+        this._path.slice(0, i + 1),
         parent[key]
       );
       parent = res;

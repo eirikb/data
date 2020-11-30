@@ -233,7 +233,7 @@ test('methods support destructuring', t => {
   t.deepEqual(137, data.get('ok.test'));
 });
 
-test.skip('adding sub-child triggers add on parent if parent missing', t => {
+test('adding sub-child triggers add on parent if parent missing', t => {
   const data = new Data();
   t.plan(1);
   data.on<any>('+ x.$key', val => t.deepEqual('ok', val.a));
