@@ -105,6 +105,7 @@ export function walk(
         newValue,
         oldValue,
       });
+      remove(eol, path, oldValue, cb);
     } else if (newValue !== oldValue) {
       cb({
         changeType: ChangeType.Update,

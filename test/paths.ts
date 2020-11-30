@@ -308,7 +308,7 @@ test('isEol', t => {
   paths.add('z.*.c.d', 'b', 'no');
 
   t.false(paths.lookup(['a']).isEol);
-  t.true(paths.lookup(['a', 'b']).isEol);
+  t.true(paths.lookup(['a', 'b', 'c']).isEol);
   t.false(paths.lookup(['f', 'b', 'c']).isEol);
   t.false(paths.lookup(['f', 'x', 'c']).isEol);
   t.false(paths.lookup(['f']).isEol);
@@ -316,4 +316,16 @@ test('isEol', t => {
   t.true(paths.lookup(['f', 'x', 'c', 'o']).isEol);
   t.true(paths.lookup(['b']).isEol);
   t.false(paths.lookup([]).isEol);
+});
+
+test('isEol end in named wildcard', t => {
+  const paths = new Paths();
+  paths.add('a.b.$key', 'a', 'yes');
+  t.is(false, paths.lookup(['a', 'b', 'c']).isEol);
+});
+
+test('isEol end in wildcard', t => {
+  const paths = new Paths();
+  paths.add('a.b.*', 'a', 'yes');
+  t.is(false, paths.lookup(['a', 'b', 'c']).isEol);
 });
