@@ -9,6 +9,7 @@ export class Core {
   private readonly _changeListeners: ChangeListeners;
   private readonly _path: string[];
   private _eol: boolean = false;
+  private _refsAdded: { [ref: string]: boolean } = {};
 
   constructor(changeListeners: ChangeListeners, parent: any, path: string[]) {
     this._changeListeners = changeListeners;
@@ -69,18 +70,21 @@ export class Core {
   private _callCb = ({ changeType, path, newValue, oldValue }: WalkRes) => {
     const lookups = this._changeListeners.get(changeType, path);
     for (let { keys, value, fullPath, path } of lookups.lookups) {
-      for (const listenerCallback of Object.values(value)) {
-        this.changes.push({
-          listenerCallback,
-          listenerCallbackOptions: {
-            newValue,
-            oldValue,
-            fullPath,
-            path,
-            subPath: fullPath.slice(path.length + 1),
-            ...keys,
-          },
-        });
+      for (const [ref, listenerCallback] of Object.entries(value)) {
+        if (!this._refsAdded[ref]) {
+          this._refsAdded[ref] = true;
+          this.changes.push({
+            listenerCallback,
+            listenerCallbackOptions: {
+              newValue,
+              oldValue,
+              fullPath,
+              path,
+              subPath: fullPath.slice(path.length + 1),
+              ...keys,
+            },
+          });
+        }
       }
     }
     if (lookups.isEol) {
@@ -105,10 +109,12 @@ function reverseLookupRecursive(
   for (let i = index; i < path.length; i++) {
     const key = path[i];
     if (key === '*' || key.startsWith('$')) {
-      for (const [key, value] of Object.entries(parent)) {
-        const newNewPath = newPath.slice().concat(key);
-        paths.push(newNewPath);
-        reverseLookupRecursive(value, path, i + 1, newNewPath, paths);
+      if (key !== '*' || i < path.length - 1) {
+        for (const [key, value] of Object.entries(parent)) {
+          const newNewPath = newPath.slice().concat(key);
+          paths.push(newNewPath);
+          reverseLookupRecursive(value, path, i + 1, newNewPath, paths);
+        }
       }
       if (i < path.length - 1) {
         newPath.push(null);

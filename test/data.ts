@@ -612,7 +612,7 @@ test('Wild-wildcard once for multiple including paths for singles', t => {
   data.set('players.e', { name: 'e' });
 });
 
-test.skip('Wild-wildcard once for multiple including paths for singles on immediate', t => {
+test('Wild-wildcard once for multiple including paths for singles on immediate', t => {
   t.plan(1);
   const data = new Data();
   data.set('players', {

@@ -92,6 +92,90 @@ test('keys', t => {
   ]);
 });
 
+test('wildcard 1', t => {
+  const paths = new Paths();
+  paths.add('a.*', 'ref', { ok: 1 });
+  t.deepEqual(paths.lookup(['a', 'b']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a.b',
+      keys: {},
+    },
+  ]);
+});
+
+test('wildcard 2', t => {
+  const paths = new Paths();
+  paths.add('a.*', 'ref', { ok: 1 });
+  t.deepEqual(paths.lookup(['a']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a',
+      keys: {},
+    },
+  ]);
+});
+
+test('wildcard 3', t => {
+  const paths = new Paths();
+  paths.add('a.*.*', 'ref', { ok: 1 });
+  t.deepEqual(paths.lookup(['a']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a',
+      keys: {},
+    },
+  ]);
+  t.deepEqual(paths.lookup(['a', 'b']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a.b',
+      keys: {},
+    },
+  ]);
+  t.deepEqual(paths.lookup(['a', 'b', 'c']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a.b.c',
+      keys: {},
+    },
+  ]);
+});
+
+test('wildcard 4', t => {
+  const paths = new Paths();
+  paths.add('a.*.**', 'ref', { ok: 1 });
+  t.deepEqual(paths.lookup(['a']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a',
+      keys: {},
+    },
+  ]);
+  t.deepEqual(paths.lookup(['a', 'b']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a.b',
+      keys: {},
+    },
+  ]);
+  t.deepEqual(paths.lookup(['a', 'b', 'c']).lookups, [
+    {
+      value: { ref: { ok: 1 } },
+      path: 'a',
+      fullPath: 'a.b.c',
+      keys: {},
+    },
+  ]);
+});
+
 test('remove wildcard end', t => {
   const paths = new Paths();
   paths.add('a.*', 'ref', { ok: 1 });
@@ -103,8 +187,22 @@ test('multiple wildcard key end', t => {
   const paths = new Paths();
   paths.add('*.b.*.*', 'ref', { ok: 1 });
   t.deepEqual(paths.lookupByString('a'), []);
-  t.deepEqual(paths.lookupByString('a.b'), []);
-  t.deepEqual(paths.lookupByString('a.b.c'), []);
+  t.deepEqual(paths.lookupByString('a.b'), [
+    {
+      keys: {},
+      value: { ref: { ok: 1 } },
+      path: 'a.b',
+      fullPath: 'a.b',
+    },
+  ]);
+  t.deepEqual(paths.lookupByString('a.b.c'), [
+    {
+      keys: {},
+      value: { ref: { ok: 1 } },
+      path: 'a.b',
+      fullPath: 'a.b.c',
+    },
+  ]);
   t.deepEqual(paths.lookupByString('a.b.c.d'), [
     {
       keys: {},
@@ -239,7 +337,14 @@ test('until recursive wildcard', t => {
 test('recursive wildcard and wildcard', t => {
   const paths = new Paths();
   paths.add('a.*.**', 'ref', {});
-  t.deepEqual(paths.lookupByString('a'), []);
+  t.deepEqual(paths.lookupByString('a'), [
+    {
+      keys: {},
+      path: 'a',
+      value: { ref: {} },
+      fullPath: 'a',
+    },
+  ]);
   t.deepEqual(paths.lookupByString('a.b'), [
     {
       keys: {},

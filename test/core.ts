@@ -69,7 +69,7 @@ test('reverse lookup wildcard end', t => {
     },
     ['a', '*']
   );
-  t.deepEqual(paths, [['a'], ['a', 'b'], ['a', 'd']]);
+  t.deepEqual(paths, [['a']]);
 });
 
 test('reverse lookup named wildcard', t => {
@@ -182,7 +182,7 @@ test('array reverse lookup wildcard end', t => {
     },
     ['a', '*']
   );
-  t.deepEqual(paths, [['a'], ['a', 'b'], ['a', 'd']]);
+  t.deepEqual(paths, [['a']]);
 });
 
 test('array reverse lookup named wildcard', t => {

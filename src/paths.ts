@@ -68,7 +68,7 @@ class Lookuper<T> {
     keys: string[][] = [],
     pathUntil = 0
   ) {
-    if (!parent || index >= this.parts.length + 1) {
+    if (!parent || pathUntil >= this.parts.length + 1) {
       return;
     }
     if (index === this.parts.length) {
@@ -90,6 +90,14 @@ class Lookuper<T> {
 
     if (parent.$x) {
       this._lookup(parent.$x, index + 1, keys, pathUntil);
+      if (parent.$x.value) {
+        const restOfPathIsWildcard = this.parts
+          .slice(index)
+          .every(p => p === '*' || p === '**');
+        if (restOfPathIsWildcard) {
+          this._addResult(keys, parent.$x.value, pathUntil);
+        }
+      }
     }
 
     if (index === this.parts.length && parent.value) {
