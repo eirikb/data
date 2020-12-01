@@ -9,7 +9,7 @@ export class Core {
   private readonly _changeListeners: ChangeListeners;
   private readonly _path: string[];
   private _eol: boolean = false;
-  private _refsAdded: { [ref: string]: boolean } = {};
+  private _refsAdded: { [refAndPath: string]: boolean } = {};
 
   constructor(changeListeners: ChangeListeners, parent: any, path: string[]) {
     this._changeListeners = changeListeners;
@@ -71,8 +71,9 @@ export class Core {
     const lookups = this._changeListeners.get(changeType, path);
     for (let { keys, value, fullPath, path } of lookups.lookups) {
       for (const [ref, listenerCallback] of Object.entries(value)) {
-        if (!this._refsAdded[ref]) {
-          this._refsAdded[ref] = true;
+        const refAndPath = ref + path;
+        if (!this._refsAdded[refAndPath]) {
+          this._refsAdded[refAndPath] = true;
           this.changes.push({
             listenerCallback,
             listenerCallbackOptions: {
