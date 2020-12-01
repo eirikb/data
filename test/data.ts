@@ -190,15 +190,16 @@ test('previous data can be falsey', t => {
   data.set('a', 1337);
 });
 
-test('trigger on object property change', t => {
-  const data = new Data();
-  t.plan(2);
-
-  data.set('player', { x: 0 });
-  data.on('* player.x', value => t.deepEqual(1337, value));
-  data.on('* player', value => t.deepEqual({ x: 1337 }, value));
-  data.set('player', { x: 1337 });
-});
+// Not how it works now
+// test('trigger on object property change', t => {
+//   const data = new Data();
+//   t.plan(2);
+//
+//   data.set('player', { x: 0 });
+//   data.on('* player.x', value => t.deepEqual(1337, value));
+//   data.on('* player', value => t.deepEqual({ x: 1337 }, value));
+//   data.set('player', { x: 1337 });
+// });
 
 test('immediate listener with wildcard', t => {
   const data = new Data();
@@ -344,9 +345,10 @@ test('Adding sub-thing trigger change on parent', t => {
 test('Update bundle changes', t => {
   const data = new Data();
   data.set('users.1.name', 'Hello');
-  t.plan(3);
+  t.plan(2);
 
-  data.on('* users.$id', () => t.pass());
+  // Not how it works now
+  // data.on('* users.$id', () => t.pass());
   data.on('+ users.$id.x', x => t.deepEqual(137, x));
   data.on('* users.$id.name', name => t.deepEqual('world', name));
 
@@ -468,7 +470,7 @@ test('Array with key', t => {
 test('set replaces, but does not remove', t => {
   const data = new Data();
 
-  t.plan(3);
+  t.plan(2);
 
   data.on('* a', t.pass);
   data.on('* a.b', t.pass);

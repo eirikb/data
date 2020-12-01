@@ -55,12 +55,6 @@ export function walk(
       for (const key of Array.from(keys)) {
         remove(eol, path.concat(key), oldValue[key], cb);
       }
-      cb({
-        changeType: ChangeType.Update,
-        path,
-        newValue,
-        oldValue,
-      });
     } else {
       cb({
         changeType: ChangeType.Add,
