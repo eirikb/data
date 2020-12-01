@@ -661,7 +661,7 @@ test('Generic on', t => {
   data.set('ok', ok);
 });
 
-test.skip('Generic pathifier', t => {
+test('Generic pathifier', t => {
   const data = new Data();
 
   interface Ok {
@@ -678,14 +678,15 @@ test.skip('Generic pathifier', t => {
   data.set('oks.a', ok);
 });
 
-test.skip('full path', t => {
+test('full path', t => {
   t.plan(3);
 
   const data = new Data();
-  data.on('!+* test.*', (_, { fullPath, path, subPath }) => {
+  data.set('test.a', 'no');
+  data.on('+* test.*', (_, { fullPath, path, subPath }) => {
     t.is(fullPath, 'test.a');
     t.is('test', path);
-    t.is('.a', subPath);
+    t.is('a', subPath);
   });
-  data.set('test.a', { yes: 'no' });
+  data.set('test.a', 'yes');
 });
