@@ -1,4 +1,4 @@
-import { Data } from './';
+import { Data, SortTransformer } from './';
 import { MapTransformer, Transformer } from './transformers';
 
 export class Pathifier2 {
@@ -12,26 +12,30 @@ export class Pathifier2 {
     this.path = path;
   }
 
+  private _root(): Transformer | undefined {
+    return this.rootTransformer || this.transformer;
+  }
+
   init() {
     const keys: string[] = [];
     this.data.on(`!+ ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
       keys.push(key);
       const index = keys.length - 1;
-      this.rootTransformer?.add({ index, key, value });
+      this._root()?.add({ index, key, value, opts });
     });
 
     this.data.on(`* ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
       const index = keys.findIndex(k => k === key);
-      this.rootTransformer?.update({ index, key, value });
+      this._root()?.update({ index, key, value, opts });
     });
 
     this.data.on(`- ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
       const index = keys.findIndex(k => k === key);
       keys.splice(index, 1);
-      this.rootTransformer?.remove({ index, key, value });
+      this._root()?.remove({ index, key, value, opts });
     });
   }
 
@@ -52,6 +56,11 @@ export class Pathifier2 {
 
   map(map: (value: any) => any): Pathifier2 {
     this._addTransformer(new MapTransformer(map));
+    return this;
+  }
+
+  sort(sort: (a: any, b: any) => number): Pathifier2 {
+    this._addTransformer(new SortTransformer(sort));
     return this;
   }
 }
