@@ -202,3 +202,17 @@ test('slice 2', t => {
   });
   t.deepEqual(array, ['c', 'd']);
 });
+
+test('sort and slice', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+
+  pathifier.sort((a, b) => b.localeCompare(a)).slice(1, 3);
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['d', 'c']);
+});

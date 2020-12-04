@@ -138,6 +138,7 @@ export class SortTransformer extends Transformer {
 }
 
 export class SliceTransformer extends Transformer {
+  private entries: Entry[] = [];
   private readonly start: number;
   private readonly end?: number;
 
@@ -153,16 +154,30 @@ export class SliceTransformer extends Transformer {
   }
 
   add(index: number, entry: Entry): void {
-    if (!this.verify(index)) return;
+    this.entries.splice(index, 0, entry);
+    if (!this.verify(index)) {
+      if (index > this.start) return;
+
+      if (this.entries.length > this.start) {
+        this.next?.add(0, this.entries[this.start]);
+        if (this.end && this.entries.length > this.end) {
+          this.next?.remove(this.end - this.start, this.entries[this.end]);
+        }
+      }
+      return;
+    }
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
+    this.entries.splice(index, 1);
     if (!this.verify(index)) return;
     this.next?.remove(index, entry);
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
+    this.entries.splice(oldIndex, 1);
+    this.entries.splice(index, 1);
     const oldOk = this.verify(oldIndex);
     const newOk = this.verify(index);
     if (!oldOk && !newOk) return;
