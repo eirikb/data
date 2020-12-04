@@ -7,7 +7,25 @@ export interface Entry {
 }
 
 export abstract class Transformer {
+  entries: Entry[] = [];
   next?: Transformer;
+
+  _add(index: number, entry: Entry): void {
+    this.entries.splice(index, 0, entry);
+  }
+
+  _update(oldIndex: number, index: number, entry: Entry): void {
+    this._remove(oldIndex);
+    this._add(index, entry);
+  }
+
+  _remove(index: number): void {
+    this.entries.splice(index, 1);
+  }
+
+  on(_value: any, _opts: ListenerCallbackOptions) {
+    console.log('well');
+  }
 
   abstract add(index: number, entry: Entry): void;
 
@@ -17,8 +35,6 @@ export abstract class Transformer {
 }
 
 export class ArrayTransformer extends Transformer {
-  private entries: Entry[] = [];
-
   add(index: number, entry: Entry): void {
     index = this.entries.push(entry);
     this.next?.add(index - 1, entry);
@@ -38,7 +54,6 @@ export class ArrayTransformer extends Transformer {
 }
 
 export class MapTransformer extends Transformer {
-  private entries: { [key: string]: Entry } = {};
   private readonly map: (value: any) => any;
 
   constructor(map: (value: any) => any) {
@@ -49,19 +64,19 @@ export class MapTransformer extends Transformer {
   add(index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
     entry.value = this.map(entry.value);
-    this.entries[entry.key] = entry;
+    this._add(index, entry);
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
-    delete this.entries[entry.key];
+    this._remove(index);
     this.next?.remove(index, entry);
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
     entry.value = this.map(entry.value);
-    this.entries[entry.key] = entry;
+    this._update(oldIndex, index, entry);
     this.next?.update(oldIndex, index, entry);
   }
 }
@@ -85,7 +100,6 @@ export class StowerTransformer extends Transformer {
 }
 
 export class SortTransformer extends Transformer {
-  private entries: Entry[] = [];
   private readonly sort: (a: any, b: any) => number;
 
   constructor(sort: (a: any, b: any) => number) {
@@ -110,13 +124,13 @@ export class SortTransformer extends Transformer {
 
   add(index: number, entry: Entry): void {
     index = this._sortedIndex(entry.value);
-    this.entries.splice(index, 0, entry);
+    this._add(index, entry);
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
     index = this.entries.findIndex(e => e.key === entry.key);
-    this.entries.splice(index, 1);
+    this._remove(index);
     this.next?.remove(index, entry);
   }
 
@@ -125,8 +139,7 @@ export class SortTransformer extends Transformer {
     if (oldIndex2 >= 0) {
       const index2 = this._sortedIndex(entry.value);
       if (oldIndex2 !== index2) {
-        this.entries.splice(oldIndex, 1);
-        this.entries.splice(index, 0, entry);
+        this._update(oldIndex2, index2, entry);
         this.next?.update(oldIndex2, index2, entry);
       } else {
         this.next?.update(oldIndex, index, entry);
@@ -138,7 +151,6 @@ export class SortTransformer extends Transformer {
 }
 
 export class SliceTransformer extends Transformer {
-  private entries: Entry[] = [];
   private readonly start: number;
   private readonly end?: number;
 
@@ -154,7 +166,7 @@ export class SliceTransformer extends Transformer {
   }
 
   add(index: number, entry: Entry): void {
-    this.entries.splice(index, 0, entry);
+    this._add(index, entry);
     if (!this.verify(index)) {
       if (index > this.start) return;
 
@@ -170,14 +182,13 @@ export class SliceTransformer extends Transformer {
   }
 
   remove(index: number, entry: Entry): void {
-    this.entries.splice(index, 1);
+    this._remove(index);
     if (!this.verify(index)) return;
     this.next?.remove(index, entry);
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    this.entries.splice(oldIndex, 1);
-    this.entries.splice(index, 1);
+    this._update(oldIndex, index, entry);
     const oldOk = this.verify(oldIndex);
     const newOk = this.verify(index);
     if (!oldOk && !newOk) return;
