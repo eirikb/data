@@ -1,41 +1,33 @@
-import { Data, SortTransformer } from './';
+import { ArrayTransformer, Data, SliceTransformer, SortTransformer } from './';
 import { MapTransformer, Transformer } from './transformers';
 
 export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
-  private rootTransformer?: Transformer;
-  transformer?: Transformer;
+  private readonly transformer: Transformer;
+  private rootTransformer: Transformer = new ArrayTransformer();
 
-  constructor(data: Data, path: string) {
+  constructor(data: Data, path: string, transformer: Transformer) {
     this.data = data;
     this.path = path;
-  }
-
-  private _root(): Transformer | undefined {
-    return this.rootTransformer || this.transformer;
+    this.transformer = transformer;
+    this.rootTransformer.next = transformer;
   }
 
   init() {
-    const keys: string[] = [];
     this.data.on(`!+ ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
-      keys.push(key);
-      const index = keys.length - 1;
-      this._root()?.add({ index, key, value, opts });
+      this.rootTransformer.add(0, { key, value, opts });
     });
 
     this.data.on(`* ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
-      const index = keys.findIndex(k => k === key);
-      this._root()?.update({ index, key, value, opts });
+      this.rootTransformer?.update(0, 0, { key, value, opts });
     });
 
     this.data.on(`- ${this.path}`, (value, opts) => {
       const key = opts.path.split('.').slice(-1)[0];
-      const index = keys.findIndex(k => k === key);
-      keys.splice(index, 1);
-      this._root()?.remove({ index, key, value, opts });
+      this.rootTransformer.remove(0, { key, value, opts });
     });
   }
 
@@ -61,6 +53,11 @@ export class Pathifier2 {
 
   sort(sort: (a: any, b: any) => number): Pathifier2 {
     this._addTransformer(new SortTransformer(sort));
+    return this;
+  }
+
+  slice(start: number, end?: number): Pathifier2 {
+    this._addTransformer(new SliceTransformer(start, end));
     return this;
   }
 }

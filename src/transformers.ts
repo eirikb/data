@@ -1,26 +1,44 @@
 import { ListenerCallbackOptions, Stower } from 'types';
 
 export interface Entry {
-  index: number;
   key: string;
   value: any;
   opts: ListenerCallbackOptions;
 }
 
 export abstract class Transformer {
-  protected entries: Entry[] = [];
   next?: Transformer;
 
-  abstract add(entry: Entry): void;
+  abstract add(index: number, entry: Entry): void;
 
-  abstract update(entry: Entry): void;
+  abstract update(oldIndex: number, index: number, entry: Entry): void;
 
-  abstract remove(entry: Entry): void;
+  abstract remove(index: number, entry: Entry): void;
+}
 
-  abstract rebuild(entries: Entry[]): void;
+export class ArrayTransformer extends Transformer {
+  private entries: Entry[] = [];
+
+  add(index: number, entry: Entry): void {
+    index = this.entries.push(entry);
+    this.next?.add(index - 1, entry);
+  }
+
+  remove(index: number, entry: Entry): void {
+    index = this.entries.findIndex(e => e.key === entry.key);
+    this.entries.splice(index, 1);
+    this.next?.remove(index, entry);
+  }
+
+  update(_oldIndex: number, index: number, entry: Entry): void {
+    index = this.entries.findIndex(e => e.key === entry.key);
+    this.entries[index] = entry;
+    this.next?.update(index, index, entry);
+  }
 }
 
 export class MapTransformer extends Transformer {
+  private entries: { [key: string]: Entry } = {};
   private readonly map: (value: any) => any;
 
   constructor(map: (value: any) => any) {
@@ -28,30 +46,23 @@ export class MapTransformer extends Transformer {
     this.map = map;
   }
 
-  add(entry: Entry): void {
+  add(index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
     entry.value = this.map(entry.value);
-    this.entries.splice(entry.index, 0, entry);
-    this.next?.add(entry);
+    this.entries[entry.key] = entry;
+    this.next?.add(index, entry);
   }
 
-  remove(entry: Entry): void {
+  remove(index: number, entry: Entry): void {
+    delete this.entries[entry.key];
+    this.next?.remove(index, entry);
+  }
+
+  update(oldIndex: number, index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
-    this.entries.splice(entry.index, 1);
-    this.next?.remove(entry);
-  }
-
-  update(entry: Entry): void {
-    entry = Object.assign({}, entry);
-    const e = this.entries[entry.index];
-    e.value = this.map(entry.value);
-    this.next?.update(e);
-  }
-
-  rebuild(entries: Entry[]): void {
-    this.entries = [];
-    entries.forEach(this.add);
-    this.next?.rebuild(this.entries);
+    entry.value = this.map(entry.value);
+    this.entries[entry.key] = entry;
+    this.next?.update(oldIndex, index, entry);
   }
 }
 
@@ -59,32 +70,22 @@ export class StowerTransformer extends Transformer {
   stower?: Stower;
   index: number = 0;
 
-  add(entry: Entry): void {
-    this.stower?.add(entry.value, this.index, entry.index);
+  add(index: number, entry: Entry): void {
+    this.stower?.add(entry.value, this.index, index);
   }
 
-  rebuild(entries: Entry[]): void {
-    for (let i = this.entries.length - 1; i >= 0; i--) {
-      this.stower?.remove(this.entries[i].value, this.index, i);
-    }
-    this.entries = [];
-    for (let entry of entries) {
-      this.add(entry);
-    }
+  remove(index: number, entry: Entry): void {
+    this.stower?.remove(entry.value, this.index, index);
   }
 
-  remove(entry: Entry): void {
-    this.entries.splice(entry.index, 0);
-    this.stower?.remove(entry.value, this.index, entry.index);
-  }
-
-  update(entry: Entry): void {
-    this.entries[entry.index] = entry;
-    this.stower?.add(entry.value, this.index, entry.index);
+  update(oldIndex: number, index: number, entry: Entry): void {
+    this.stower?.remove(entry.value, this.index, oldIndex);
+    this.stower?.add(entry.value, this.index, index);
   }
 }
 
 export class SortTransformer extends Transformer {
+  private entries: Entry[] = [];
   private readonly sort: (a: any, b: any) => number;
 
   constructor(sort: (a: any, b: any) => number) {
@@ -107,43 +108,71 @@ export class SortTransformer extends Transformer {
     return low;
   }
 
-  add(entry: Entry): void {
-    entry.index = this._sortedIndex(entry.value);
-    this.entries.splice(entry.index, 0, entry);
-    this.next?.add(entry);
+  add(index: number, entry: Entry): void {
+    index = this._sortedIndex(entry.value);
+    this.entries.splice(index, 0, entry);
+    this.next?.add(index, entry);
   }
 
-  remove(entry: Entry): void {
-    this.entries.splice(entry.index, 1);
-    this.next?.remove(entry);
+  remove(index: number, entry: Entry): void {
+    index = this.entries.findIndex(e => e.key === entry.key);
+    this.entries.splice(index, 1);
+    this.next?.remove(index, entry);
   }
 
-  update(entry: Entry): void {
-    const currentIndex = this.entries.findIndex(
-      e => e.opts.path === entry.opts.path
-    );
-    if (currentIndex >= 0) {
-      const e = this.entries[currentIndex];
-      e.value = entry.value;
-      const newIndex = this._sortedIndex(e.value);
-      if (newIndex !== currentIndex) {
-        e.index = currentIndex;
-        this.entries.splice(e.index, 1);
-        this.next?.remove(e);
-        e.index = newIndex;
-        this.entries.splice(e.index, 0, e);
-        this.next?.add(e);
+  update(oldIndex: number, index: number, entry: Entry): void {
+    const oldIndex2 = this.entries.findIndex(e => e.key === entry.key);
+    if (oldIndex2 >= 0) {
+      const index2 = this._sortedIndex(entry.value);
+      if (oldIndex2 !== index2) {
+        this.entries.splice(oldIndex, 1);
+        this.entries.splice(index, 0, entry);
+        this.next?.update(oldIndex2, index2, entry);
       } else {
-        e.index = currentIndex;
-        e.value = entry.value;
-        this.next?.update(e);
+        this.next?.update(oldIndex, index, entry);
       }
+    } else {
+      this.next?.update(oldIndex, index, entry);
     }
   }
+}
 
-  rebuild(entries: Entry[]): void {
-    this.entries = [];
-    entries.forEach(this.add);
-    this.next?.rebuild(this.entries);
+export class SliceTransformer extends Transformer {
+  private readonly start: number;
+  private readonly end?: number;
+
+  constructor(start: number, end?: number) {
+    super();
+    this.start = start;
+    this.end = end;
+  }
+
+  private verify(index: number): boolean {
+    if (index < this.start) return false;
+    return !(this.end && index >= this.end);
+  }
+
+  add(index: number, entry: Entry): void {
+    if (!this.verify(index)) return;
+    this.next?.add(index, entry);
+  }
+
+  remove(index: number, entry: Entry): void {
+    if (!this.verify(index)) return;
+    this.next?.remove(index, entry);
+  }
+
+  update(oldIndex: number, index: number, entry: Entry): void {
+    const oldOk = this.verify(oldIndex);
+    const newOk = this.verify(index);
+    if (!oldOk && !newOk) return;
+
+    if (oldOk && newOk) {
+      this.next?.update(oldIndex, index, entry);
+    } else if (!oldOk && newOk) {
+      this.next?.add(index, entry);
+    } else if (oldOk && !newOk) {
+      this.next?.remove(index, entry);
+    }
   }
 }
