@@ -8,7 +8,6 @@ export class Core {
   changes: Change[] = [];
   private readonly _changeListeners: ChangeListeners;
   private readonly _path: string[];
-  private _eol: boolean = false;
   private _refsAdded: { [refAndPath: string]: boolean } = {};
 
   constructor(changeListeners: ChangeListeners, parent: any, path: string[]) {
@@ -35,7 +34,7 @@ export class Core {
   private _ensureParent(path: string[], parent: any): any {
     if (!isProbablyPlainObject(parent)) {
       if (typeof parent !== 'undefined') {
-        remove(() => false, [], parent, this._callCb);
+        remove([], parent, this._callCb);
       }
       const newParent = {};
       this._callCb({
@@ -65,9 +64,12 @@ export class Core {
     return res;
   }
 
-  private _isEol = () => this._eol;
-
-  private _callCb = ({ changeType, path, newValue, oldValue }: WalkRes) => {
+  private _callCb = ({
+    changeType,
+    path,
+    newValue,
+    oldValue,
+  }: WalkRes): boolean => {
     const lookups = this._changeListeners.get(changeType, path);
     for (let { keys, value, fullPath, path } of lookups.lookups) {
       for (const [ref, listenerCallback] of Object.entries(value)) {
@@ -88,13 +90,11 @@ export class Core {
         }
       }
     }
-    if (lookups.isEol) {
-      this._eol = true;
-    }
+    return lookups.isEol;
   };
 
   set(newValue: any, oldValue: any) {
-    walk(this._isEol, this._path, newValue, oldValue, this._callCb);
+    walk(this._path, newValue, oldValue, this._callCb);
   }
 }
 

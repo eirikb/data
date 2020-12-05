@@ -3,85 +3,56 @@ import { walk, remove } from '../src/walker';
 import { ChangeType } from '../src';
 
 test('add string', t => {
-  walk(
-    () => false,
-    [],
-    'hello',
-    undefined,
-    ({ changeType, newValue, oldValue }) => {
-      t.is(changeType, ChangeType.Add);
-      t.is(newValue, 'hello');
-      t.is(oldValue, undefined);
-    }
-  );
+  walk([], 'hello', undefined, ({ changeType, newValue, oldValue }) => {
+    t.is(changeType, ChangeType.Add);
+    t.is(newValue, 'hello');
+    t.is(oldValue, undefined);
+    return false;
+  });
 });
 
 test('update string', t => {
-  walk(
-    () => false,
-    [],
-    'hello',
-    'world',
-    ({ changeType, newValue, oldValue }) => {
-      t.is(changeType, ChangeType.Update);
-      t.is(newValue, 'hello');
-      t.is(oldValue, 'world');
-    }
-  );
+  walk([], 'hello', 'world', ({ changeType, newValue, oldValue }) => {
+    t.is(changeType, ChangeType.Update);
+    t.is(newValue, 'hello');
+    t.is(oldValue, 'world');
+    return false;
+  });
 });
 
 test('remove string', t => {
-  remove(
-    () => false,
-    [],
-    'hello',
-    ({ changeType, oldValue }) => {
-      t.is(changeType, ChangeType.Remove);
-      t.is(oldValue, 'hello');
-    }
-  );
+  remove([], 'hello', ({ changeType, oldValue }) => {
+    t.is(changeType, ChangeType.Remove);
+    t.is(oldValue, 'hello');
+    return false;
+  });
 });
 
 test('remove object string', t => {
-  remove(
-    () => false,
-    ['a'],
-    'hello',
-    ({ changeType, oldValue }) => {
-      t.is(changeType, ChangeType.Remove);
-      t.is(oldValue, 'hello');
-    }
-  );
+  remove(['a'], 'hello', ({ changeType, oldValue }) => {
+    t.is(changeType, ChangeType.Remove);
+    t.is(oldValue, 'hello');
+    return false;
+  });
 });
 
 test('object add', t => {
-  walk(
-    () => false,
-    [],
-    {},
-    undefined,
-    ({ changeType }) => {
-      t.is(changeType, ChangeType.Add);
-    }
-  );
+  walk([], {}, undefined, ({ changeType }) => {
+    t.is(changeType, ChangeType.Add);
+    return false;
+  });
 });
 
 test('object exists', t => {
   t.plan(0);
-  walk(
-    () => false,
-    [],
-    {},
-    {},
-    ({}) => {
-      t.pass();
-    }
-  );
+  walk([], {}, {}, ({}) => {
+    t.pass();
+    return false;
+  });
 });
 
 test('object add prop', t => {
   walk(
-    () => false,
     [],
     {
       a: 'yes',
@@ -90,6 +61,7 @@ test('object add prop', t => {
     ({ changeType, path }) => {
       t.is(changeType, ChangeType.Add);
       t.deepEqual(path, ['a']);
+      return false;
     }
   );
 });
@@ -97,7 +69,6 @@ test('object add prop', t => {
 test('object recursive add', t => {
   const changes: [ChangeType, string[]][] = [];
   walk(
-    () => false,
     [],
     {
       a: {
@@ -115,6 +86,7 @@ test('object recursive add', t => {
     },
     ({ changeType, path }) => {
       changes.push([changeType, path]);
+      return false;
     }
   );
   t.deepEqual(changes, [
@@ -128,7 +100,6 @@ test('object recursive add', t => {
 test('object recursive remove', t => {
   const changes: [ChangeType, string[]][] = [];
   walk(
-    () => false,
     [],
     {},
     {
@@ -141,6 +112,7 @@ test('object recursive remove', t => {
     },
     ({ changeType, path }) => {
       changes.push([changeType, path]);
+      return false;
     }
   );
   t.deepEqual(changes, [
@@ -152,85 +124,55 @@ test('object recursive remove', t => {
 });
 
 test('object remove prop', t => {
-  walk(
-    () => false,
-    [],
-    {},
-    { a: 'yes' },
-    ({ changeType, path, newValue, oldValue }) => {
-      t.is(changeType, ChangeType.Remove);
-      t.deepEqual(path, ['a']);
-      t.is(newValue, undefined);
-      t.is(oldValue, 'yes');
-    }
-  );
+  walk([], {}, { a: 'yes' }, ({ changeType, path, newValue, oldValue }) => {
+    t.is(changeType, ChangeType.Remove);
+    t.deepEqual(path, ['a']);
+    t.is(newValue, undefined);
+    t.is(oldValue, 'yes');
+    return false;
+  });
 });
 
 test('array add', t => {
-  walk(
-    () => false,
-    [],
-    [],
-    undefined,
-    ({ changeType }) => {
-      t.is(changeType, ChangeType.Add);
-    }
-  );
+  walk([], [], undefined, ({ changeType }) => {
+    t.is(changeType, ChangeType.Add);
+    return false;
+  });
 });
 
 test('array exists', t => {
   t.plan(0);
-  walk(
-    () => false,
-    [],
-    [],
-    [],
-    ({}) => {
-      t.pass();
-    }
-  );
+  walk([], [], [], ({}) => {
+    t.pass();
+    return false;
+  });
 });
 
 test('array add item', t => {
-  walk(
-    () => false,
-    [],
-    ['a'],
-    [],
-    ({ changeType, newValue, path }) => {
-      t.is(changeType, ChangeType.Add);
-      t.is(newValue, 'a');
-      t.deepEqual(['0'], path);
-    }
-  );
+  walk([], ['a'], [], ({ changeType, newValue, path }) => {
+    t.is(changeType, ChangeType.Add);
+    t.is(newValue, 'a');
+    t.deepEqual(['0'], path);
+    return false;
+  });
 });
 
 test('array remove item', t => {
-  walk(
-    () => false,
-    [],
-    [],
-    ['a'],
-    ({ changeType, path, newValue, oldValue }) => {
-      t.is(changeType, ChangeType.Remove);
-      t.is(newValue, undefined);
-      t.is(oldValue, 'a');
-      t.deepEqual(['0'], path);
-    }
-  );
+  walk([], [], ['a'], ({ changeType, path, newValue, oldValue }) => {
+    t.is(changeType, ChangeType.Remove);
+    t.is(newValue, undefined);
+    t.is(oldValue, 'a');
+    t.deepEqual(['0'], path);
+    return false;
+  });
 });
 
 test('array recursive remove', t => {
   const changes: [ChangeType, string[]][] = [];
-  walk(
-    () => false,
-    [],
-    {},
-    [{ a: ['a'] }, ['b']],
-    ({ changeType, path }) => {
-      changes.push([changeType, path]);
-    }
-  );
+  walk([], {}, [{ a: ['a'] }, ['b']], ({ changeType, path }) => {
+    changes.push([changeType, path]);
+    return false;
+  });
   t.deepEqual(changes, [
     [ChangeType.Add, []],
     [ChangeType.Remove, []],

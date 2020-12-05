@@ -663,22 +663,23 @@ test('Generic on', t => {
   data.set('ok', ok);
 });
 
-test('Generic pathifier', t => {
-  const data = new Data();
-
-  interface Ok {
-    name: string;
-  }
-
-  const ok: Ok = {
-    name: 'Hello',
-  };
-
-  data.on<Ok>('oks').then(res => {
-    t.is('Hello', res.a.name);
-  });
-  data.set('oks.a', ok);
-});
+// TODO:
+// test('Generic pathifier', t => {
+//   const data = new Data();
+//
+//   interface Ok {
+//     name: string;
+//   }
+//
+//   const ok: Ok = {
+//     name: 'Hello',
+//   };
+//
+//   data.on<Ok>('oks').then(res => {
+//     t.is('Hello', res.a.name);
+//   });
+//   data.set('oks.a', ok);
+// });
 
 test('full path', t => {
   t.plan(3);

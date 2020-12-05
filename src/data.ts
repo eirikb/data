@@ -1,7 +1,8 @@
-import { Pathifier } from './pathifier';
+import { Pathifier2 } from './pathifier2';
 import { ListenerCallbackWithType } from './types';
 import { Core, reverseLookup } from './core';
 import { ChangeListeners, ChangeType, Listeners } from './listeners';
+import { Transformer } from 'transformers';
 
 export * from './types';
 
@@ -53,21 +54,14 @@ export class Data {
     }
   }
 
-  on<T = unknown>(flagsAndPath: string): Pathifier;
+  pathifier(path: string, transformer: Transformer) {
+    return new Pathifier2(this, path, transformer);
+  }
 
   on<T = unknown>(
     flagsAndPath: string,
     listener: ListenerCallbackWithType<T>
-  ): string;
-
-  on<T = unknown>(
-    flagsAndPath: string,
-    listener?: ListenerCallbackWithType<T>
-  ): Pathifier | string {
-    if (!flagsAndPath.includes(' ') && !listener) {
-      return new Pathifier(this, flagsAndPath);
-    }
-
+  ): string {
     const [flags, path] = flagsAndPath.split(' ').filter(p => p);
     if (!flags || !path) {
       throw new Error(

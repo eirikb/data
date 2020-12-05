@@ -434,3 +434,13 @@ test('isEol end in wildcard', t => {
   paths.add('a.b.*', 'a', 'yes');
   t.is(false, paths.lookup(['a', 'b', 'c']).isEol);
 });
+
+test('isEol object', t => {
+  const paths = new Paths();
+  paths.add('a.$', 'a', 'yes');
+  t.is(false, paths.lookup(['a', 'b']).isEol);
+  t.is(true, paths.lookup(['a', 'b', 'name']).isEol);
+  t.is(false, paths.lookup(['a', 'c']).isEol);
+  t.is(true, paths.lookup(['a', 'c', 'name']).isEol);
+  t.pass();
+});
