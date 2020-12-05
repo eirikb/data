@@ -1,14 +1,10 @@
-import { ListenerCallbackOptions, Stower } from 'types';
-
-export interface Entry {
-  key: string;
-  value: any;
-  opts: ListenerCallbackOptions;
-}
+import { Entry, ListenerCallbackOptions, OnMapper, Stower } from 'types';
 
 export abstract class Transformer {
   entries: Entry[] = [];
   next?: Transformer;
+  onValue?: any;
+  onOpts?: ListenerCallbackOptions;
 
   _add(index: number, entry: Entry): void {
     this.entries.splice(index, 0, entry);
@@ -23,8 +19,10 @@ export abstract class Transformer {
     this.entries.splice(index, 1);
   }
 
-  on(_value: any, _opts: ListenerCallbackOptions) {
-    console.log('well');
+  on(value: any, opts: ListenerCallbackOptions) {
+    this.onValue = value;
+    this.onOpts = opts;
+    this.entries.forEach((entry, index) => this.update(index, index, entry));
   }
 
   abstract add(index: number, entry: Entry): void;
@@ -54,16 +52,16 @@ export class ArrayTransformer extends Transformer {
 }
 
 export class MapTransformer extends Transformer {
-  private readonly map: (value: any) => any;
+  private readonly map: OnMapper;
 
-  constructor(map: (value: any) => any) {
+  constructor(map: OnMapper) {
     super();
     this.map = map;
   }
 
   add(index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
-    entry.value = this.map(entry.value);
+    entry.value = this.map(this.onValue, this.onOpts, entry.value, entry.opts);
     this._add(index, entry);
     this.next?.add(index, entry);
   }
@@ -75,7 +73,7 @@ export class MapTransformer extends Transformer {
 
   update(oldIndex: number, index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
-    entry.value = this.map(entry.value);
+    entry.value = this.map(this.onValue, this.onOpts, entry.value, entry.opts);
     this._update(oldIndex, index, entry);
     this.next?.update(oldIndex, index, entry);
   }

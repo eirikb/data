@@ -216,3 +216,15 @@ test('sort and slice', t => {
   });
   t.deepEqual(array, ['d', 'c']);
 });
+
+test('mapOn', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+  pathifier.mapOn('test', (onValue, _opts, value) => {
+    if (onValue === 'ing') return 'ting';
+    return value;
+  });
+  data.set('a.b', '1');
+  t.deepEqual(array, ['1']);
+  data.set('test', 'ing');
+  t.deepEqual(array, ['ting']);
+});

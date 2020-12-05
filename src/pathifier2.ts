@@ -1,4 +1,11 @@
-import { ArrayTransformer, Data, SliceTransformer, SortTransformer } from './';
+import {
+  ArrayTransformer,
+  Data,
+  Mapper,
+  OnMapper,
+  SliceTransformer,
+  SortTransformer,
+} from './';
 import { MapTransformer, Transformer } from './transformers';
 
 export class Pathifier2 {
@@ -46,8 +53,17 @@ export class Pathifier2 {
     t.next = transformer;
   }
 
-  map(map: (value: any) => any): Pathifier2 {
-    this._addTransformer(new MapTransformer(map));
+  map(map: Mapper): Pathifier2 {
+    this._addTransformer(
+      new MapTransformer((_onValue, _onOpts, value, opts) => map(value, opts))
+    );
+    return this;
+  }
+
+  mapOn(path: string, map: OnMapper) {
+    const transformer = new MapTransformer(map);
+    this._addTransformer(transformer);
+    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
     return this;
   }
 

@@ -65,3 +65,30 @@ export interface Change {
   listenerCallbackOptions: ListenerCallbackOptions;
   listenerCallback: ListenerCallback;
 }
+
+export interface Entry {
+  key: string;
+  value: any;
+  opts: ListenerCallbackOptions;
+}
+
+export type Sorter2 = (
+  a: any,
+  b: any,
+  aOpts: ListenerCallbackOptions,
+  bOpts: ListenerCallbackOptions
+) => number;
+export type OnSorter2 = (
+  onValue: any,
+  a: any,
+  b: any,
+  aOpts: ListenerCallbackOptions,
+  bOpts: ListenerCallbackOptions
+) => number;
+export type Mapper = (value: any, opts: ListenerCallbackOptions) => void;
+export type OnMapper = (
+  onValue: any | undefined,
+  onOpts: ListenerCallbackOptions | undefined,
+  value: any,
+  opts: ListenerCallbackOptions
+) => void;
