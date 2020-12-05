@@ -1,4 +1,10 @@
-import { Entry, ListenerCallbackOptions, OnMapper, Stower } from 'types';
+import {
+  Entry,
+  ListenerCallbackOptions,
+  OnMapper,
+  OnSorter2,
+  Stower,
+} from 'types';
 
 export abstract class Transformer {
   entries: Entry[] = [];
@@ -61,7 +67,11 @@ export class MapTransformer extends Transformer {
 
   add(index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
-    entry.value = this.map(this.onValue, this.onOpts, entry.value, entry.opts);
+    entry.value = this.map(entry.value, {
+      opts: entry.opts,
+      onValue: this.onValue,
+      onOpts: this.onOpts,
+    });
     this._add(index, entry);
     this.next?.add(index, entry);
   }
@@ -73,7 +83,11 @@ export class MapTransformer extends Transformer {
 
   update(oldIndex: number, index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
-    entry.value = this.map(this.onValue, this.onOpts, entry.value, entry.opts);
+    entry.value = this.map(entry.value, {
+      opts: entry.opts,
+      onValue: this.onValue,
+      onOpts: this.onOpts,
+    });
     this._update(oldIndex, index, entry);
     this.next?.update(oldIndex, index, entry);
   }
@@ -98,20 +112,28 @@ export class StowerTransformer extends Transformer {
 }
 
 export class SortTransformer extends Transformer {
-  private readonly sort: (a: any, b: any) => number;
+  private readonly sort: OnSorter2;
 
-  constructor(sort: (a: any, b: any) => number) {
+  constructor(sort: OnSorter2) {
     super();
     this.sort = sort;
   }
 
-  private _sortedIndex(value: any) {
+  private _sortedIndex(a: Entry) {
     let low = 0;
     let high = this.entries.length;
 
     while (low < high) {
       let mid = (low + high) >>> 1;
-      if (this.sort(value, this.entries[mid].value) > 0) {
+      const b = this.entries[mid];
+      if (
+        this.sort(a.value, b.value, {
+          aOpts: a.opts,
+          bOpts: b.opts,
+          onValue: this.onValue,
+          onOpts: this.onOpts,
+        }) > 0
+      ) {
         low = mid + 1;
       } else {
         high = mid;
@@ -121,7 +143,7 @@ export class SortTransformer extends Transformer {
   }
 
   add(index: number, entry: Entry): void {
-    index = this._sortedIndex(entry.value);
+    index = this._sortedIndex(entry);
     this._add(index, entry);
     this.next?.add(index, entry);
   }
@@ -135,7 +157,7 @@ export class SortTransformer extends Transformer {
   update(oldIndex: number, index: number, entry: Entry): void {
     const oldIndex2 = this.entries.findIndex(e => e.key === entry.key);
     if (oldIndex2 >= 0) {
-      const index2 = this._sortedIndex(entry.value);
+      const index2 = this._sortedIndex(entry);
       if (oldIndex2 !== index2) {
         this._update(oldIndex2, index2, entry);
         this.next?.update(oldIndex2, index2, entry);

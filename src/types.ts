@@ -73,22 +73,35 @@ export interface Entry {
 }
 
 export type Sorter2 = (
-  a: any,
-  b: any,
-  aOpts: ListenerCallbackOptions,
-  bOpts: ListenerCallbackOptions
+  aValue: any,
+  bValue: any,
+  opts: {
+    aOpts: ListenerCallbackOptions;
+    bOpts: ListenerCallbackOptions;
+  }
 ) => number;
+
 export type OnSorter2 = (
-  onValue: any,
-  a: any,
-  b: any,
-  aOpts: ListenerCallbackOptions,
-  bOpts: ListenerCallbackOptions
+  aValue: any,
+  bValue: any,
+  opts: {
+    aOpts: ListenerCallbackOptions;
+    bOpts: ListenerCallbackOptions;
+    onValue: any | undefined;
+    onOpts: ListenerCallbackOptions | undefined;
+  }
 ) => number;
-export type Mapper = (value: any, opts: ListenerCallbackOptions) => void;
-export type OnMapper = (
-  onValue: any | undefined,
-  onOpts: ListenerCallbackOptions | undefined,
+
+export type Mapper = (
   value: any,
-  opts: ListenerCallbackOptions
+  opts: { opts: ListenerCallbackOptions }
+) => void;
+
+export type OnMapper = (
+  value: any,
+  opts: {
+    opts: ListenerCallbackOptions;
+    onValue: any | undefined;
+    onOpts: ListenerCallbackOptions | undefined;
+  }
 ) => void;

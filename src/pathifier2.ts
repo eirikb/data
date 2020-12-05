@@ -3,7 +3,9 @@ import {
   Data,
   Mapper,
   OnMapper,
+  OnSorter2,
   SliceTransformer,
+  Sorter2,
   SortTransformer,
 } from './';
 import { MapTransformer, Transformer } from './transformers';
@@ -54,20 +56,25 @@ export class Pathifier2 {
   }
 
   map(map: Mapper): Pathifier2 {
-    this._addTransformer(
-      new MapTransformer((_onValue, _onOpts, value, opts) => map(value, opts))
-    );
+    this._addTransformer(new MapTransformer(map));
     return this;
   }
 
-  mapOn(path: string, map: OnMapper) {
+  mapOn(path: string, map: OnMapper): Pathifier2 {
     const transformer = new MapTransformer(map);
     this._addTransformer(transformer);
     this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
     return this;
   }
 
-  sort(sort: (a: any, b: any) => number): Pathifier2 {
+  sortOn(path: string, sort: OnSorter2): Pathifier2 {
+    const transformer = new SortTransformer(sort);
+    this._addTransformer(transformer);
+    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    return this;
+  }
+
+  sort(sort: Sorter2): Pathifier2 {
     this._addTransformer(new SortTransformer(sort));
     return this;
   }
