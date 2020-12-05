@@ -268,6 +268,38 @@ test('sliceOn', t => {
   t.deepEqual(array, ['c', 'd', 'e']);
 });
 
+test('filter', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+
+  pathifier.filter(value => value !== 'c');
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['b', 'd', 'e']);
+});
+
+test('filterOn', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+
+  pathifier.filterOn('test', (value, { onValue }) => value !== onValue);
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['b', 'c', 'd', 'e']);
+  data.set('test', 'c');
+  t.deepEqual(array, ['b', 'd', 'e']);
+  data.set('test', 'e');
+  t.deepEqual(array, ['b', 'c', 'd']);
+});
+
 test('no output no fail', t => {
   const { data } = stower2('a.$');
   data.set('users.a.name', 'no fail');
@@ -276,7 +308,6 @@ test('no output no fail', t => {
 
 test('then before', t => {
   const { array, data } = stower2('users.$');
-  t.plan(1);
 
   data.set('users', {
     a: { name: 'a' },
@@ -284,74 +315,19 @@ test('then before', t => {
   });
   t.deepEqual(array, [{ name: 'a' }, { name: 'b' }]);
 });
-//
-// test('then after', t => {
-//   t.plan(1);
-//
-//   const data = new Data();
-//   data.set('users', {
-//     a: { name: 'a' },
-//     b: { name: 'b' },
-//   });
-//   data.on('users').then(users => {
-//     t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
-//   });
-// });
-//
-// test('then unset', t => {
-//   const data = new Data();
-//   data.set('users', {
-//     a: { name: 'a' },
-//     b: { name: 'b' },
-//   });
-//   let users;
-//   data.on('users.*').then(u => {
-//     users = u;
-//   });
-//   t.deepEqual({ a: { name: 'a' }, b: { name: 'b' } }, users);
-//   data.unset('users.b');
-//   t.deepEqual({ a: { name: 'a' } }, users);
-// });
-//
-// test('then unset sub-path', t => {
-//   const data = new Data();
-//   data.set('users', {
-//     a: { name: 'a', age: 12 },
-//     b: { name: 'b', age: 42 },
-//   });
-//   let users;
-//   data.on('users').then(u => (users = u));
-//   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b', age: 42 } }, users);
-//   data.unset('users.b.age');
-//   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, users);
-// });
-//
-// test('to unset', t => {
-//   const data = new Data();
-//   data.set('users', {
-//     a: { name: 'a' },
-//     b: { name: 'b' },
-//   });
-//   data.on('users.*').to('yes');
-//   data.unset('users.b');
-//   t.deepEqual({ a: { name: 'a' } }, data.get('yes'));
-// });
-//
-// test('to unset sub-path', t => {
-//   const data = new Data();
-//   data.set('users', {
-//     a: { name: 'a', age: 12 },
-//     b: { name: 'b', age: 42 },
-//   });
-//   data.on('users.*.*').to('yes');
-//   t.deepEqual(
-//     { a: { name: 'a', age: 12 }, b: { name: 'b', age: 42 } },
-//     data.get('yes')
-//   );
-//   data.unset('users.b.age');
-//   t.deepEqual({ a: { name: 'a', age: 12 }, b: { name: 'b' } }, data.get('yes'));
-// });
-//
+
+test('then unset', t => {
+  const { array, data } = stower2('users.$');
+
+  data.set('users', {
+    a: { name: 'a' },
+    b: { name: 'b' },
+  });
+  t.deepEqual(array, [{ name: 'a' }, { name: 'b' }]);
+  data.unset('users.b');
+  t.deepEqual(array, [{ name: 'a' }]);
+});
+
 // test('then not called for outfiltered data', t => {
 //   t.plan(4);
 //

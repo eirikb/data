@@ -1,6 +1,7 @@
 import {
   Entry,
   ListenerCallbackOptions,
+  OnFilter2,
   OnMapper,
   OnSorter2,
   SliceOn,
@@ -245,6 +246,64 @@ export class SliceTransformer extends Transformer {
       this.next?.add(index, entry);
     } else if (oldOk && !newOk) {
       this.next?.remove(index, entry);
+    }
+  }
+}
+
+export class FilterTransformer extends Transformer {
+  private readonly filter: OnFilter2;
+  private readonly visible: Set<string> = new Set<string>();
+
+  constructor(filter: OnFilter2) {
+    super();
+    this.filter = filter;
+  }
+
+  add(index: number, entry: Entry): void {
+    this._add(index, entry);
+    if (
+      this.filter(entry.value, {
+        opts: entry.opts,
+        onValue: this.onValue,
+        onOpts: this.onOpts,
+      })
+    ) {
+      this.visible.add(entry.key);
+      this.next?.add(index, entry);
+    }
+  }
+
+  on(value: any, opts: ListenerCallbackOptions) {
+    this.onValue = value;
+    this.onOpts = opts;
+    this.entries.forEach((entry, index) => {
+      const test = this.filter(entry.value, {
+        opts: entry.opts,
+        onValue: value,
+        onOpts: opts,
+      });
+      const has = this.visible.has(entry.key);
+      if (test && !has) {
+        this.visible.add(entry.key);
+        this.next?.add(index, entry);
+      } else if (!test && has) {
+        this.visible.delete(entry.key);
+        this.next?.remove(index, entry);
+      }
+    });
+  }
+
+  remove(index: number, entry: Entry): void {
+    this._remove(index);
+    if (this.visible.delete(entry.key)) {
+      this.next?.remove(index, entry);
+    }
+  }
+
+  update(oldIndex: number, index: number, entry: Entry): void {
+    if (this.visible.has(entry.key)) {
+      this._update(oldIndex, index, entry);
+      this.next?.update(oldIndex, index, entry);
     }
   }
 }

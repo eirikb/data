@@ -1,7 +1,10 @@
 import {
   ArrayTransformer,
   Data,
+  Filter2,
+  FilterTransformer,
   Mapper,
+  OnFilter2,
   OnMapper,
   OnSorter2,
   SliceOn,
@@ -87,6 +90,20 @@ export class Pathifier2 {
 
   sliceOn(path: string, sliceOn: SliceOn): Pathifier2 {
     const transformer = new SliceTransformer(0, 0, sliceOn);
+    this._addTransformer(transformer);
+    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    return this;
+  }
+
+  filter(filter: Filter2): Pathifier2 {
+    this._addTransformer(
+      new FilterTransformer((value, opts) => filter(value, opts.opts))
+    );
+    return this;
+  }
+
+  filterOn(path: string, filterOn: OnFilter2): Pathifier2 {
+    const transformer = new FilterTransformer(filterOn);
     this._addTransformer(transformer);
     this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
     return this;

@@ -110,3 +110,13 @@ export type SliceOn = (
   onValue?: any,
   onOpts?: ListenerCallbackOptions
 ) => [number, number?];
+
+export type Filter2 = (value: any, opts: ListenerCallbackOptions) => boolean;
+export type OnFilter2 = (
+  value: any,
+  opts: {
+    opts: ListenerCallbackOptions;
+    onValue?: any;
+    onOpts?: ListenerCallbackOptions;
+  }
+) => boolean;
