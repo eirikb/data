@@ -247,3 +247,23 @@ test('sortOn', t => {
   data.set('test', false);
   t.deepEqual(array, ['1', '2']);
 });
+
+test('sliceOn', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+
+  pathifier.sliceOn('test.*', value => value);
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['b', 'c', 'd', 'e']);
+  data.set('test', [1, 3]);
+  t.deepEqual(array, ['c', 'd']);
+  data.set('test', [0, 3]);
+  t.deepEqual(array, ['b', 'c', 'd']);
+  data.set('test', [1, 4]);
+  t.deepEqual(array, ['c', 'd', 'e']);
+});

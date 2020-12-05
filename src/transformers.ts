@@ -3,6 +3,7 @@ import {
   ListenerCallbackOptions,
   OnMapper,
   OnSorter2,
+  SliceOn,
   Stower,
 } from 'types';
 
@@ -171,13 +172,15 @@ export class SortTransformer extends Transformer {
 }
 
 export class SliceTransformer extends Transformer {
-  private readonly start: number;
-  private readonly end?: number;
+  private start: number;
+  private end?: number;
+  private readonly sliceOn?: SliceOn | undefined;
 
-  constructor(start: number, end?: number) {
+  constructor(start: number, end?: number, sliceOn?: SliceOn) {
     super();
     this.start = start;
     this.end = end;
+    this.sliceOn = sliceOn;
   }
 
   private verify(index: number): boolean {
@@ -205,6 +208,29 @@ export class SliceTransformer extends Transformer {
     this._remove(index);
     if (!this.verify(index)) return;
     this.next?.remove(index, entry);
+  }
+
+  on(value: any, opts: ListenerCallbackOptions) {
+    if (this.sliceOn) {
+      const [start, end] = this.sliceOn(value, opts);
+      const endBefore = this.end || this.entries.length;
+      const endAfter = end || this.entries.length;
+      for (let i = endAfter; i < endBefore; i++) {
+        this.next?.remove(i, this.entries[i]);
+      }
+      for (let i = this.start; i < start; i++) {
+        this.next?.remove(i, this.entries[i]);
+      }
+      for (let i = endBefore; i < endAfter; i++) {
+        this.next?.add(i, this.entries[i]);
+      }
+      for (let i = start; i < this.start; i++) {
+        this.next?.add(i, this.entries[i]);
+      }
+
+      this.start = start;
+      this.end = end;
+    }
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {

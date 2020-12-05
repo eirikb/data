@@ -105,3 +105,8 @@ export type OnMapper = (
     onOpts: ListenerCallbackOptions | undefined;
   }
 ) => void;
+
+export type SliceOn = (
+  onValue?: any,
+  onOpts?: ListenerCallbackOptions
+) => [number, number?];

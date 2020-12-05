@@ -4,6 +4,7 @@ import {
   Mapper,
   OnMapper,
   OnSorter2,
+  SliceOn,
   SliceTransformer,
   Sorter2,
   SortTransformer,
@@ -81,6 +82,13 @@ export class Pathifier2 {
 
   slice(start: number, end?: number): Pathifier2 {
     this._addTransformer(new SliceTransformer(start, end));
+    return this;
+  }
+
+  sliceOn(path: string, sliceOn: SliceOn): Pathifier2 {
+    const transformer = new SliceTransformer(0, 0, sliceOn);
+    this._addTransformer(transformer);
+    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
     return this;
   }
 }
