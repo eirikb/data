@@ -338,20 +338,21 @@ test('then not called for outfiltered data', t => {
   t.deepEqual(array, [{ name: 'a' }]);
 });
 
-// TODO: This really should pass
-test.skip('then not called for outfiltered data 2', t => {
+test('then not called for outfiltered data 2', t => {
   const { array, pathifier, data } = stower2('users.$.*');
 
   pathifier.filter(user => user.name === 'a');
 
   data.set('users', {
-    a: { name: 'a' },
-    b: { name: 'b' },
+    a: { name: 'a', k: 1 },
+    b: { name: 'b', k: 2 },
   });
-  console.log(array);
+  t.deepEqual(array, [{ name: 'a', k: 1 }]);
   data.set('users.b.name', 'a');
-  console.log(array);
-  t.pass();
+  t.deepEqual(array, [
+    { name: 'a', k: 1 },
+    { name: 'a', k: 2 },
+  ]);
 });
 
 test('to filter', t => {

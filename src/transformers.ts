@@ -252,11 +252,24 @@ export class SliceTransformer extends Transformer {
 
 export class FilterTransformer extends Transformer {
   private readonly filter: OnFilter2;
-  private readonly visible: Set<string> = new Set<string>();
+  private readonly visible: Entry[] = [];
 
   constructor(filter: OnFilter2) {
     super();
     this.filter = filter;
+  }
+
+  private _findIndex(key: string): number {
+    let index = 0;
+    for (let i = 0; i < this.entries.length; i++) {
+      if (this.entries[i].key === key || index >= this.visible.length) {
+        return index;
+      }
+      if (this.entries[i].key === this.visible[index].key) {
+        index++;
+      }
+    }
+    return -1;
   }
 
   add(index: number, entry: Entry): void {
@@ -268,42 +281,39 @@ export class FilterTransformer extends Transformer {
         onOpts: this.onOpts,
       })
     ) {
-      this.visible.add(entry.key);
+      index = this._findIndex(entry.key);
+      this.visible.splice(index, 0, entry);
       this.next?.add(index, entry);
     }
   }
 
-  on(value: any, opts: ListenerCallbackOptions) {
-    this.onValue = value;
-    this.onOpts = opts;
-    this.entries.forEach((entry, index) => {
-      const test = this.filter(entry.value, {
-        opts: entry.opts,
-        onValue: value,
-        onOpts: opts,
-      });
-      const has = this.visible.has(entry.key);
-      if (test && !has) {
-        this.visible.add(entry.key);
-        this.next?.add(index, entry);
-      } else if (!test && has) {
-        this.visible.delete(entry.key);
-        this.next?.remove(index, entry);
-      }
-    });
-  }
-
   remove(index: number, entry: Entry): void {
     this._remove(index);
-    if (this.visible.delete(entry.key)) {
+    index = this.visible.findIndex(e => e.key === entry.key);
+    if (index >= 0) {
+      this.visible.splice(index, 1);
       this.next?.remove(index, entry);
     }
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    if (this.visible.has(entry.key)) {
-      this._update(oldIndex, index, entry);
+    const test = this.filter(entry.value, {
+      opts: entry.opts,
+      onValue: this.onValue,
+      onOpts: this.onOpts,
+    });
+    oldIndex = this.visible.findIndex(e => e.key === entry.key);
+    const has = oldIndex >= 0;
+    if (test && has) {
+      index = this._findIndex(entry.key);
       this.next?.update(oldIndex, index, entry);
+    } else if (test && !has) {
+      index = this._findIndex(entry.key);
+      this.visible.splice(index, 0, entry);
+      this.next?.add(index, entry);
+    } else if (!test && has) {
+      this.visible.splice(oldIndex, 1);
+      this.next?.remove(oldIndex, entry);
     }
   }
 }
