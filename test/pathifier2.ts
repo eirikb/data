@@ -472,151 +472,90 @@ test('sort 2', t => {
   });
   t.deepEqual(array, [{ name: 'b' }, { name: 'a' }]);
 });
-//
-// test('Update filterOn on update after data is set', t => {
-//   const data = new Data();
-//   const { res, reset, toArray } = stower();
-//   data
-//     .on('users')
-//     .map(user => user)
-//     .filterOn('test', (filter, user) => new RegExp(filter, 'i').test(user))
-//     .toArray(toArray());
-//   data.set('test', '');
-//   data.set('users', { a: 'a', b: 'b' });
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: 'a' },
-//     { t: 'add', index: 1, path: 'b' },
-//   ]);
-//   reset();
-//   data.set('test', 'b');
-//   t.deepEqual(res, [
-//     { t: 'remove', index: 1, path: 'b' },
-//     { t: 'add', index: 1, path: 'b' },
-//     { t: 'remove', index: 0, path: 'a' },
-//   ]);
-// });
-//
-// test('filterOn and back', t => {
-//   const data = new Data();
-//   const { res, reset, toArray } = stower();
-//   data
-//     .on('users')
-//     .map(user => user.name)
-//     .filterOn('test', (filter, user) => new RegExp(filter, 'i').test(user.name))
-//     .toArray(toArray());
-//
-//   data.set('test', '');
-//   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: 'one' },
-//     { t: 'add', index: 1, path: 'two' },
-//   ]);
-//   reset();
-//
-//   data.set('test', 'two');
-//   t.deepEqual(res, [
-//     { t: 'remove', index: 1, path: 'two' },
-//     { t: 'add', index: 1, path: 'two' },
-//     { t: 'remove', index: 0, path: 'one' },
-//   ]);
-//   reset();
-//
-//   data.set('test', '');
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: 'one' },
-//     { t: 'remove', index: 1, path: 'two' },
-//     { t: 'add', index: 1, path: 'two' },
-//   ]);
-//   t.pass();
-// });
-//
-// test('on sortOn - custom order update', t => {
-//   const data = new Data();
-//   const { res, reset, toArray } = stower();
-//
-//   data
-//     .on('players.*')
-//     .map(player => player.name)
-//     .sortOn('test', (_, a, b) => b.name.localeCompare(a.name))
-//     .toArray(toArray());
-//
-//   data.set('players.1', { name: '1' });
-//   data.set('players.2', { name: '2' });
-//   data.set('players.3', { name: '3' });
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: '1' },
-//     { t: 'add', index: 0, path: '2' },
-//     { t: 'add', index: 0, path: '3' },
-//   ]);
-//   reset();
-//   data.set('test', 'yes');
-//   reset();
-//
-//   data.unset('players.1');
-//   t.deepEqual(res, [{ t: 'remove', index: 2, path: '1' }]);
-//   reset();
-//
-//   data.set('players.1', { name: '7' });
-//   t.deepEqual(res, [{ t: 'add', index: 0, path: '1' }]);
-// });
-//
-// test('Pathifier no sub-array', t => {
-//   const data = new Data();
-//   const { res, reset, toArray } = stower('index', 'path');
-//   data
-//     .on('players.*')
-//     .map(p => p.name)
-//     .toArray(toArray());
-//   data.set('players', [{ name: 'a' }, { name: 'b' }]);
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: '0' },
-//     { t: 'add', index: 1, path: '1' },
-//   ]);
-//   reset();
-//   data.set('players', [{ name: 'a' }]);
-//   t.deepEqual(res, [
-//     { t: 'remove', index: 0, path: '0' },
-//     { t: 'add', index: 0, path: '0' },
-//     { t: 'remove', index: 1, path: '1' },
-//   ]);
-// });
-//
-// test('Pathifier sub-array', t => {
-//   const data = new Data();
-//   const { res, reset, toArray } = stower('index', 'path');
-//   data
-//     .on('players.*')
-//     .map(p => p.name)
-//     .toArray(toArray());
-//   data.set('players', [{ name: 'a' }, { name: 'b' }]);
-//   t.deepEqual(res, [
-//     { t: 'add', index: 0, path: '0' },
-//     { t: 'add', index: 1, path: '1' },
-//   ]);
-//   reset();
-//   data.set('players', [{ name: 'a', x: [1] }]);
-//   t.deepEqual(res, [
-//     { t: 'remove', index: 0, path: '0' },
-//     { t: 'add', index: 0, path: '0' },
-//     { t: 'remove', index: 1, path: '1' },
-//   ]);
-// });
-//
-// test('map has path', t => {
-//   const data = new Data();
-//   const { reset, toArray } = stower('index', 'path');
-//   let res: any[] = [];
-//   data
-//     .on('players.*')
-//     .map((p, { path }) => {
-//       res.push(path);
-//       return p.name;
-//     })
-//     .toArray(toArray());
-//   data.set('players', [{ name: 'a' }, { name: 'b' }]);
-//   t.deepEqual(res, ['players.0', 'players.1']);
-//   reset();
-//   res = [];
-//   data.set('players', [{ name: 'a', x: [1] }]);
-//   t.deepEqual(res, ['players.0']);
-// });
+
+test('Update filterOn on update after data is set', t => {
+  const { array, pathifier, data } = stower2('users.$');
+
+  pathifier.filterOn('test', (user, { onValue: filter }) =>
+    new RegExp(filter, 'i').test(user)
+  );
+
+  data.set('test', '');
+  data.set('users', { a: 'a', b: 'b' });
+  t.deepEqual(array, ['a', 'b']);
+  data.set('test', 'b');
+  t.deepEqual(array, ['b']);
+});
+
+// TODO: WHY
+test.skip('filterOn and back', t => {
+  const { array, pathifier, data } = stower2('users.$');
+
+  pathifier
+    .map(user => user.name)
+    .filterOn('test', (user, { onValue: filter }) =>
+      new RegExp(filter, 'i').test(user.name)
+    );
+
+  data.set('test', '');
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
+  t.deepEqual(array, ['One!', 'Two!']);
+  data.set('test', 'two');
+  t.deepEqual(array, ['Two!']);
+  data.set('test', '');
+  t.deepEqual(array, ['One!', 'Two!']);
+});
+
+test('on sortOn - custom order update', t => {
+  const { array, pathifier, data } = stower2('users.$');
+
+  pathifier
+    .map(user => user.name)
+    .sortOn('test', (a, b, { onValue }) =>
+      onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
+    );
+
+  data.set('users.1', { name: '1' });
+  data.set('users.2', { name: '2' });
+  data.set('users.3', { name: '3' });
+  t.deepEqual(array, ['1', '2', '3']);
+  data.set('test', 'yes');
+  t.deepEqual(array, ['3', '2', '1']);
+  data.unset('users.1');
+  t.deepEqual(array, ['3', '2']);
+  data.set('users.1', { name: '7' });
+  t.deepEqual(array, ['7', '3', '2']);
+});
+
+test('Pathifier no sub-array', t => {
+  const { array, pathifier, data } = stower2('users.$');
+  pathifier.map(p => p.name);
+
+  data.set('users', [{ name: 'a' }, { name: 'b' }]);
+  t.deepEqual(array, ['a', 'b']);
+  data.set('users', [{ name: 'a' }]);
+  t.deepEqual(array, ['a']);
+});
+
+test('Pathifier sub-array', t => {
+  const { array, pathifier, data } = stower2('users.$');
+  pathifier.map(p => p.name);
+
+  data.set('users', [{ name: 'a' }, { name: 'b' }]);
+  t.deepEqual(array, ['a', 'b']);
+  data.set('users', [{ name: 'a', x: [1] }]);
+  t.deepEqual(array, ['a']);
+  data.set('users', [{ name: 'a' }]);
+  t.deepEqual(array, ['a']);
+});
+
+test('map has path', t => {
+  const { pathifier, data } = stower2('users.$');
+  let res: any[] = [];
+  pathifier.map((p, { opts: { path } }) => {
+    res.push(path);
+    return p.name;
+  });
+  data.set('users', [{ name: 'a' }, { name: 'b' }]);
+  t.deepEqual(res, ['users.0', 'users.1']);
+});
