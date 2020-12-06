@@ -18,7 +18,7 @@ export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
   private readonly transformer: Transformer;
-  private rootTransformer: Transformer = new ArrayTransformer();
+  private rootTransformer: ArrayTransformer = new ArrayTransformer();
 
   constructor(data: Data, path: string, transformer: Transformer) {
     this.data = data;
@@ -47,12 +47,7 @@ export class Pathifier2 {
   private _addTransformer(transformer: Transformer) {
     transformer.next = this.transformer;
 
-    if (!this.rootTransformer) {
-      this.rootTransformer = transformer;
-      return;
-    }
-
-    let t = this.rootTransformer;
+    let t: Transformer = this.rootTransformer;
     while (t?.next && t.next !== this.transformer) {
       t = t.next;
     }

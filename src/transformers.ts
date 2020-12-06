@@ -8,26 +8,90 @@ import {
   Stower,
 } from 'types';
 
-export abstract class Transformer {
-  entries: Entry[] = [];
+class Entries {
+  private entries: Entry[] = [];
+  private keys: string[] = [];
+
+  add(entry: Entry): number;
+  add(entry: Entry, index: number): number;
+
+  add(entry: Entry, index?: number): number {
+    if (index === undefined) {
+      index = this.entries.length;
+    }
+    this.entries.splice(index, 0, entry);
+    this.keys.splice(index, 0, entry.key);
+    return index;
+  }
+
+  remove(entry: Entry): number;
+  remove(entry: Entry, index: number): number;
+
+  remove(entry: Entry, index?: number): number {
+    if (index === undefined) {
+      index = this.indexOf(entry);
+    }
+    this.entries.splice(index, 1);
+    this.keys.splice(index, 1);
+    return index;
+  }
+
+  indexOf(entry: Entry) {
+    return this.keys.indexOf(entry.key);
+  }
+
+  replace(entry: Entry): [number, number];
+  replace(entry: Entry, index: number, oldIndex: number): [number, number];
+
+  replace(entry: Entry, index?: number, oldIndex?: number) {
+    if (index === undefined) {
+      index = this.indexOf(entry);
+    }
+    if (oldIndex === undefined) {
+      oldIndex = this.indexOf(entry);
+    }
+    this.remove(entry, oldIndex);
+    this.add(entry, index);
+    return [oldIndex, index];
+  }
+
+  get length() {
+    return this.entries.length;
+  }
+
+  get(index: number): Entry {
+    return this.entries[index];
+  }
+
+  forEach(cb: (entry: Entry, index: number) => void) {
+    this.entries.forEach(cb);
+  }
+}
+
+export interface Transformer {
+  entries: Entries;
+  parent?: Transformer;
   next?: Transformer;
   onValue?: any;
   onOpts?: ListenerCallbackOptions;
 
-  _add(index: number, entry: Entry): void {
-    this.entries.splice(index, 0, entry);
-  }
+  on(value: any, opts: ListenerCallbackOptions): void;
 
-  _update(oldIndex: number, index: number, entry: Entry): void {
-    this._remove(oldIndex);
-    this._add(index, entry);
-  }
+  add(index: number, entry: Entry): void;
 
-  _remove(index: number): void {
-    this.entries.splice(index, 1);
-  }
+  update(oldIndex: number, index: number, entry: Entry): void;
 
-  on(value: any, opts: ListenerCallbackOptions) {
+  remove(index: number, entry: Entry): void;
+}
+
+export abstract class BaseTransformer implements Transformer {
+  parent?: Transformer;
+  entries = new Entries();
+  next?: Transformer;
+  onOpts?: ListenerCallbackOptions;
+  onValue?: any;
+
+  on(value: any, opts: ListenerCallbackOptions): void {
     this.onValue = value;
     this.onOpts = opts;
     this.entries.forEach((entry, index) => this.update(index, index, entry));
@@ -35,31 +99,34 @@ export abstract class Transformer {
 
   abstract add(index: number, entry: Entry): void;
 
-  abstract update(oldIndex: number, index: number, entry: Entry): void;
-
   abstract remove(index: number, entry: Entry): void;
+
+  abstract update(oldIndex: number, index: number, entry: Entry): void;
 }
 
-export class ArrayTransformer extends Transformer {
+export class ArrayTransformer implements Transformer {
+  entries = new Entries();
+  next?: Transformer;
+
   add(index: number, entry: Entry): void {
-    index = this.entries.push(entry);
-    this.next?.add(index - 1, entry);
+    index = this.entries.add(entry);
+    this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
-    index = this.entries.findIndex(e => e.key === entry.key);
-    this.entries.splice(index, 1);
+    index = this.entries.remove(entry);
     this.next?.remove(index, entry);
   }
 
-  update(_oldIndex: number, index: number, entry: Entry): void {
-    index = this.entries.findIndex(e => e.key === entry.key);
-    this.entries[index] = entry;
-    this.next?.update(index, index, entry);
+  update(_oldIndex: number, _index: number, entry: Entry): void {
+    const [oldIndex, index] = this.entries.replace(entry);
+    this.next?.update(oldIndex, index, entry);
   }
+
+  on(_value: any, _opts: ListenerCallbackOptions): void {}
 }
 
-export class MapTransformer extends Transformer {
+export class MapTransformer extends BaseTransformer {
   private readonly map: OnMapper;
 
   constructor(map: OnMapper) {
@@ -74,12 +141,12 @@ export class MapTransformer extends Transformer {
       onValue: this.onValue,
       onOpts: this.onOpts,
     });
-    this._add(index, entry);
+    this.entries.add(entry, index);
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
-    this._remove(index);
+    this.entries.remove(entry);
     this.next?.remove(index, entry);
   }
 
@@ -90,12 +157,12 @@ export class MapTransformer extends Transformer {
       onValue: this.onValue,
       onOpts: this.onOpts,
     });
-    this._update(oldIndex, index, entry);
+    this.entries.replace(entry, index, index);
     this.next?.update(oldIndex, index, entry);
   }
 }
 
-export class StowerTransformer extends Transformer {
+export class StowerTransformer extends BaseTransformer {
   stower?: Stower;
   index: number = 0;
 
@@ -113,7 +180,7 @@ export class StowerTransformer extends Transformer {
   }
 }
 
-export class SortTransformer extends Transformer {
+export class SortTransformer extends BaseTransformer {
   private readonly sort: OnSorter2;
 
   constructor(sort: OnSorter2) {
@@ -127,7 +194,7 @@ export class SortTransformer extends Transformer {
 
     while (low < high) {
       let mid = (low + high) >>> 1;
-      const b = this.entries[mid];
+      const b = this.entries.get(mid);
       if (
         this.sort(a.value, b.value, {
           aOpts: a.opts,
@@ -146,22 +213,21 @@ export class SortTransformer extends Transformer {
 
   add(index: number, entry: Entry): void {
     index = this._sortedIndex(entry);
-    this._add(index, entry);
+    this.entries.add(entry, index);
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
-    index = this.entries.findIndex(e => e.key === entry.key);
-    this._remove(index);
+    index = this.entries.remove(entry);
     this.next?.remove(index, entry);
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    const oldIndex2 = this.entries.findIndex(e => e.key === entry.key);
+    const oldIndex2 = this.entries.indexOf(entry);
     if (oldIndex2 >= 0) {
       const index2 = this._sortedIndex(entry);
       if (oldIndex2 !== index2) {
-        this._update(oldIndex2, index2, entry);
+        this.entries.replace(entry, index2, oldIndex2);
         this.next?.update(oldIndex2, index2, entry);
       } else {
         this.next?.update(oldIndex, index, entry);
@@ -172,7 +238,7 @@ export class SortTransformer extends Transformer {
   }
 }
 
-export class SliceTransformer extends Transformer {
+export class SliceTransformer extends BaseTransformer {
   private start: number;
   private end?: number;
   private readonly sliceOn?: SliceOn | undefined;
@@ -190,14 +256,14 @@ export class SliceTransformer extends Transformer {
   }
 
   add(index: number, entry: Entry): void {
-    this._add(index, entry);
+    this.entries.add(entry, index);
     if (!this.verify(index)) {
       if (index > this.start) return;
 
       if (this.entries.length > this.start) {
-        this.next?.add(0, this.entries[this.start]);
+        this.next?.add(0, this.entries.get(this.start));
         if (this.end && this.entries.length > this.end) {
-          this.next?.remove(this.end - this.start, this.entries[this.end]);
+          this.next?.remove(this.end - this.start, this.entries.get(this.end));
         }
       }
       return;
@@ -206,7 +272,7 @@ export class SliceTransformer extends Transformer {
   }
 
   remove(index: number, entry: Entry): void {
-    this._remove(index);
+    this.entries.remove(entry, index);
     if (!this.verify(index)) return;
     this.next?.remove(index, entry);
   }
@@ -217,16 +283,16 @@ export class SliceTransformer extends Transformer {
       const endBefore = this.end || this.entries.length;
       const endAfter = end || this.entries.length;
       for (let i = endAfter; i < endBefore; i++) {
-        this.next?.remove(i, this.entries[i]);
+        this.next?.remove(i, this.entries.get(i));
       }
       for (let i = this.start; i < start; i++) {
-        this.next?.remove(i, this.entries[i]);
+        this.next?.remove(i, this.entries.get(i));
       }
       for (let i = endBefore; i < endAfter; i++) {
-        this.next?.add(i, this.entries[i]);
+        this.next?.add(i, this.entries.get(i));
       }
       for (let i = start; i < this.start; i++) {
-        this.next?.add(i, this.entries[i]);
+        this.next?.add(i, this.entries.get(i));
       }
 
       this.start = start;
@@ -235,7 +301,7 @@ export class SliceTransformer extends Transformer {
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    this._update(oldIndex, index, entry);
+    this.entries.replace(entry, index, oldIndex);
     const oldOk = this.verify(oldIndex);
     const newOk = this.verify(index);
     if (!oldOk && !newOk) return;
@@ -250,7 +316,7 @@ export class SliceTransformer extends Transformer {
   }
 }
 
-export class FilterTransformer extends Transformer {
+export class FilterTransformer extends BaseTransformer {
   private readonly filter: OnFilter2;
   private readonly visible: Entry[] = [];
 
@@ -262,10 +328,10 @@ export class FilterTransformer extends Transformer {
   private _findIndex(key: string): number {
     let index = 0;
     for (let i = 0; i < this.entries.length; i++) {
-      if (this.entries[i].key === key || index >= this.visible.length) {
+      if (this.entries.get(i).key === key || index >= this.visible.length) {
         return index;
       }
-      if (this.entries[i].key === this.visible[index].key) {
+      if (this.entries.get(i).key === this.visible[index].key) {
         index++;
       }
     }
@@ -273,7 +339,7 @@ export class FilterTransformer extends Transformer {
   }
 
   add(index: number, entry: Entry): void {
-    this._add(index, entry);
+    this.entries.add(entry, index);
     if (
       this.filter(entry.value, {
         opts: entry.opts,
@@ -288,7 +354,7 @@ export class FilterTransformer extends Transformer {
   }
 
   remove(index: number, entry: Entry): void {
-    this._remove(index);
+    this.entries.remove(entry, index);
     index = this.visible.findIndex(e => e.key === entry.key);
     if (index >= 0) {
       this.visible.splice(index, 1);
