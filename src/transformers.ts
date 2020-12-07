@@ -171,20 +171,46 @@ export class MapTransformer extends BaseTransformer {
 }
 
 export class StowerTransformer extends BaseTransformer {
-  stower?: Stower;
-  index: number = 0;
+  private _stower?: Stower;
+  private _index: number = 0;
+  private _actions: (() => void)[] = [];
+
+  stower(index: number, stower: Stower) {
+    this._index = index;
+    this._stower = stower;
+    this._actions.forEach(action => action());
+  }
 
   add(index: number, entry: Entry): void {
-    this.stower?.add(entry.value, this.index, index);
+    if (this._stower) {
+      this._stower.add(entry.value, this._index, index);
+    } else {
+      this._actions.push(() =>
+        this._stower?.add(entry.value, this._index, index)
+      );
+    }
   }
 
   remove(index: number, entry: Entry): void {
-    this.stower?.remove(entry.value, this.index, index);
+    if (this._stower) {
+      this._stower.remove(entry.value, this._index, index);
+    } else {
+      this._actions.push(() =>
+        this._stower?.remove(entry.value, this._index, index)
+      );
+    }
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    this.stower?.remove(entry.value, this.index, oldIndex);
-    this.stower?.add(entry.value, this.index, index);
+    if (this._stower) {
+      this._stower.remove(entry.value, this._index, oldIndex);
+      this._stower.add(entry.value, this._index, index);
+    } else {
+      this._actions.push(() => {
+        this._stower?.remove(entry.value, this._index, oldIndex);
+        this._stower?.add(entry.value, this._index, index);
+      });
+    }
   }
 }
 

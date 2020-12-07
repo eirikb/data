@@ -8,22 +8,25 @@ function stower2(path: string) {
   const pathifier = new Pathifier2(data, path, transformer);
   pathifier.init();
   const array: any[] = [];
-  transformer.stower = new (class implements Stower {
-    add(value: any, _index: number, subIndex?: number, _path?: string): void {
-      array.splice(subIndex!, 0, value);
-    }
+  transformer.stower(
+    0,
+    new (class implements Stower {
+      add(value: any, _index: number, subIndex?: number, _path?: string): void {
+        array.splice(subIndex!, 0, value);
+      }
 
-    or(_index: number, _or: any): void {}
+      or(_index: number, _or: any): void {}
 
-    remove(
-      _value: any,
-      _index: number,
-      subIndex?: number,
-      _path?: string
-    ): void {
-      array.splice(subIndex!, 1);
-    }
-  })();
+      remove(
+        _value: any,
+        _index: number,
+        subIndex?: number,
+        _path?: string
+      ): void {
+        array.splice(subIndex!, 1);
+      }
+    })()
+  );
   return {
     data,
     array,
