@@ -370,8 +370,7 @@ test('to filter', t => {
   t.deepEqual(array, [{ name: 'a' }, { name: 'c' }]);
 });
 
-// TODO: Fails when filter is applied after data exists... bug?
-test.skip('to filter 2', t => {
+test('to filter 2', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   data.set('users', {
@@ -398,8 +397,7 @@ test('to map', t => {
   t.deepEqual(array, [{ wat: 'a' }, { wat: 'b' }, { wat: 'c' }]);
 });
 
-// TODO:
-test.skip('to map 2', t => {
+test('to map 2', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   data.set('users', {

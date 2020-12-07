@@ -59,6 +59,11 @@ export class Pathifier2 {
       t = t.next;
     }
     t.next = transformer;
+
+    transformer.init(t.entries);
+    t.entries.forEach((entry, index) =>
+      transformer.update(index, index, entry)
+    );
   }
 
   map(map: Mapper): Pathifier2 {
