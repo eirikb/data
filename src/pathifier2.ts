@@ -17,8 +17,9 @@ import { MapTransformer, Transformer } from './transformers';
 export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
-  private readonly transformer: Transformer;
+  readonly transformer: Transformer;
   private rootTransformer: ArrayTransformer = new ArrayTransformer();
+  private readonly refs: string[] = [];
 
   constructor(data: Data, path: string, transformer: Transformer) {
     this.data = data;
@@ -28,20 +29,26 @@ export class Pathifier2 {
   }
 
   init() {
-    this.data.on(`!+ ${this.path}`, (value, opts) => {
-      const key = opts.path.split('.').slice(-1)[0];
-      this.rootTransformer.add(0, { key, value, opts });
-    });
+    this.refs.push(
+      this.data.on(`!+ ${this.path}`, (value, opts) => {
+        const key = opts.path.split('.').slice(-1)[0];
+        this.rootTransformer.add(0, { key, value, opts });
+      })
+    );
 
-    this.data.on(`* ${this.path}`, (value, opts) => {
-      const key = opts.path.split('.').slice(-1)[0];
-      this.rootTransformer?.update(0, 0, { key, value, opts });
-    });
+    this.refs.push(
+      this.data.on(`* ${this.path}`, (value, opts) => {
+        const key = opts.path.split('.').slice(-1)[0];
+        this.rootTransformer?.update(0, 0, { key, value, opts });
+      })
+    );
 
-    this.data.on(`- ${this.path}`, (value, opts) => {
-      const key = opts.path.split('.').slice(-1)[0];
-      this.rootTransformer.remove(0, { key, value, opts });
-    });
+    this.refs.push(
+      this.data.on(`- ${this.path}`, (value, opts) => {
+        const key = opts.path.split('.').slice(-1)[0];
+        this.rootTransformer.remove(0, { key, value, opts });
+      })
+    );
   }
 
   private _addTransformer(transformer: Transformer) {
@@ -62,14 +69,18 @@ export class Pathifier2 {
   mapOn(path: string, map: OnMapper): Pathifier2 {
     const transformer = new MapTransformer(map);
     this._addTransformer(transformer);
-    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    this.refs.push(
+      this.data.on(`!+* ${path}`, transformer.on.bind(transformer))
+    );
     return this;
   }
 
   sortOn(path: string, sort: OnSorter2): Pathifier2 {
     const transformer = new SortTransformer(sort);
     this._addTransformer(transformer);
-    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    this.refs.push(
+      this.data.on(`!+* ${path}`, transformer.on.bind(transformer))
+    );
     return this;
   }
 
@@ -86,7 +97,9 @@ export class Pathifier2 {
   sliceOn(path: string, sliceOn: SliceOn): Pathifier2 {
     const transformer = new SliceTransformer(0, 0, sliceOn);
     this._addTransformer(transformer);
-    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    this.refs.push(
+      this.data.on(`!+* ${path}`, transformer.on.bind(transformer))
+    );
     return this;
   }
 
@@ -100,7 +113,15 @@ export class Pathifier2 {
   filterOn(path: string, filterOn: OnFilter2): Pathifier2 {
     const transformer = new FilterTransformer(filterOn);
     this._addTransformer(transformer);
-    this.data.on(`!+* ${path}`, transformer.on.bind(transformer));
+    this.refs.push(
+      this.data.on(`!+* ${path}`, transformer.on.bind(transformer))
+    );
     return this;
+  }
+
+  off() {
+    for (let ref of this.refs) {
+      this.data.off(ref);
+    }
   }
 }
