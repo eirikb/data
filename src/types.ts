@@ -31,8 +31,6 @@ export interface Stower {
   add(value: any, index: number, subIndex?: number, path?: string): void;
 
   remove(value: any, index: number, subIndex?: number, path?: string): void;
-
-  or(index: number, or: any): void;
 }
 
 export interface CoreOptions {

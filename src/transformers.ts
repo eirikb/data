@@ -174,31 +174,56 @@ export class StowerTransformer extends BaseTransformer {
   private _stower?: Stower;
   private _index: number = 0;
   private _actions: (() => void)[] = [];
+  private _or?: any;
+  private _orSet: boolean = false;
 
-  stower(index: number, stower: Stower) {
+  stower(index: number, stower: Stower, or?: any) {
     this._index = index;
     this._stower = stower;
+    this._or = or;
     this._actions.forEach(action => action());
+
+    this._afterRemove();
+  }
+
+  private _beforeAdd() {
+    if (this._or && this._orSet) {
+      this._remove(0, this._or);
+      this._orSet = false;
+    }
+  }
+
+  private _afterRemove() {
+    if (this._or && !this._orSet && this.entries.length === 0) {
+      this._add(0, this._or);
+      this._orSet = true;
+    }
+  }
+
+  private _add(index: number, value: any) {
+    if (this._stower) {
+      this._stower.add(value, this._index, index);
+    } else {
+      this._actions.push(() => this._stower?.add(value, this._index, index));
+    }
+  }
+
+  private _remove(index: number, value: any) {
+    if (this._stower) {
+      this._stower.remove(value, this._index, index);
+    } else {
+      this._actions.push(() => this._stower?.remove(value, this._index, index));
+    }
   }
 
   add(index: number, entry: Entry): void {
-    if (this._stower) {
-      this._stower.add(entry.value, this._index, index);
-    } else {
-      this._actions.push(() =>
-        this._stower?.add(entry.value, this._index, index)
-      );
-    }
+    this._beforeAdd();
+    this._add(index, entry.value);
   }
 
   remove(index: number, entry: Entry): void {
-    if (this._stower) {
-      this._stower.remove(entry.value, this._index, index);
-    } else {
-      this._actions.push(() =>
-        this._stower?.remove(entry.value, this._index, index)
-      );
-    }
+    this._remove(index, entry.value);
+    this._afterRemove();
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
