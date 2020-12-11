@@ -554,10 +554,20 @@ test('Pathifier sub-array', t => {
 test('map has path', t => {
   const { pathifier, data } = stower2('users.$');
   let res: any[] = [];
-  pathifier.map((p, { opts: { path } }) => {
+  pathifier.map((p, { path }) => {
     res.push(path);
     return p.name;
   });
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, ['users.0', 'users.1']);
+});
+
+test('child', t => {
+  const { pathifier, data } = stower2('test.$');
+
+  pathifier.map((_, { child }) => {
+    t.is(child('ok'), 'test.a.ok');
+  });
+
+  data.set('test.a.ok', 'yes!');
 });

@@ -52,6 +52,12 @@ export interface ListenerCallbackOptions {
   [key: string]: unknown;
 }
 
+export interface ListenerCallbackOnValueOptions
+  extends ListenerCallbackOptions {
+  onValue: any | undefined;
+  onOpts: ListenerCallbackOptions | undefined;
+}
+
 export type ListenerCallback = (
   value: any,
   listenerCallbackOptions: ListenerCallbackOptions
@@ -93,18 +99,11 @@ export type OnSorter2 = (
   }
 ) => number;
 
-export type Mapper = (
-  value: any,
-  opts: { opts: ListenerCallbackOptions }
-) => void;
+export type Mapper = (value: any, opts: ListenerCallbackOnValueOptions) => void;
 
 export type OnMapper = (
   value: any,
-  opts: {
-    opts: ListenerCallbackOptions;
-    onValue: any | undefined;
-    onOpts: ListenerCallbackOptions | undefined;
-  }
+  opts: ListenerCallbackOnValueOptions
 ) => void;
 
 export type SliceOn = (

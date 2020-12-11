@@ -145,9 +145,9 @@ export class MapTransformer extends BaseTransformer {
   add(index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
     entry.value = this.map(entry.value, {
-      opts: entry.opts,
       onValue: this.onValue,
       onOpts: this.onOpts,
+      ...entry.opts,
     });
     this.entries.add(entry, index);
     this.next?.add(index, entry);
@@ -161,9 +161,9 @@ export class MapTransformer extends BaseTransformer {
   update(oldIndex: number, index: number, entry: Entry): void {
     entry = Object.assign({}, entry);
     entry.value = this.map(entry.value, {
-      opts: entry.opts,
       onValue: this.onValue,
       onOpts: this.onOpts,
+      ...entry.opts,
     });
     this.entries.replace(entry, index, index);
     this.next?.update(oldIndex, index, entry);
