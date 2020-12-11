@@ -7,6 +7,7 @@ import {
   OnFilter2,
   OnMapper,
   OnSorter2,
+  OrTransformer,
   SliceOn,
   SliceTransformer,
   Sorter2,
@@ -17,11 +18,11 @@ import { MapTransformer, Transformer } from './transformers';
 export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
-  readonly transformer: Transformer;
+  readonly transformer: OrTransformer;
   private rootTransformer: ArrayTransformer = new ArrayTransformer();
   private readonly refs: string[] = [];
 
-  constructor(data: Data, path: string, transformer: Transformer) {
+  constructor(data: Data, path: string, transformer: OrTransformer) {
     this.data = data;
     this.path = path;
     this.transformer = transformer;
@@ -122,6 +123,10 @@ export class Pathifier2 {
       this.data.on(`!+* ${path}`, transformer.on.bind(transformer))
     );
     return this;
+  }
+
+  or(or: any) {
+    this.transformer.or(or);
   }
 
   off() {

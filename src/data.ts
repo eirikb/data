@@ -2,7 +2,7 @@ import { Pathifier2 } from './pathifier2';
 import { ListenerCallbackWithType } from './types';
 import { Core, reverseLookup } from './core';
 import { ChangeListeners, ChangeType, Listeners } from './listeners';
-import { Transformer } from 'transformers';
+import { OrTransformer } from 'transformers';
 
 export * from './types';
 
@@ -54,7 +54,7 @@ export class Data {
     }
   }
 
-  pathifier(path: string, transformer: Transformer) {
+  pathifier(path: string, transformer: OrTransformer) {
     return new Pathifier2(this, path, transformer);
   }
 

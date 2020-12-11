@@ -86,6 +86,10 @@ export interface Transformer {
   init(entries: Entries): void;
 }
 
+export interface OrTransformer extends Transformer {
+  or(or: any): void;
+}
+
 export abstract class BaseTransformer implements Transformer {
   parent?: Transformer;
   entries = new Entries();
@@ -170,7 +174,8 @@ export class MapTransformer extends BaseTransformer {
   }
 }
 
-export class StowerTransformer extends BaseTransformer {
+export class StowerTransformer extends BaseTransformer
+  implements OrTransformer {
   private _stower?: Stower;
   private _index: number = 0;
   private _actions: (() => void)[] = [];
@@ -236,6 +241,10 @@ export class StowerTransformer extends BaseTransformer {
         this._stower?.add(entry.value, this._index, index);
       });
     }
+  }
+
+  or(or: any) {
+    this._or = or;
   }
 }
 
