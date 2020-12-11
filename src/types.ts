@@ -47,6 +47,7 @@ export interface ListenerCallbackOptions {
   subPath: string;
   fullPath: string;
   path: string;
+  child: (path: string) => string;
 
   [key: string]: unknown;
 }

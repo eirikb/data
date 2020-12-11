@@ -1,4 +1,4 @@
-import { Change } from './types';
+import { Change, ListenerCallbackOptions } from './types';
 import { remove, walk, WalkRes } from './walker';
 import { ChangeListeners, ChangeType } from './listeners';
 import { isProbablyPlainObject } from './halp';
@@ -64,6 +64,24 @@ export class Core {
     return res;
   }
 
+  static listenerCallbackOptions(
+    path: string,
+    fullPath: string,
+    newValue: any,
+    oldValue: any,
+    keys: { [p: string]: string }
+  ): ListenerCallbackOptions {
+    return {
+      newValue,
+      oldValue,
+      fullPath,
+      path,
+      child: (p: string) => [path, p].join('.'),
+      subPath: fullPath.slice(path.length + 1),
+      ...keys,
+    };
+  }
+
   private _callCb = ({
     changeType,
     path,
@@ -78,14 +96,13 @@ export class Core {
           this._refsAdded[refAndPath] = true;
           this.changes.push({
             listenerCallback,
-            listenerCallbackOptions: {
+            listenerCallbackOptions: Core.listenerCallbackOptions(
+              path,
+              fullPath,
               newValue,
               oldValue,
-              fullPath,
-              path,
-              subPath: fullPath.slice(path.length + 1),
-              ...keys,
-            },
+              keys
+            ),
           });
         }
       }

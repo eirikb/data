@@ -110,14 +110,16 @@ export class Data {
     const { lookups } = listeners.get(path.split('.'));
     for (const lookup of lookups) {
       for (const listener of Object.values(lookup.value)) {
-        const newRes = listener(value, {
-          fullPath: path,
-          newValue: value,
-          oldValue: undefined,
-          path,
-          subPath: '',
-          ...lookup.keys,
-        });
+        const newRes = listener(
+          value,
+          Core.listenerCallbackOptions(
+            path,
+            path,
+            value,
+            undefined,
+            lookup.keys
+          )
+        );
         if (newRes) {
           res = newRes;
         }

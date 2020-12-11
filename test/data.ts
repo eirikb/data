@@ -693,3 +693,13 @@ test('full path', t => {
   });
   data.set('test.a', 'yes');
 });
+
+test('child path', t => {
+  const data = new Data();
+
+  data.on('!+* test.$', (_, { child }) => {
+    t.is(child('yes'), 'test.a.yes');
+  });
+
+  data.set('test.a', ':)');
+});
