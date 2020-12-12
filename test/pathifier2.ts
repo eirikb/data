@@ -2,7 +2,7 @@ import test from 'ava';
 import { Pathifier2 } from '../src/pathifier2';
 import { Data, Stower, StowerTransformer } from '../src';
 
-function stower2(path: string, or?: any) {
+function stower2(path: string) {
   const data = new Data();
   const transformer = new StowerTransformer();
   const pathifier = new Pathifier2(data, path, transformer);
@@ -23,8 +23,7 @@ function stower2(path: string, or?: any) {
       ): void {
         array.splice(subIndex!, 1);
       }
-    })(),
-    or
+    })()
   );
   return {
     data,
@@ -581,17 +580,32 @@ test('child', t => {
 });
 
 test('or', t => {
-  const { array } = stower2('test.$', 1);
+  const { pathifier, array } = stower2('test.$');
+
+  pathifier.or(1);
 
   t.deepEqual(array, [1]);
 });
 
 test('or2', t => {
-  const { data, array } = stower2('test.$', 'well');
+  const { data, array, pathifier } = stower2('test.$');
+
+  pathifier.or('well');
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
   t.deepEqual(array, ['ok']);
   data.unset('test.a');
   t.deepEqual(array, ['well']);
+});
+
+test('unset2', async t => {
+  const { data, array } = stower2('test');
+
+  data.set('test', 'ing');
+  t.deepEqual(array, ['ing']);
+  data.set('test', '');
+  t.deepEqual(array, ['']);
+  data.unset('test');
+  t.deepEqual(array, []);
 });

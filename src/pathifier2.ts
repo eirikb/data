@@ -125,8 +125,9 @@ export class Pathifier2 {
     return this;
   }
 
-  or(or: any) {
+  or(or: any): Pathifier2 {
     this.transformer.or(or);
+    return this;
   }
 
   off() {

@@ -182,10 +182,9 @@ export class StowerTransformer extends BaseTransformer
   private _or?: any;
   private _orSet: boolean = false;
 
-  stower(index: number, stower: Stower, or?: any) {
+  stower(index: number, stower: Stower) {
     this._index = index;
     this._stower = stower;
-    this._or = or;
     this._actions.forEach(action => action());
 
     this._afterRemove();
@@ -245,6 +244,7 @@ export class StowerTransformer extends BaseTransformer
 
   or(or: any) {
     this._or = or;
+    this._afterRemove();
   }
 }
 

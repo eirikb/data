@@ -95,7 +95,7 @@ export function walk(
       remove(path, oldValue, cb);
     }
   } else {
-    if (newValue && typeof oldValue === 'undefined') {
+    if (newValue !== undefined && typeof oldValue === 'undefined') {
       if (
         cb({
           changeType: ChangeType.Add,
@@ -106,7 +106,7 @@ export function walk(
       ) {
         return;
       }
-    } else if (newValue === undefined && oldValue) {
+    } else if (newValue === undefined && oldValue !== undefined) {
       if (
         cb({
           changeType: ChangeType.Remove,

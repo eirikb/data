@@ -703,3 +703,12 @@ test('child path', t => {
 
   data.set('test.a', ':)');
 });
+
+test('unset', async t => {
+  const data = new Data();
+
+  data.on('- test', t.pass);
+  data.set('test', 'ing');
+  data.set('test', '');
+  data.unset('test');
+});
