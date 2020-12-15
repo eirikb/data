@@ -169,7 +169,7 @@ export class MapTransformer extends BaseTransformer {
       onOpts: this.onOpts,
       ...entry.opts,
     });
-    this.entries.replace(entry, index, index);
+    this.entries.replace(entry, oldIndex, index);
     this.next?.update(oldIndex, index, entry);
   }
 }
@@ -386,7 +386,7 @@ export class SliceTransformer extends BaseTransformer {
 
 export class FilterTransformer extends BaseTransformer {
   private readonly filter: OnFilter2;
-  private readonly visible: string[] = [];
+  private readonly all: Entries = new Entries();
 
   constructor(filter: OnFilter2) {
     super();
@@ -395,16 +395,16 @@ export class FilterTransformer extends BaseTransformer {
 
   init(entries: Entries) {
     super.init(entries);
-    entries.forEach(entry => this.visible.push(entry.key));
+    entries.forEach(entry => this.all.add(entry));
   }
 
   private _findIndex(key: string): number {
     let index = 0;
-    for (let i = 0; i < this.entries.length; i++) {
-      if (this.entries.get(i).key === key || index >= this.visible.length) {
+    for (let i = 0; i < this.all.length; i++) {
+      if (this.all.get(i).key === key || index >= this.entries.length) {
         return index;
       }
-      if (this.entries.get(i).key === this.visible[index]) {
+      if (this.all.get(i).key === (this.entries.get(index) || {}).key) {
         index++;
       }
     }
@@ -412,7 +412,8 @@ export class FilterTransformer extends BaseTransformer {
   }
 
   add(index: number, entry: Entry): void {
-    this.entries.add(entry, index);
+    this.all.add(entry, index);
+
     if (
       this.filter(entry.value, {
         opts: entry.opts,
@@ -421,37 +422,45 @@ export class FilterTransformer extends BaseTransformer {
       })
     ) {
       index = this._findIndex(entry.key);
-      this.visible.splice(index, 0, entry.key);
+      this.entries.add(entry, index);
       this.next?.add(index, entry);
     }
   }
 
   remove(index: number, entry: Entry): void {
-    this.entries.remove(entry, index);
-    index = this.visible.indexOf(entry.key);
+    this.all.remove(entry, index);
+
+    index = this.entries.remove(entry);
     if (index >= 0) {
-      this.visible.splice(index, 1);
       this.next?.remove(index, entry);
     }
   }
 
+  on(value: any, opts: ListenerCallbackOptions) {
+    this.onValue = value;
+    this.onOpts = opts;
+    this.all.forEach((entry, index) => this.update(index, index, entry));
+  }
+
   update(oldIndex: number, index: number, entry: Entry): void {
+    this.all.replace(entry, index, index);
+
     const test = this.filter(entry.value, {
       opts: entry.opts,
       onValue: this.onValue,
       onOpts: this.onOpts,
     });
-    oldIndex = this.visible.indexOf(entry.key);
+    oldIndex = this.entries.indexOf(entry);
     const has = oldIndex >= 0;
     if (test && has) {
       index = this._findIndex(entry.key);
       this.next?.update(oldIndex, index, entry);
     } else if (test && !has) {
       index = this._findIndex(entry.key);
-      this.visible.splice(index, 0, entry.key);
+      this.entries.add(entry, index);
       this.next?.add(index, entry);
     } else if (!test && has) {
-      this.visible.splice(oldIndex, 1);
+      this.entries.remove(entry);
       this.next?.remove(oldIndex, entry);
     }
   }

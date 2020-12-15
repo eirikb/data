@@ -2,12 +2,10 @@ import test from 'ava';
 import { Pathifier2 } from '../src/pathifier2';
 import { Data, Stower, StowerTransformer } from '../src';
 
-function stower2(path: string) {
-  const data = new Data();
+function createPathifier(data: Data, path: string, array: any[] = []) {
   const transformer = new StowerTransformer();
   const pathifier = new Pathifier2(data, path, transformer);
   pathifier.init();
-  const array: any[] = [];
   transformer.stower(
     0,
     new (class implements Stower {
@@ -25,6 +23,12 @@ function stower2(path: string) {
       }
     })()
   );
+  return { array, pathifier };
+}
+
+function stower2(path: string) {
+  const data = new Data();
+  const { array, pathifier } = createPathifier(data, path);
   return {
     data,
     array,
@@ -608,4 +612,52 @@ test('unset2', async t => {
   t.deepEqual(array, ['']);
   data.unset('test');
   t.deepEqual(array, []);
+});
+
+test('When + filterOn 2', async t => {
+  const data = new Data();
+  const a = createPathifier(data, 'yes');
+
+  a.pathifier.map(tt => {
+    switch (tt) {
+      case true:
+        const b = createPathifier(data, 'users.$');
+        b.pathifier
+          .filterOn('test', (user, { onValue }) =>
+            new RegExp(onValue, 'i').test(user.name)
+          )
+          .map(user => user.name);
+        return b.array;
+      default:
+        return [];
+    }
+  });
+  data.set('yes', true);
+  data.set('test', 'two');
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
+  t.deepEqual(a.array, [['Two!']]);
+  data.set('yes', false);
+  t.deepEqual(a.array, [[]]);
+  data.set('yes', true);
+  t.deepEqual(a.array, [['Two!']]);
+  data.set('test', '');
+  t.deepEqual(a.array, [['One!', 'Two!']]);
+});
+
+test('filterOn 3', async t => {
+  const data = new Data();
+  data.set('test', 'two');
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
+
+  const { array, pathifier } = createPathifier(data, 'users.$');
+  pathifier
+    .filterOn('test', (user, { onValue }) => {
+      const o = new RegExp(onValue, 'i').test(user.name);
+      return o;
+    })
+    .map(user => user.name);
+
+  t.deepEqual(array, ['Two!']);
+  data.set('test', '');
+  t.deepEqual(array, ['One!', 'Two!']);
 });
