@@ -1,8 +1,6 @@
-import { Pathifier2 } from './pathifier2';
 import { ListenerCallbackWithType } from './types';
 import { Core, reverseLookup } from './core';
 import { ChangeListeners, ChangeType, Listeners } from './listeners';
-import { OrTransformer } from 'transformers';
 
 export * from './types';
 
@@ -52,10 +50,6 @@ export class Data {
     for (const toSet of queue) {
       this.set(toSet.path, toSet.value, toSet.byKey);
     }
-  }
-
-  pathifier(path: string, transformer: OrTransformer) {
-    return new Pathifier2(this, path, transformer);
   }
 
   on<T = unknown>(

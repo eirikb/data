@@ -86,10 +86,6 @@ export interface Transformer {
   init(entries: Entries): void;
 }
 
-export interface OrTransformer extends Transformer {
-  or(or: any): void;
-}
-
 export abstract class BaseTransformer implements Transformer {
   parent?: Transformer;
   entries = new Entries();
@@ -174,34 +170,15 @@ export class MapTransformer extends BaseTransformer {
   }
 }
 
-export class StowerTransformer extends BaseTransformer
-  implements OrTransformer {
+export class StowerTransformer extends BaseTransformer implements Transformer {
   private _stower?: Stower;
   private _index: number = 0;
   private _actions: (() => void)[] = [];
-  private _or?: any;
-  private _orSet: boolean = false;
 
   stower(index: number, stower: Stower) {
     this._index = index;
     this._stower = stower;
     this._actions.forEach(action => action());
-
-    this._afterRemove();
-  }
-
-  private _beforeAdd() {
-    if (this._or && this._orSet) {
-      this._remove(0, this._or);
-      this._orSet = false;
-    }
-  }
-
-  private _afterRemove() {
-    if (this._or && !this._orSet && this.entries.length === 0) {
-      this._add(0, this._or);
-      this._orSet = true;
-    }
   }
 
   private _add(index: number, value: any) {
@@ -221,13 +198,11 @@ export class StowerTransformer extends BaseTransformer
   }
 
   add(index: number, entry: Entry): void {
-    this._beforeAdd();
     this._add(index, entry.value);
   }
 
   remove(index: number, entry: Entry): void {
     this._remove(index, entry.value);
-    this._afterRemove();
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
@@ -241,10 +216,48 @@ export class StowerTransformer extends BaseTransformer
       });
     }
   }
+}
 
-  or(or: any) {
-    this._or = or;
-    this._afterRemove();
+export class OrTransformer extends BaseTransformer {
+  private readonly _or: Entry;
+  private _orSet: boolean = false;
+
+  constructor(or: any) {
+    super();
+    this._or = {
+      value: or,
+    } as Entry;
+  }
+
+  init(entries: Entries) {
+    super.init(entries);
+    if (this.entries.length === 0 && !this._orSet) {
+      this.next?.add(0, this._or);
+      this._orSet = true;
+    }
+  }
+
+  add(index: number, entry: Entry): void {
+    this.entries.add(entry, index);
+    if (this._orSet) {
+      this.next?.remove(0, this._or);
+      this._orSet = false;
+    }
+    this.next?.add(index, entry);
+  }
+
+  remove(index: number, entry: Entry): void {
+    this.entries.remove(entry, index);
+    this?.next?.remove(index, entry);
+    if (this.entries.length === 0 && !this._orSet) {
+      this.next?.add(0, this._or);
+      this._orSet = true;
+    }
+  }
+
+  update(oldIndex: number, index: number, entry: Entry): void {
+    this.entries.replace(entry, index, oldIndex);
+    this.next?.update(oldIndex, index, entry);
   }
 }
 

@@ -18,11 +18,11 @@ import { MapTransformer, Transformer } from './transformers';
 export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
-  readonly transformer: OrTransformer;
+  readonly transformer: Transformer;
   private rootTransformer: ArrayTransformer = new ArrayTransformer();
   private readonly refs: string[] = [];
 
-  constructor(data: Data, path: string, transformer: OrTransformer) {
+  constructor(data: Data, path: string, transformer: Transformer) {
     this.data = data;
     this.path = path;
     this.transformer = transformer;
@@ -126,7 +126,7 @@ export class Pathifier2 {
   }
 
   or(or: any): Pathifier2 {
-    this.transformer.or(or);
+    this._addTransformer(new OrTransformer(or));
     return this;
   }
 
