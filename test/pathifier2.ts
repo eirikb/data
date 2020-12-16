@@ -1,36 +1,41 @@
 import test from 'ava';
 import { Pathifier2 } from '../src/pathifier2';
-import { Data, Stower, StowerTransformer } from '../src';
+import {
+  Data,
+  Entries,
+  Entry,
+  ListenerCallbackOptions,
+  Transformer,
+} from '../src';
 
-function createStower(array: any[] = []) {
-  const transformer = new StowerTransformer();
-  transformer.stower(
-    0,
-    new (class implements Stower {
-      add(value: any, _index: number, subIndex?: number, _path?: string): void {
-        array.splice(subIndex!, 0, value);
-      }
+function createTransformer(array: any[] = []) {
+  return new (class implements Transformer {
+    entries: Entries = new Entries();
 
-      remove(
-        _value: any,
-        _index: number,
-        subIndex?: number,
-        _path?: string
-      ): void {
-        array.splice(subIndex!, 1);
-      }
-    })()
-  );
-  return transformer;
+    add(index: number, entry: Entry): void {
+      array.splice(index, 0, entry.value);
+    }
+
+    on(_: any, __: ListenerCallbackOptions): void {}
+
+    remove(index: number, _: Entry): void {
+      array.splice(index, 1);
+    }
+
+    update(oldIndex: number, index: number, entry: Entry): void {
+      this.remove(oldIndex, entry);
+      this.add(index, entry);
+    }
+  })();
 }
 
 function createPathifier(data: Data, path: string, array: any[] = []) {
   const pathifier = new Pathifier2(data, path);
-  pathifier.transformer = createStower(array);
+  pathifier.transformer = createTransformer(array);
   return { array, pathifier };
 }
 
-function stower2(path: string) {
+function pathifier2(path: string) {
   const data = new Data();
   const { array, pathifier } = createPathifier(data, path);
   return {
@@ -41,7 +46,7 @@ function stower2(path: string) {
 }
 
 test('no', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
   pathifier.init();
 
   data.set('a.b', '1');
@@ -49,7 +54,7 @@ test('no', t => {
 });
 
 test('map add', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
   pathifier.init();
@@ -58,7 +63,7 @@ test('map add', t => {
 });
 
 test('map add 2', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
   pathifier.init();
@@ -70,7 +75,7 @@ test('map add 2', t => {
 });
 
 test('map add 3', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
   data.set('a', {
@@ -82,7 +87,7 @@ test('map add 3', t => {
 });
 
 test('map update', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
   pathifier.init();
@@ -95,7 +100,7 @@ test('map update', t => {
 });
 
 test('map remove', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
   pathifier.init();
@@ -108,7 +113,7 @@ test('map remove', t => {
 });
 
 test('unset', t => {
-  const { array, data, pathifier } = stower2('a.$');
+  const { array, data, pathifier } = pathifier2('a.$');
   pathifier.init();
 
   data.set('a.b', 'ok');
@@ -118,7 +123,7 @@ test('unset', t => {
 });
 
 test('sort', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a));
   pathifier.init();
@@ -131,7 +136,7 @@ test('sort', t => {
 });
 
 test('sort update', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a));
   pathifier.init();
@@ -146,7 +151,7 @@ test('sort update', t => {
 });
 
 test('sort and map', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a)).map(v => Number(v) + 1);
   pathifier.init();
@@ -159,7 +164,7 @@ test('sort and map', t => {
 });
 
 test('map and sort', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(v => `${Number(v) + 1}`).sort((a, b) => b.localeCompare(a));
   pathifier.init();
@@ -172,7 +177,7 @@ test('map and sort', t => {
 });
 
 test('map add remove update', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(v => v);
   pathifier.init();
@@ -189,7 +194,7 @@ test('map add remove update', t => {
 });
 
 test('map add remove update 2', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sort((a, b) => a.localeCompare(b)).map(v => v);
   pathifier.init();
@@ -206,7 +211,7 @@ test('map add remove update 2', t => {
 });
 
 test('map add remove update 3', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.map(v => v);
   pathifier.init();
@@ -221,7 +226,7 @@ test('map add remove update 3', t => {
 });
 
 test('slice', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.slice(0, 1);
   pathifier.init();
@@ -234,7 +239,7 @@ test('slice', t => {
 });
 
 test('slice 2', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.slice(1, 3);
   pathifier.init();
@@ -249,7 +254,7 @@ test('slice 2', t => {
 });
 
 test('sort and slice', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a)).slice(1, 3);
   pathifier.init();
@@ -264,7 +269,7 @@ test('sort and slice', t => {
 });
 
 test('mapOn', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
   pathifier.mapOn('test', (value, { onValue }) => {
     if (onValue === 'ing') return 'ting';
     return value;
@@ -277,7 +282,7 @@ test('mapOn', t => {
 });
 
 test('sortOn', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
   pathifier.sortOn('test', (a, b, { onValue }) => {
     if (onValue) {
       return b.localeCompare(a);
@@ -297,7 +302,7 @@ test('sortOn', t => {
 });
 
 test('sliceOn', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.sliceOn('test.*', value => value);
   pathifier.init();
@@ -318,7 +323,7 @@ test('sliceOn', t => {
 });
 
 test('filter', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.filter(value => value !== 'c');
   pathifier.init();
@@ -333,7 +338,7 @@ test('filter', t => {
 });
 
 test('filterOn', t => {
-  const { array, data, pathifier } = stower2('a.$y');
+  const { array, data, pathifier } = pathifier2('a.$y');
 
   pathifier.filterOn('test', (value, { onValue }) => value !== onValue);
   pathifier.init();
@@ -352,13 +357,13 @@ test('filterOn', t => {
 });
 
 test('no output no fail', t => {
-  const { data } = stower2('a.$');
+  const { data } = pathifier2('a.$');
   data.set('users.a.name', 'no fail');
   t.pass();
 });
 
 test('then before', t => {
-  const { array, data, pathifier } = stower2('users.$');
+  const { array, data, pathifier } = pathifier2('users.$');
   pathifier.init();
 
   data.set('users', {
@@ -369,7 +374,7 @@ test('then before', t => {
 });
 
 test('then unset', t => {
-  const { array, data, pathifier } = stower2('users.$');
+  const { array, data, pathifier } = pathifier2('users.$');
   pathifier.init();
 
   data.set('users', {
@@ -382,7 +387,7 @@ test('then unset', t => {
 });
 
 test('then not called for outfiltered data', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.filter(user => user.name === 'a');
   pathifier.init();
@@ -393,7 +398,7 @@ test('then not called for outfiltered data', t => {
 });
 
 test('then not called for outfiltered data 2', t => {
-  const { array, pathifier, data } = stower2('users.$.*');
+  const { array, pathifier, data } = pathifier2('users.$.*');
 
   pathifier.filter(user => user.name === 'a');
   pathifier.init();
@@ -411,7 +416,7 @@ test('then not called for outfiltered data 2', t => {
 });
 
 test('to filter', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.filter(u => u.name !== 'b');
   pathifier.init();
@@ -427,7 +432,7 @@ test('to filter', t => {
 });
 
 test('to filter 2', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   data.set('users', {
     a: { name: 'a' },
@@ -440,7 +445,7 @@ test('to filter 2', t => {
 });
 
 test('to map', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.map(user => ({ wat: user.name }));
   pathifier.init();
@@ -456,7 +461,7 @@ test('to map', t => {
 });
 
 test('to map 2', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   data.set('users', {
     a: { name: 'a' },
@@ -472,7 +477,7 @@ test('to map 2', t => {
 });
 
 test('to map and filter', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.map(u => ({ wat: u.name })).filter(u => u.wat !== 'b');
   pathifier.init();
@@ -488,7 +493,7 @@ test('to map and filter', t => {
 });
 
 test('filterOn after', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.filterOn('filter', (u, { onValue }) => u.name === onValue);
   pathifier.init();
@@ -504,7 +509,7 @@ test('filterOn after', t => {
 });
 
 test('filterOn before', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.filterOn('filter', (value, { onValue }) => value.name === onValue);
   pathifier.init();
@@ -522,7 +527,7 @@ test('filterOn before', t => {
 });
 
 test('sort 2', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.sort((a, b) => b.name.localeCompare(a.name));
   pathifier.init();
@@ -536,7 +541,7 @@ test('sort 2', t => {
 });
 
 test('Update filterOn on update after data is set', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier.filterOn('test', (user, { onValue: filter }) =>
     new RegExp(filter, 'i').test(user)
@@ -552,7 +557,7 @@ test('Update filterOn on update after data is set', t => {
 
 // TODO: WHY
 test.skip('filterOn and back', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier
     .map(user => user.name)
@@ -571,7 +576,7 @@ test.skip('filterOn and back', t => {
 });
 
 test('on sortOn - custom order update', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
 
   pathifier
     .map(user => user.name)
@@ -593,7 +598,7 @@ test('on sortOn - custom order update', t => {
 });
 
 test('Pathifier no sub-array', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
   pathifier.map(p => p.name);
   pathifier.init();
 
@@ -604,7 +609,7 @@ test('Pathifier no sub-array', t => {
 });
 
 test('Pathifier sub-array', t => {
-  const { array, pathifier, data } = stower2('users.$');
+  const { array, pathifier, data } = pathifier2('users.$');
   pathifier.map(p => p.name);
   pathifier.init();
 
@@ -617,7 +622,7 @@ test('Pathifier sub-array', t => {
 });
 
 test('map has path', t => {
-  const { pathifier, data } = stower2('users.$');
+  const { pathifier, data } = pathifier2('users.$');
   let res: any[] = [];
   pathifier.map((p, { path }) => {
     res.push(path);
@@ -629,7 +634,7 @@ test('map has path', t => {
 });
 
 test('child', t => {
-  const { pathifier, data } = stower2('test.$');
+  const { pathifier, data } = pathifier2('test.$');
 
   pathifier.map((_, { child }) => {
     t.is(child('ok'), 'test.a.ok');
@@ -640,7 +645,7 @@ test('child', t => {
 });
 
 test('or', t => {
-  const { pathifier, array } = stower2('test.$');
+  const { pathifier, array } = pathifier2('test.$');
 
   pathifier.or(1);
   pathifier.init();
@@ -649,7 +654,7 @@ test('or', t => {
 });
 
 test('or2', t => {
-  const { data, array, pathifier } = stower2('test.$');
+  const { data, array, pathifier } = pathifier2('test.$');
 
   pathifier.or('well');
   pathifier.init();
@@ -669,7 +674,7 @@ test.skip('or3', t => {
   pathifier.or('well');
   pathifier.init();
 
-  pathifier.transformer = createStower(array);
+  pathifier.transformer = createTransformer(array);
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
@@ -679,7 +684,7 @@ test.skip('or3', t => {
 });
 
 test('unset2', async t => {
-  const { data, array, pathifier } = stower2('test');
+  const { data, array, pathifier } = pathifier2('test');
   pathifier.init();
 
   data.set('test', 'ing');

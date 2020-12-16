@@ -5,10 +5,9 @@ import {
   OnMapper,
   OnSorter2,
   SliceOn,
-  Stower,
 } from 'types';
 
-class Entries {
+export class Entries {
   private entries: Entry[] = [];
   private keys: string[] = [];
 
@@ -161,54 +160,6 @@ export class MapTransformer extends BaseTransformer {
     });
     this.entries.replace(entry, oldIndex, index);
     this.next?.update(oldIndex, index, entry);
-  }
-}
-
-export class StowerTransformer extends BaseTransformer implements Transformer {
-  private _stower?: Stower;
-  private _index: number = 0;
-  private _actions: (() => void)[] = [];
-
-  stower(index: number, stower: Stower) {
-    this._index = index;
-    this._stower = stower;
-    this._actions.forEach(action => action());
-  }
-
-  private _add(index: number, value: any) {
-    if (this._stower) {
-      this._stower.add(value, this._index, index);
-    } else {
-      this._actions.push(() => this._stower?.add(value, this._index, index));
-    }
-  }
-
-  private _remove(index: number, value: any) {
-    if (this._stower) {
-      this._stower.remove(value, this._index, index);
-    } else {
-      this._actions.push(() => this._stower?.remove(value, this._index, index));
-    }
-  }
-
-  add(index: number, entry: Entry): void {
-    this._add(index, entry.value);
-  }
-
-  remove(index: number, entry: Entry): void {
-    this._remove(index, entry.value);
-  }
-
-  update(oldIndex: number, index: number, entry: Entry): void {
-    if (this._stower) {
-      this._stower.remove(entry.value, this._index, oldIndex);
-      this._stower.add(entry.value, this._index, index);
-    } else {
-      this._actions.push(() => {
-        this._stower?.remove(entry.value, this._index, oldIndex);
-        this._stower?.add(entry.value, this._index, index);
-      });
-    }
   }
 }
 

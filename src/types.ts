@@ -23,16 +23,6 @@ export type SorterOn = (
 ) => number;
 export type FilterOn = (filterValue: any, value: any) => boolean;
 
-export interface Stower {
-  /**
-   * Call with same index to replace
-   * Call with same subindex to insert in between
-   */
-  add(value: any, index: number, subIndex?: number, path?: string): void;
-
-  remove(value: any, index: number, subIndex?: number, path?: string): void;
-}
-
 export interface CoreOptions {
   changeListeners: ChangeListeners;
   newValue: any;
