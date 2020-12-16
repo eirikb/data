@@ -59,6 +59,12 @@ export class Pathifier2 {
         this.rootTransformer.remove(0, { key, value, opts });
       })
     );
+
+    let t = this.rootTransformer.next;
+    while (t) {
+      if (t.init) t.init();
+      t = t.next;
+    }
   }
 
   private _addTransformer(transformer: Transformer) {
@@ -69,11 +75,6 @@ export class Pathifier2 {
       t = t.next;
     }
     t.next = transformer;
-
-    transformer.init(t.entries);
-    t.entries.forEach((entry, index) =>
-      transformer.update(index, index, entry)
-    );
   }
 
   map(map: Mapper): Pathifier2 {

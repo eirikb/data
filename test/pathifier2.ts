@@ -2,11 +2,8 @@ import test from 'ava';
 import { Pathifier2 } from '../src/pathifier2';
 import { Data, Stower, StowerTransformer } from '../src';
 
-function createPathifier(data: Data, path: string, array: any[] = []) {
+function createStower(array: any[] = []) {
   const transformer = new StowerTransformer();
-  const pathifier = new Pathifier2(data, path);
-  pathifier.transformer = transformer;
-  pathifier.init();
   transformer.stower(
     0,
     new (class implements Stower {
@@ -24,6 +21,12 @@ function createPathifier(data: Data, path: string, array: any[] = []) {
       }
     })()
   );
+  return transformer;
+}
+
+function createPathifier(data: Data, path: string, array: any[] = []) {
+  const pathifier = new Pathifier2(data, path);
+  pathifier.transformer = createStower(array);
   return { array, pathifier };
 }
 
@@ -38,7 +41,8 @@ function stower2(path: string) {
 }
 
 test('no', t => {
-  const { array, data } = stower2('a.$y');
+  const { array, data, pathifier } = stower2('a.$y');
+  pathifier.init();
 
   data.set('a.b', '1');
   t.deepEqual(array, ['1']);
@@ -48,6 +52,7 @@ test('map add', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
+  pathifier.init();
   data.set('a.b', '1');
   t.deepEqual(array, [3]);
 });
@@ -56,6 +61,7 @@ test('map add 2', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
+  pathifier.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -63,10 +69,23 @@ test('map add 2', t => {
   t.deepEqual(array, [3, 4]);
 });
 
+test('map add 3', t => {
+  const { array, data, pathifier } = stower2('a.$y');
+
+  pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  pathifier.init();
+  t.deepEqual(array, [3, 4]);
+});
+
 test('map update', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
+  pathifier.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -79,6 +98,7 @@ test('map remove', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
+  pathifier.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -88,7 +108,8 @@ test('map remove', t => {
 });
 
 test('unset', t => {
-  const { array, data } = stower2('a.$');
+  const { array, data, pathifier } = stower2('a.$');
+  pathifier.init();
 
   data.set('a.b', 'ok');
   t.deepEqual(array, ['ok']);
@@ -100,6 +121,7 @@ test('sort', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a));
+  pathifier.init();
 
   data.set('a', {
     b: '1',
@@ -112,6 +134,7 @@ test('sort update', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a));
+  pathifier.init();
 
   data.set('a', {
     b: '1',
@@ -126,6 +149,7 @@ test('sort and map', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a)).map(v => Number(v) + 1);
+  pathifier.init();
 
   data.set('a', {
     b: '1',
@@ -138,6 +162,7 @@ test('map and sort', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(v => `${Number(v) + 1}`).sort((a, b) => b.localeCompare(a));
+  pathifier.init();
 
   data.set('a', {
     b: '1',
@@ -150,6 +175,7 @@ test('map add remove update', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(v => v);
+  pathifier.init();
 
   data.set('a', {
     b: 'b1',
@@ -166,6 +192,7 @@ test('map add remove update 2', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sort((a, b) => a.localeCompare(b)).map(v => v);
+  pathifier.init();
 
   data.set('a', {
     b: 'b1',
@@ -182,6 +209,7 @@ test('map add remove update 3', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.map(v => v);
+  pathifier.init();
 
   data.set('a', {
     b: 'b1',
@@ -196,6 +224,7 @@ test('slice', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.slice(0, 1);
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -208,6 +237,7 @@ test('slice 2', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.slice(1, 3);
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -222,6 +252,7 @@ test('sort and slice', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sort((a, b) => b.localeCompare(a)).slice(1, 3);
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -238,6 +269,7 @@ test('mapOn', t => {
     if (onValue === 'ing') return 'ting';
     return value;
   });
+  pathifier.init();
   data.set('a.b', '1');
   t.deepEqual(array, ['1']);
   data.set('test', 'ing');
@@ -252,6 +284,7 @@ test('sortOn', t => {
     }
     return a.localeCompare(b);
   });
+  pathifier.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -267,6 +300,7 @@ test('sliceOn', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.sliceOn('test.*', value => value);
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -287,6 +321,7 @@ test('filter', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.filter(value => value !== 'c');
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -301,6 +336,7 @@ test('filterOn', t => {
   const { array, data, pathifier } = stower2('a.$y');
 
   pathifier.filterOn('test', (value, { onValue }) => value !== onValue);
+  pathifier.init();
 
   data.set('a', {
     b: 'b',
@@ -322,7 +358,8 @@ test('no output no fail', t => {
 });
 
 test('then before', t => {
-  const { array, data } = stower2('users.$');
+  const { array, data, pathifier } = stower2('users.$');
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -332,7 +369,8 @@ test('then before', t => {
 });
 
 test('then unset', t => {
-  const { array, data } = stower2('users.$');
+  const { array, data, pathifier } = stower2('users.$');
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -347,6 +385,7 @@ test('then not called for outfiltered data', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.filter(user => user.name === 'a');
+  pathifier.init();
   data.set('users.a.name', 'a');
   t.deepEqual(array, [{ name: 'a' }]);
   data.set('users.b.name', 'b');
@@ -357,6 +396,7 @@ test('then not called for outfiltered data 2', t => {
   const { array, pathifier, data } = stower2('users.$.*');
 
   pathifier.filter(user => user.name === 'a');
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a', k: 1 },
@@ -374,6 +414,7 @@ test('to filter', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.filter(u => u.name !== 'b');
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -393,6 +434,7 @@ test('to filter 2', t => {
     b: { name: 'b' },
   });
   pathifier.filter(u => u.name !== 'b');
+  pathifier.init();
 
   t.deepEqual(array, [{ name: 'a' }]);
 });
@@ -401,6 +443,7 @@ test('to map', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.map(user => ({ wat: user.name }));
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -421,6 +464,7 @@ test('to map 2', t => {
   });
 
   pathifier.map(user => ({ wat: user.name }));
+  pathifier.init();
 
   data.set('users.c.name', 'c');
 
@@ -431,6 +475,7 @@ test('to map and filter', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.map(u => ({ wat: u.name })).filter(u => u.wat !== 'b');
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -446,6 +491,7 @@ test('filterOn after', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.filterOn('filter', (u, { onValue }) => u.name === onValue);
+  pathifier.init();
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
@@ -461,6 +507,7 @@ test('filterOn before', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.filterOn('filter', (value, { onValue }) => value.name === onValue);
+  pathifier.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -478,6 +525,7 @@ test('sort 2', t => {
   const { array, pathifier, data } = stower2('users.$');
 
   pathifier.sort((a, b) => b.name.localeCompare(a.name));
+  pathifier.init();
 
   t.deepEqual(array, []);
   data.set('users', {
@@ -493,6 +541,7 @@ test('Update filterOn on update after data is set', t => {
   pathifier.filterOn('test', (user, { onValue: filter }) =>
     new RegExp(filter, 'i').test(user)
   );
+  pathifier.init();
 
   data.set('test', '');
   data.set('users', { a: 'a', b: 'b' });
@@ -510,6 +559,7 @@ test.skip('filterOn and back', t => {
     .filterOn('test', (user, { onValue: filter }) =>
       new RegExp(filter, 'i').test(user.name)
     );
+  pathifier.init();
 
   data.set('test', '');
   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
@@ -528,6 +578,7 @@ test('on sortOn - custom order update', t => {
     .sortOn('test', (a, b, { onValue }) =>
       onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
     );
+  pathifier.init();
 
   data.set('users.1', { name: '1' });
   data.set('users.2', { name: '2' });
@@ -544,6 +595,7 @@ test('on sortOn - custom order update', t => {
 test('Pathifier no sub-array', t => {
   const { array, pathifier, data } = stower2('users.$');
   pathifier.map(p => p.name);
+  pathifier.init();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -554,6 +606,7 @@ test('Pathifier no sub-array', t => {
 test('Pathifier sub-array', t => {
   const { array, pathifier, data } = stower2('users.$');
   pathifier.map(p => p.name);
+  pathifier.init();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -570,6 +623,7 @@ test('map has path', t => {
     res.push(path);
     return p.name;
   });
+  pathifier.init();
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, ['users.0', 'users.1']);
 });
@@ -580,6 +634,7 @@ test('child', t => {
   pathifier.map((_, { child }) => {
     t.is(child('ok'), 'test.a.ok');
   });
+  pathifier.init();
 
   data.set('test.a.ok', 'yes!');
 });
@@ -588,6 +643,7 @@ test('or', t => {
   const { pathifier, array } = stower2('test.$');
 
   pathifier.or(1);
+  pathifier.init();
 
   t.deepEqual(array, [1]);
 });
@@ -596,6 +652,24 @@ test('or2', t => {
   const { data, array, pathifier } = stower2('test.$');
 
   pathifier.or('well');
+  pathifier.init();
+
+  t.deepEqual(array, ['well']);
+  data.set('test.a', 'ok');
+  t.deepEqual(array, ['ok']);
+  data.unset('test.a');
+  t.deepEqual(array, ['well']);
+});
+
+// Won't happen
+test.skip('or3', t => {
+  const data = new Data();
+  const array: any[] = [];
+  const pathifier = new Pathifier2(data, 'test.$');
+  pathifier.or('well');
+  pathifier.init();
+
+  pathifier.transformer = createStower(array);
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
@@ -605,7 +679,8 @@ test('or2', t => {
 });
 
 test('unset2', async t => {
-  const { data, array } = stower2('test');
+  const { data, array, pathifier } = stower2('test');
+  pathifier.init();
 
   data.set('test', 'ing');
   t.deepEqual(array, ['ing']);
@@ -628,11 +703,13 @@ test('When + filterOn 2', async t => {
             new RegExp(onValue, 'i').test(user.name)
           )
           .map(user => user.name);
+        b.pathifier.init();
         return b.array;
       default:
         return [];
     }
   });
+  a.pathifier.init();
   data.set('yes', true);
   data.set('test', 'two');
   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
@@ -657,6 +734,7 @@ test('filterOn 3', async t => {
       return o;
     })
     .map(user => user.name);
+  pathifier.init();
 
   t.deepEqual(array, ['Two!']);
   data.set('test', '');

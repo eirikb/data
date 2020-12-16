@@ -83,7 +83,7 @@ export interface Transformer {
 
   remove(index: number, entry: Entry): void;
 
-  init(entries: Entries): void;
+  init?(): void;
 }
 
 export abstract class BaseTransformer implements Transformer {
@@ -104,10 +104,6 @@ export abstract class BaseTransformer implements Transformer {
   abstract remove(index: number, entry: Entry): void;
 
   abstract update(oldIndex: number, index: number, entry: Entry): void;
-
-  init(entries: Entries): void {
-    entries.forEach(entry => this.entries.add(entry));
-  }
 }
 
 export class ArrayTransformer implements Transformer {
@@ -130,8 +126,6 @@ export class ArrayTransformer implements Transformer {
   }
 
   on(_value: any, _opts: ListenerCallbackOptions): void {}
-
-  init(_entries: Entries): void {}
 }
 
 export class MapTransformer extends BaseTransformer {
@@ -229,8 +223,7 @@ export class OrTransformer extends BaseTransformer {
     } as Entry;
   }
 
-  init(entries: Entries) {
-    super.init(entries);
+  init() {
     if (this.entries.length === 0 && !this._orSet) {
       this.next?.add(0, this._or);
       this._orSet = true;
@@ -404,11 +397,6 @@ export class FilterTransformer extends BaseTransformer {
   constructor(filter: OnFilter2) {
     super();
     this.filter = filter;
-  }
-
-  init(entries: Entries) {
-    super.init(entries);
-    entries.forEach(entry => this.all.add(entry));
   }
 
   private _findIndex(key: string): number {
