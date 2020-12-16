@@ -32,7 +32,7 @@ export class Core {
   }
 
   private _ensureParent(path: string[], parent: any): any {
-    if (!isProbablyPlainObject(parent)) {
+    if (!isProbablyPlainObject(parent) && !Array.isArray(parent)) {
       if (typeof parent !== 'undefined') {
         remove([], parent, this._callCb);
       }

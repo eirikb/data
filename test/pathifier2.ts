@@ -745,3 +745,12 @@ test('filterOn 3', async t => {
   data.set('test', '');
   t.deepEqual(array, ['One!', 'Two!']);
 });
+
+test('lists', t => {
+  const { array, data, pathifier } = pathifier2('users.$');
+  pathifier.init();
+  data.set('users', [{ name: 'eirik' }, { name: 'steffen' }]);
+  t.deepEqual(array, [{ name: 'eirik' }, { name: 'steffen' }]);
+  data.set('users.1.name', 'wut');
+  t.deepEqual(array, [{ name: 'eirik' }, { name: 'wut' }]);
+});
