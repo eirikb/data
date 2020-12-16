@@ -18,15 +18,24 @@ import { MapTransformer, Transformer } from './transformers';
 export class Pathifier2 {
   private readonly data: Data;
   private readonly path: string;
-  readonly transformer: Transformer;
+  private _transformer?: Transformer;
   private rootTransformer: ArrayTransformer = new ArrayTransformer();
   private readonly refs: string[] = [];
 
-  constructor(data: Data, path: string, transformer: Transformer) {
+  constructor(data: Data, path: string) {
     this.data = data;
     this.path = path;
-    this.transformer = transformer;
-    this.rootTransformer.next = transformer;
+  }
+
+  set transformer(transformer: Transformer | undefined) {
+    this._transformer = transformer;
+    let t = this.rootTransformer;
+    while (t.next) t = t.next;
+    t.next = transformer;
+  }
+
+  get transformer(): Transformer | undefined {
+    return this._transformer;
   }
 
   init() {
@@ -53,10 +62,10 @@ export class Pathifier2 {
   }
 
   private _addTransformer(transformer: Transformer) {
-    transformer.next = this.transformer;
+    transformer.next = this._transformer;
 
     let t: Transformer = this.rootTransformer;
-    while (t?.next && t.next !== this.transformer) {
+    while (t?.next && t.next !== this._transformer) {
       t = t.next;
     }
     t.next = transformer;

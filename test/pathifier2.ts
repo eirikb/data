@@ -4,7 +4,8 @@ import { Data, Stower, StowerTransformer } from '../src';
 
 function createPathifier(data: Data, path: string, array: any[] = []) {
   const transformer = new StowerTransformer();
-  const pathifier = new Pathifier2(data, path, transformer);
+  const pathifier = new Pathifier2(data, path);
+  pathifier.transformer = transformer;
   pathifier.init();
   transformer.stower(
     0,
