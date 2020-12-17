@@ -30,24 +30,24 @@ export interface Change {
   listenerCallback: ListenerCallback;
 }
 
-export interface Entry {
+export interface Entry<T = any> {
   key: string;
-  value: any;
+  value: T;
   opts: ListenerCallbackOptions;
 }
 
-export type Sorter2 = (
-  aValue: any,
-  bValue: any,
+export type Sorter2<T = any> = (
+  aValue: T,
+  bValue: T,
   opts: {
     aOpts: ListenerCallbackOptions;
     bOpts: ListenerCallbackOptions;
   }
 ) => number;
 
-export type OnSorter2 = (
-  aValue: any,
-  bValue: any,
+export type OnSorter2<T = any> = (
+  aValue: T,
+  bValue: T,
   opts: {
     aOpts: ListenerCallbackOptions;
     bOpts: ListenerCallbackOptions;
@@ -56,21 +56,27 @@ export type OnSorter2 = (
   }
 ) => number;
 
-export type Mapper = (value: any, opts: ListenerCallbackOnValueOptions) => void;
-
-export type OnMapper = (
-  value: any,
+export type Mapper<T = any> = (
+  value: T,
   opts: ListenerCallbackOnValueOptions
 ) => void;
 
-export type SliceOn = (
-  onValue?: any,
+export type OnMapper<T = any> = (
+  value: T,
+  opts: ListenerCallbackOnValueOptions
+) => void;
+
+export type SliceOn<T = any> = (
+  onValue?: T,
   onOpts?: ListenerCallbackOptions
 ) => [number, number?];
 
-export type Filter = (value: any, opts: ListenerCallbackOptions) => boolean;
-export type OnFilter = (
-  value: any,
+export type Filter<T = any> = (
+  value: T,
+  opts: ListenerCallbackOptions
+) => boolean;
+export type OnFilter<T = any> = (
+  value: T,
   opts: {
     opts: ListenerCallbackOptions;
     onValue?: any;

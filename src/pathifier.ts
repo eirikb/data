@@ -79,12 +79,12 @@ export class Pathifier {
     t.next = transformer;
   }
 
-  map(map: Mapper): Pathifier {
+  map<T = any>(map: Mapper<T>): Pathifier {
     this._addTransformer(new MapTransformer(map));
     return this;
   }
 
-  mapOn(path: string, map: OnMapper): Pathifier {
+  mapOn<T = any>(path: string, map: OnMapper<T>): Pathifier {
     const transformer = new MapTransformer(map);
     this._addTransformer(transformer);
     this.refs.push(
@@ -93,7 +93,7 @@ export class Pathifier {
     return this;
   }
 
-  sortOn(path: string, sort: OnSorter2): Pathifier {
+  sortOn<T = any>(path: string, sort: OnSorter2<T>): Pathifier {
     const transformer = new SortTransformer(sort);
     this._addTransformer(transformer);
     this.refs.push(
@@ -102,7 +102,7 @@ export class Pathifier {
     return this;
   }
 
-  sort(sort: Sorter2): Pathifier {
+  sort<T>(sort: Sorter2<T>): Pathifier {
     this._addTransformer(new SortTransformer(sort));
     return this;
   }
@@ -121,14 +121,14 @@ export class Pathifier {
     return this;
   }
 
-  filter(filter: Filter): Pathifier {
+  filter<T = any>(filter: Filter<T>): Pathifier {
     this._addTransformer(
       new FilterTransformer((value, opts) => filter(value, opts.opts))
     );
     return this;
   }
 
-  filterOn(path: string, filterOn: OnFilter): Pathifier {
+  filterOn<T = any>(path: string, filterOn: OnFilter<T>): Pathifier {
     const transformer = new FilterTransformer(filterOn);
     this._addTransformer(transformer);
     this.refs.push(
@@ -142,7 +142,7 @@ export class Pathifier {
     return this;
   }
 
-  aggregate(aggregate: (entries: Entry[]) => void) {
+  aggregate<T = any>(aggregate: (entries: Entry<T>[]) => void) {
     this._addTransformer(new AggregateTransformer(aggregate));
     return this;
   }
