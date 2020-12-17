@@ -8,7 +8,7 @@ import {
 } from 'types';
 
 export class Entries {
-  private entries: Entry[] = [];
+  entries: Entry[] = [];
   private keys: string[] = [];
 
   add(entry: Entry): number;
@@ -415,5 +415,32 @@ export class FilterTransformer extends BaseTransformer {
       this.entries.remove(entry);
       this.next?.remove(oldIndex, entry);
     }
+  }
+}
+
+export class AggregateTransformer extends BaseTransformer {
+  private readonly aggregate: (entries: Entry[]) => void;
+
+  constructor(aggregate: (entries: Entry[]) => void) {
+    super();
+    this.aggregate = aggregate;
+  }
+
+  add(index: number, entry: Entry): void {
+    this.entries.add(entry, index);
+    this.aggregate(this.entries.entries);
+    this.next?.add(index, entry);
+  }
+
+  remove(index: number, entry: Entry): void {
+    this.entries.remove(entry, index);
+    this.aggregate(this.entries.entries);
+    this.next?.remove(index, entry);
+  }
+
+  update(oldIndex: number, index: number, entry: Entry): void {
+    this.entries.replace(entry, index, oldIndex);
+    this.aggregate(this.entries.entries);
+    this.next?.update(oldIndex, index, entry);
   }
 }

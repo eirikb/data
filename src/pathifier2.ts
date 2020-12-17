@@ -1,6 +1,8 @@
 import {
+  AggregateTransformer,
   ArrayTransformer,
   Data,
+  Entry,
   Filter2,
   FilterTransformer,
   Mapper,
@@ -137,6 +139,11 @@ export class Pathifier2 {
 
   or(or: any): Pathifier2 {
     this._addTransformer(new OrTransformer(or));
+    return this;
+  }
+
+  aggregate(aggregate: (entries: Entry[]) => void) {
+    this._addTransformer(new AggregateTransformer(aggregate));
     return this;
   }
 

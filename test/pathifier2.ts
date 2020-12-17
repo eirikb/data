@@ -754,3 +754,37 @@ test('lists', t => {
   data.set('users.1.name', 'wut');
   t.deepEqual(array, [{ name: 'eirik' }, { name: 'wut' }]);
 });
+
+test('aggregate', t => {
+  const data = new Data();
+  data.set('users', ['a', 'b', 'c', 'd']);
+  data.set('f', ['a', 'b', 'c', 'd']);
+
+  const { array, pathifier } = createPathifier(data, 'users.$');
+  pathifier
+    .aggregate(entrires => {
+      data.set('total', entrires.length);
+    })
+    .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
+    .aggregate(entries => {
+      data.set('count', entries.length);
+    })
+    .slice(0, 2)
+    .aggregate(entries => {
+      data.set('now', entries.length);
+    });
+
+  pathifier.init();
+
+  console.log(array);
+  console.log('total', data.get('total'));
+  console.log('count', data.get('count'));
+  console.log('after filter', data.get('now'));
+  data.unset('f');
+  data.set('f', ['a', 'b', 'c']);
+  console.log(array);
+  console.log('total', data.get('total'));
+  console.log('count', data.get('count'));
+  console.log('after filter', data.get('now'));
+  t.pass();
+});
