@@ -1,7 +1,7 @@
 import {
   Entry,
   ListenerCallbackOptions,
-  OnFilter2,
+  OnFilter,
   OnMapper,
   OnSorter2,
   SliceOn,
@@ -342,10 +342,10 @@ export class SliceTransformer extends BaseTransformer {
 }
 
 export class FilterTransformer extends BaseTransformer {
-  private readonly filter: OnFilter2;
+  private readonly filter: OnFilter;
   private readonly all: Entries = new Entries();
 
-  constructor(filter: OnFilter2) {
+  constructor(filter: OnFilter) {
     super();
     this.filter = filter;
   }

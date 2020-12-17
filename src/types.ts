@@ -1,34 +1,3 @@
-import { ChangeListeners, Listeners } from './listeners';
-
-export interface LooseObject {
-  [key: string]: any;
-}
-
-export interface ToCall {
-  listeners: Listeners;
-  path: string;
-  value: any;
-}
-
-export type Sorter = (a: any, b: any, aPath: string, bPath: string) => number;
-
-export type Filter = (value: any) => boolean;
-
-export type SorterOn = (
-  sortValue: any,
-  a: any,
-  b: any,
-  aPath: string,
-  bPath: string
-) => number;
-export type FilterOn = (filterValue: any, value: any) => boolean;
-
-export interface CoreOptions {
-  changeListeners: ChangeListeners;
-  newValue: any;
-  oldValue: any;
-}
-
 export interface ListenerCallbackOptions {
   newValue: any;
   oldValue: any;
@@ -99,8 +68,8 @@ export type SliceOn = (
   onOpts?: ListenerCallbackOptions
 ) => [number, number?];
 
-export type Filter2 = (value: any, opts: ListenerCallbackOptions) => boolean;
-export type OnFilter2 = (
+export type Filter = (value: any, opts: ListenerCallbackOptions) => boolean;
+export type OnFilter = (
   value: any,
   opts: {
     opts: ListenerCallbackOptions;

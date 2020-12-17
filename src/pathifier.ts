@@ -3,10 +3,10 @@ import {
   ArrayTransformer,
   Data,
   Entry,
-  Filter2,
+  Filter,
   FilterTransformer,
   Mapper,
-  OnFilter2,
+  OnFilter,
   OnMapper,
   OnSorter2,
   OrTransformer,
@@ -17,7 +17,7 @@ import {
 } from './';
 import { MapTransformer, Transformer } from './transformers';
 
-export class Pathifier2 {
+export class Pathifier {
   private readonly data: Data;
   private readonly path: string;
   private _transformer?: Transformer;
@@ -79,12 +79,12 @@ export class Pathifier2 {
     t.next = transformer;
   }
 
-  map(map: Mapper): Pathifier2 {
+  map(map: Mapper): Pathifier {
     this._addTransformer(new MapTransformer(map));
     return this;
   }
 
-  mapOn(path: string, map: OnMapper): Pathifier2 {
+  mapOn(path: string, map: OnMapper): Pathifier {
     const transformer = new MapTransformer(map);
     this._addTransformer(transformer);
     this.refs.push(
@@ -93,7 +93,7 @@ export class Pathifier2 {
     return this;
   }
 
-  sortOn(path: string, sort: OnSorter2): Pathifier2 {
+  sortOn(path: string, sort: OnSorter2): Pathifier {
     const transformer = new SortTransformer(sort);
     this._addTransformer(transformer);
     this.refs.push(
@@ -102,17 +102,17 @@ export class Pathifier2 {
     return this;
   }
 
-  sort(sort: Sorter2): Pathifier2 {
+  sort(sort: Sorter2): Pathifier {
     this._addTransformer(new SortTransformer(sort));
     return this;
   }
 
-  slice(start: number, end?: number): Pathifier2 {
+  slice(start: number, end?: number): Pathifier {
     this._addTransformer(new SliceTransformer(start, end));
     return this;
   }
 
-  sliceOn(path: string, sliceOn: SliceOn): Pathifier2 {
+  sliceOn(path: string, sliceOn: SliceOn): Pathifier {
     const transformer = new SliceTransformer(0, 0, sliceOn);
     this._addTransformer(transformer);
     this.refs.push(
@@ -121,14 +121,14 @@ export class Pathifier2 {
     return this;
   }
 
-  filter(filter: Filter2): Pathifier2 {
+  filter(filter: Filter): Pathifier {
     this._addTransformer(
       new FilterTransformer((value, opts) => filter(value, opts.opts))
     );
     return this;
   }
 
-  filterOn(path: string, filterOn: OnFilter2): Pathifier2 {
+  filterOn(path: string, filterOn: OnFilter): Pathifier {
     const transformer = new FilterTransformer(filterOn);
     this._addTransformer(transformer);
     this.refs.push(
@@ -137,7 +137,7 @@ export class Pathifier2 {
     return this;
   }
 
-  or(or: any): Pathifier2 {
+  or(or: any): Pathifier {
     this._addTransformer(new OrTransformer(or));
     return this;
   }

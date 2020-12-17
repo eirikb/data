@@ -175,13 +175,3 @@ export class Paths<T> {
     }
   }
 }
-
-export const clean = (path: string) => {
-  const res: string[] = [];
-  path.split('.').every(part => {
-    const check = part !== '*' && part !== '**' && !part.startsWith('$');
-    if (check) res.push(part);
-    return check;
-  });
-  return res.join('.');
-};
