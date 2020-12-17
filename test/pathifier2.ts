@@ -776,15 +776,14 @@ test('aggregate', t => {
 
   pathifier.init();
 
-  console.log(array);
-  console.log('total', data.get('total'));
-  console.log('count', data.get('count'));
-  console.log('after filter', data.get('now'));
+  t.deepEqual(array, ['a','b']);
+  t.is(4, data.get('total'));
+  t.is(4, data.get('count'));
+  t.is(2, data.get('now'));
   data.unset('f');
   data.set('f', ['a', 'b', 'c']);
-  console.log(array);
-  console.log('total', data.get('total'));
-  console.log('count', data.get('count'));
-  console.log('after filter', data.get('now'));
-  t.pass();
+  t.deepEqual(array, ['a','b']);
+  t.is(4, data.get('total'));
+  t.is(3, data.get('count'));
+  t.is(2, data.get('now'));
 });
