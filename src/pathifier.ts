@@ -102,7 +102,7 @@ export class Pathifier {
     return this;
   }
 
-  sort<T>(sort: Sorter2<T>): Pathifier {
+  sort<T = any>(sort: Sorter2<T>): Pathifier {
     this._addTransformer(new SortTransformer(sort));
     return this;
   }
