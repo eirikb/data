@@ -1,4 +1,5 @@
 import {
+  AggregateCb,
   Entry,
   ListenerCallbackOptions,
   OnFilter,
@@ -418,29 +419,47 @@ export class FilterTransformer extends BaseTransformer {
   }
 }
 
-export class AggregateTransformer extends BaseTransformer {
-  private readonly aggregate: (entries: Entry[]) => void;
+export class AggregateTransformer<T> extends BaseTransformer {
+  private readonly aggregateCb: AggregateCb<T>;
+  private readonly delayedCallback: boolean;
+  private timeout?: any;
 
-  constructor(aggregate: (entries: Entry[]) => void) {
+  constructor(aggregate: AggregateCb<T>, delayedCallback: boolean) {
     super();
-    this.aggregate = aggregate;
+    this.aggregateCb = aggregate;
+    this.delayedCallback = delayedCallback;
+  }
+
+  private callCallback() {
+    const { entries } = this.entries;
+    const values = entries.map(entry => entry.value);
+    this.aggregateCb(values, entries);
+  }
+
+  private callback() {
+    if (!this.delayedCallback) {
+      this.callCallback();
+    } else {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => this.callCallback(), 0);
+    }
   }
 
   add(index: number, entry: Entry): void {
     this.entries.add(entry, index);
-    this.aggregate(this.entries.entries);
+    this.callback();
     this.next?.add(index, entry);
   }
 
   remove(index: number, entry: Entry): void {
     this.entries.remove(entry, index);
-    this.aggregate(this.entries.entries);
+    this.callback();
     this.next?.remove(index, entry);
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
     this.entries.replace(entry, index, oldIndex);
-    this.aggregate(this.entries.entries);
+    this.callback();
     this.next?.update(oldIndex, index, entry);
   }
 }

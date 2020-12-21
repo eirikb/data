@@ -777,13 +777,58 @@ test('aggregate', t => {
   pathifier.init();
 
   t.deepEqual(array, ['a', 'b']);
-  t.is(4, data.get('total'));
-  t.is(4, data.get('count'));
-  t.is(2, data.get('now'));
+  t.is(data.get('total'), 4);
+  t.is(data.get('count'), 4);
+  t.is(data.get('now'), 2);
   data.unset('f');
   data.set('f', ['a', 'b', 'c']);
   t.deepEqual(array, ['a', 'b']);
-  t.is(4, data.get('total'));
-  t.is(3, data.get('count'));
-  t.is(2, data.get('now'));
+  t.is(data.get('total'), 4);
+  t.is(data.get('count'), 3);
+  t.is(data.get('now'), 2);
+});
+
+test('aggregate delayed', async t => {
+  const tick = () => new Promise(r => setTimeout(r, 0));
+
+  const data = new Data();
+  data.set('users', ['a', 'b', 'c', 'd']);
+  data.set('f', ['a', 'b', 'c', 'd']);
+
+  const { array, pathifier } = createPathifier(data, 'users.$');
+  let count = 0;
+  pathifier
+    .aggregate(entrires => {
+      data.set('total', entrires.length);
+    }, true)
+    .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
+    .aggregate(entries => {
+      data.set('count', entries.length);
+    }, true)
+    .slice(0, 2)
+    .aggregate(entries => {
+      data.set('now', entries.length);
+      count++;
+    }, true);
+
+  pathifier.init();
+
+  t.deepEqual(array, ['a', 'b']);
+  await tick();
+  t.is(data.get('total'), 4);
+  t.is(data.get('count'), 4);
+  t.is(data.get('now'), 2);
+  t.is(count, 1);
+  data.unset('f');
+  data.set('f', ['a', 'b', 'c']);
+  t.deepEqual(array, ['a', 'b']);
+  t.is(data.get('total'), 4);
+  t.is(data.get('count'), 4);
+  t.is(data.get('now'), 2);
+  t.is(count, 1);
+  await tick();
+  t.is(data.get('total'), 4);
+  t.is(data.get('count'), 3);
+  t.is(data.get('now'), 2);
+  t.is(count, 2);
 });

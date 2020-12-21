@@ -52,7 +52,7 @@ export class Data {
     }
   }
 
-  on<T = unknown>(
+  on<T = any>(
     flagsAndPath: string,
     listener: ListenerCallbackWithType<T>
   ): string {

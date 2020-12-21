@@ -6,7 +6,7 @@ export interface ListenerCallbackOptions {
   path: string;
   child: (path: string) => string;
 
-  [key: string]: unknown;
+  [key: string]: any;
 }
 
 export interface ListenerCallbackOnValueOptions
@@ -83,3 +83,5 @@ export type OnFilter<T = any> = (
     onOpts?: ListenerCallbackOptions;
   }
 ) => boolean;
+
+export type AggregateCb<T> = (values: T[], entries: Entry<T>[]) => void;
