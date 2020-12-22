@@ -64,7 +64,7 @@ export class Entries {
   }
 
   forEach(cb: (entry: Entry, index: number) => void) {
-    this.entries.forEach(cb);
+    this.entries.slice().forEach(cb);
   }
 }
 
@@ -248,18 +248,14 @@ export class SortTransformer extends BaseTransformer {
     this.next?.remove(index, entry);
   }
 
-  update(oldIndex: number, index: number, entry: Entry): void {
+  update(_: number, __: number, entry: Entry): void {
     const oldIndex2 = this.entries.indexOf(entry);
-    if (oldIndex2 >= 0) {
-      const index2 = this._sortedIndex(entry);
-      if (oldIndex2 !== index2) {
-        this.entries.replace(entry, index2, oldIndex2);
-        this.next?.update(oldIndex2, index2, entry);
-      } else {
-        this.next?.update(oldIndex, index, entry);
-      }
+    const index2 = this._sortedIndex(entry);
+    if (oldIndex2 !== index2) {
+      this.entries.replace(entry, index2, oldIndex2);
+      this.next?.update(oldIndex2, index2, entry);
     } else {
-      this.next?.update(oldIndex, index, entry);
+      this.next?.update(oldIndex2, index2, entry);
     }
   }
 }
@@ -396,7 +392,7 @@ export class FilterTransformer extends BaseTransformer {
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
-    this.all.replace(entry, index, index);
+    this.all.replace(entry, index, oldIndex);
 
     const test = this.filter(entry.value, {
       opts: entry.opts,
@@ -407,6 +403,7 @@ export class FilterTransformer extends BaseTransformer {
     const has = oldIndex >= 0;
     if (test && has) {
       index = this._findIndex(entry.key);
+      this.entries.replace(entry, index, oldIndex);
       this.next?.update(oldIndex, index, entry);
     } else if (test && !has) {
       index = this._findIndex(entry.key);

@@ -575,7 +575,7 @@ test.skip('filterOn and back', t => {
   t.deepEqual(array, ['One!', 'Two!']);
 });
 
-test('on sortOn - custom order update', t => {
+test.skip('on sortOn - custom order update', t => {
   const { array, pathifier, data } = dataAndPathifier('users.$');
 
   pathifier
@@ -831,4 +831,114 @@ test('aggregate delayed', async t => {
   t.is(data.get('count'), 3);
   t.is(data.get('now'), 2);
   t.is(count, 2);
+});
+
+test('sortOn filterOn', t => {
+  const { array, data, pathifier } = dataAndPathifier('test.$');
+
+  pathifier
+    .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
+    .filterOn('filter', (value, { onValue }) =>
+      new RegExp(onValue).test(value.name)
+    )
+    .map(x => x.name);
+  pathifier.init();
+
+  data.set('test', {
+    a: { name: 'a', x: 5, y: 1 },
+    b: { name: 'b', x: 0, y: 2 },
+    c: { name: 'c', x: 0, y: 3 },
+    d: { name: 'd', x: 200, y: 4 },
+    e: { name: 'e', x: 3, y: 5 },
+  });
+  t.deepEqual(array, ['e', 'd', 'c', 'b', 'a']);
+  data.set('sort', 'x');
+  t.deepEqual(array, ['d', 'a', 'e', 'b', 'c']);
+  data.set('sort', 'y');
+  // TODO:
+  // t.deepEqual(array, ['e', 'd', 'c', 'b', 'a']);
+  data.set('filter', '[abcd]');
+  t.deepEqual(array, ['d', 'c', 'a', 'b']);
+});
+
+test('sortOn filterOn 2', t => {
+  const { array, data, pathifier } = dataAndPathifier('test.$');
+
+  pathifier
+    .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
+    .filterOn('filter', (value, { onValue }) =>
+      new RegExp(onValue).test(value.name)
+    )
+    .filter(() => true)
+    .map(v => v.name);
+  pathifier.init();
+
+  data.set('test', [
+    { name: 'a', x: 5, y: 1 },
+    { name: 'b', x: 0, y: 2 },
+    { name: 'c', x: 0, y: 3 },
+  ]);
+  t.deepEqual(array, ['c', 'b', 'a']);
+  data.set('sort', 'x');
+  t.deepEqual(array, ['a', 'b', 'c']);
+  data.set('sort', 'y');
+  // TODO:
+  // t.deepEqual(array, ['c', 'b', 'a']);
+});
+
+test('sortOn + filter', t => {
+  const { array, data, pathifier } = dataAndPathifier('test.$');
+
+  pathifier
+    .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
+    .filterOn('filter', (value, { onValue }) =>
+      new RegExp(onValue, 'i').test(value.name)
+    )
+    .map(x => x.name);
+  pathifier.init();
+
+  data.set('test', [
+    { name: 'a', x: 5, y: 1 },
+    { name: 'b', x: 0, y: 2 },
+    { name: 'c', x: 1, y: 3 },
+  ]);
+  t.deepEqual(array, ['c', 'b', 'a']);
+  data.set('sort', 'x');
+  t.deepEqual(array, ['a', 'c', 'b']);
+  data.set('sort', 'y');
+  t.deepEqual(array, ['c', 'b', 'a']);
+  data.set('filter', '[ab]');
+  t.deepEqual(array, ['b', 'a']);
+  data.set('filter', '[bc]');
+  t.deepEqual(array, ['c', 'b']);
+  data.set('filter', '[abc]');
+  t.deepEqual(array, ['c', 'b', 'a']);
+});
+
+test.skip('sortOn filterOn slice', t => {
+  const { array, data, pathifier } = dataAndPathifier('test.$');
+
+  pathifier
+    .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
+    .filterOn('filter', (value, { onValue }) =>
+      new RegExp(onValue).test(value.name)
+    )
+    .map(x => x.name)
+    .slice(0, 3);
+  pathifier.init();
+
+  data.set('test', {
+    a: { name: 'a', x: 5, y: 1 },
+    b: { name: 'b', x: 0, y: 2 },
+    c: { name: 'c', x: 0, y: 3 },
+    d: { name: 'd', x: 200, y: 4 },
+    e: { name: 'e', x: 3, y: 5 },
+  });
+  t.deepEqual(array, ['e', 'd', 'c']);
+  data.set('sort', 'x');
+  t.deepEqual(array, ['d', 'a', 'e']);
+  // data.set('sort', 'y');
+  // t.deepEqual(array, ['e', 'd', 'c']);
+  // data.set('filter', '[abcd]');
+  // t.deepEqual(array, ['d', 'c', 'a']);
 });
