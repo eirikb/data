@@ -555,14 +555,13 @@ test('Update filterOn on update after data is set', t => {
   t.deepEqual(array, ['b']);
 });
 
-// TODO: WHY
-test.skip('filterOn and back', t => {
+test('filterOn and back', t => {
   const { array, pathifier, data } = dataAndPathifier('users.$');
 
   pathifier
     .map(user => user.name)
-    .filterOn('test', (user, { onValue: filter }) =>
-      new RegExp(filter, 'i').test(user.name)
+    .filterOn('test', (name, { onValue: filter }) =>
+      new RegExp(filter, 'i').test(name)
     );
   pathifier.init();
 
