@@ -250,7 +250,8 @@ export class SortTransformer extends BaseTransformer {
 
   update(_: number, __: number, entry: Entry): void {
     const oldIndex2 = this.entries.indexOf(entry);
-    const index2 = this._sortedIndex(entry);
+    let index2 = this._sortedIndex(entry);
+    if (index2 > oldIndex2) index2--;
     if (oldIndex2 !== index2) {
       this.entries.replace(entry, index2, oldIndex2);
       this.next?.update(oldIndex2, index2, entry);

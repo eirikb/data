@@ -575,7 +575,7 @@ test.skip('filterOn and back', t => {
   t.deepEqual(array, ['One!', 'Two!']);
 });
 
-test.skip('on sortOn - custom order update', t => {
+test('on sortOn - custom order update', t => {
   const { array, pathifier, data } = dataAndPathifier('users.$');
 
   pathifier
@@ -855,10 +855,9 @@ test('sortOn filterOn', t => {
   data.set('sort', 'x');
   t.deepEqual(array, ['d', 'a', 'e', 'b', 'c']);
   data.set('sort', 'y');
-  // TODO:
-  // t.deepEqual(array, ['e', 'd', 'c', 'b', 'a']);
+  t.deepEqual(array, ['e', 'd', 'c', 'b', 'a']);
   data.set('filter', '[abcd]');
-  t.deepEqual(array, ['d', 'c', 'a', 'b']);
+  t.deepEqual(array, ['d', 'c', 'b', 'a']);
 });
 
 test('sortOn filterOn 2', t => {
@@ -882,8 +881,7 @@ test('sortOn filterOn 2', t => {
   data.set('sort', 'x');
   t.deepEqual(array, ['a', 'b', 'c']);
   data.set('sort', 'y');
-  // TODO:
-  // t.deepEqual(array, ['c', 'b', 'a']);
+  t.deepEqual(array, ['c', 'b', 'a']);
 });
 
 test('sortOn + filter', t => {
