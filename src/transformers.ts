@@ -273,69 +273,55 @@ export class SliceTransformer extends BaseTransformer {
     this.sliceOn = sliceOn;
   }
 
-  private verify(index: number): boolean {
-    if (index < this.start) return false;
-    return !(this.end && index >= this.end);
-  }
-
   add(index: number, entry: Entry): void {
     this.entries.add(entry, index);
-    if (!this.verify(index)) {
-      if (index > this.start) return;
 
-      if (this.entries.length > this.start) {
-        this.next?.add(0, this.entries.get(this.start));
-        if (this.end && this.entries.length > this.end) {
-          this.next?.remove(this.end - this.start, this.entries.get(this.end));
-        }
-      }
+    if (index >= this.start && (!this.end || index < this.end)) {
+      this.next?.add(index - this.start, entry);
+    } else if (index < this.start && this.entries.length > this.start) {
+      this.next?.add(0, this.entries.get(this.start));
+    } else {
       return;
     }
-    this.next?.add(index, entry);
+
+    if (this.end && this.entries.length > this.end) {
+      this.next?.remove(this.end - this.start, this.entries.get(this.end));
+    }
   }
 
   remove(index: number, entry: Entry): void {
     this.entries.remove(entry, index);
-    if (!this.verify(index)) return;
-    this.next?.remove(index, entry);
+
+    if (index >= this.start && (!this.end || index < this.end)) {
+      this.next?.remove(index - this.start, entry);
+    } else if (index < this.start) {
+      this.next?.remove(0, this.entries.get(this.start - 1));
+    } else {
+      return;
+    }
+
+    if (this.end && this.entries.length >= this.end) {
+      this.next?.add(this.end - this.start, this.entries.get(this.end - 1));
+    }
   }
 
   on(value: any, opts: ListenerCallbackOptions) {
     if (this.sliceOn) {
+      const entries = this.entries.entries.slice();
+      for (let i = entries.length - 1; i >= 0; i--) {
+        this.remove(i, entries[i]);
+      }
       const [start, end] = this.sliceOn(value, opts);
-      const endBefore = this.end || this.entries.length;
-      const endAfter = end || this.entries.length;
-      for (let i = endAfter; i < endBefore; i++) {
-        this.next?.remove(i, this.entries.get(i));
-      }
-      for (let i = this.start; i < start; i++) {
-        this.next?.remove(i, this.entries.get(i));
-      }
-      for (let i = endBefore; i < endAfter; i++) {
-        this.next?.add(i, this.entries.get(i));
-      }
-      for (let i = start; i < this.start; i++) {
-        this.next?.add(i, this.entries.get(i));
-      }
-
       this.start = start;
       this.end = end;
+      entries.forEach((entry, index) => this.add(index, entry));
     }
   }
 
   update(oldIndex: number, index: number, entry: Entry): void {
+    this.remove(oldIndex, entry);
     this.entries.replace(entry, index, oldIndex);
-    const oldOk = this.verify(oldIndex);
-    const newOk = this.verify(index);
-    if (!oldOk && !newOk) return;
-
-    if (oldOk && newOk) {
-      this.next?.update(oldIndex, index, entry);
-    } else if (!oldOk && newOk) {
-      this.next?.add(index, entry);
-    } else if (oldOk && !newOk) {
-      this.next?.remove(index, entry);
-    }
+    this.add(index, entry);
   }
 }
 

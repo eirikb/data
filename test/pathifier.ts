@@ -912,7 +912,7 @@ test('sortOn + filter', t => {
   t.deepEqual(array, ['c', 'b', 'a']);
 });
 
-test.skip('sortOn filterOn slice', t => {
+test('sortOn filterOn slice', t => {
   const { array, data, pathifier } = dataAndPathifier('test.$');
 
   pathifier
@@ -934,8 +934,9 @@ test.skip('sortOn filterOn slice', t => {
   t.deepEqual(array, ['e', 'd', 'c']);
   data.set('sort', 'x');
   t.deepEqual(array, ['d', 'a', 'e']);
-  // data.set('sort', 'y');
-  // t.deepEqual(array, ['e', 'd', 'c']);
-  // data.set('filter', '[abcd]');
-  // t.deepEqual(array, ['d', 'c', 'a']);
+  data.set('sort', 'y');
+  t.deepEqual(array, ['e', 'd', 'c']);
+  data.set('filter', '[abcd]');
+  t.deepEqual(array, ['d', 'c', 'b']);
+  t.pass();
 });
