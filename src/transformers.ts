@@ -320,7 +320,6 @@ export class SliceTransformer extends BaseTransformer {
 
   update(oldIndex: number, index: number, entry: Entry): void {
     this.remove(oldIndex, entry);
-    this.entries.replace(entry, index, oldIndex);
     this.add(index, entry);
   }
 }
