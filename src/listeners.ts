@@ -1,28 +1,10 @@
 import { Lookup, Paths } from './paths';
-
-export interface ListenerCallbackProps {
-  subPath: string;
-  fullPath: string;
-  path: string;
-
-  [key: string]: unknown;
-}
-
-export type ListenerCallback = (
-  value: any,
-  props: ListenerCallbackProps
-) => any;
-
-export type ListenerCallbackWithType<T> = (
-  value: T,
-  props: ListenerCallbackProps
-) => any;
+import { ListenerCallback } from './types';
 
 export class Listeners {
-  private cache: { [key: string]: Lookup<ListenerCallback>[] } = {};
   private paths = new Paths<ListenerCallback>();
   private next = 0;
-  private prefix: string;
+  private readonly prefix: string;
 
   constructor(prefix = 'ref') {
     this.prefix = prefix;
@@ -34,7 +16,6 @@ export class Listeners {
   }
 
   add(path: string, listener: ListenerCallback) {
-    this.cache = {};
     const ref = this.nextRef();
     this.paths.add(path, ref, listener);
     return ref;
@@ -42,17 +23,43 @@ export class Listeners {
 
   remove(ref: string) {
     this.paths.remove(ref);
-    this.cache = {};
   }
 
-  private _get(path: string) {
+  get(path: string[]) {
     return this.paths.lookup(path);
   }
+}
 
-  get(path: string): Lookup<ListenerCallback>[] {
-    if (this.cache[path]) {
-      return this.cache[path];
+export enum ChangeType {
+  Add,
+  Update,
+  Remove,
+}
+
+export class ChangeListeners {
+  listeners = {
+    [ChangeType.Add]: new Listeners('add'),
+    [ChangeType.Update]: new Listeners('update'),
+    [ChangeType.Remove]: new Listeners('remove'),
+  };
+
+  add(changeType: ChangeType, path: string, listener: ListenerCallback) {
+    return this.listeners[changeType].add(path, listener);
+  }
+
+  get(
+    changeType: ChangeType,
+    path: string[]
+  ): {
+    isEol: boolean;
+    lookups: Lookup<ListenerCallback>[];
+  } {
+    return this.listeners[changeType].get(path);
+  }
+
+  off(ref: string) {
+    for (const listeners of Object.values(this.listeners)) {
+      listeners.remove(ref);
     }
-    return (this.cache[path] = this._get(path));
   }
 }

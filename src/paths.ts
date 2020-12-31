@@ -23,8 +23,10 @@ export interface Lookup<T> {
 
 class Lookuper<T> {
   private readonly parent: Path<T>;
+  private child?: Path<T>;
   private readonly parts: string[];
   private result: Lookup<T>[] = [];
+  isEol: boolean = false;
 
   constructor(parent: Path<T>, parts: string[]) {
     this.parent = parent;
@@ -49,6 +51,14 @@ class Lookuper<T> {
 
   lookup(): Lookup<T>[] {
     this._lookup(this.parent);
+    this.isEol =
+      !this.child ||
+      (Object.keys(this.child.children).length === 0 &&
+        (!this.child.value || Object.keys(this.child.value).length === 0) &&
+        Object.keys(this.child.$).length === 0 &&
+        !this.child.$x &&
+        !this.child.$xx);
+
     return this.result;
   }
 
@@ -58,8 +68,11 @@ class Lookuper<T> {
     keys: string[][] = [],
     pathUntil = 0
   ) {
-    if (!parent || index >= this.parts.length + 1) {
+    if (!parent || pathUntil >= this.parts.length + 1) {
       return;
+    }
+    if (index === this.parts.length) {
+      this.child = parent;
     }
 
     if (parent.$xx && parent.$xx.value) {
@@ -77,6 +90,14 @@ class Lookuper<T> {
 
     if (parent.$x) {
       this._lookup(parent.$x, index + 1, keys, pathUntil);
+      if (parent.$x.value) {
+        const restOfPathIsWildcard = this.parts
+          .slice(index)
+          .every(p => p === '*' || p === '**');
+        if (restOfPathIsWildcard) {
+          this._addResult(keys, parent.$x.value, pathUntil);
+        }
+      }
     }
 
     if (index === this.parts.length && parent.value) {
@@ -115,10 +136,17 @@ export class Paths<T> {
     parent.value[ref] = input;
   };
 
-  lookup(path: string) {
-    const parts = path.split('.');
-    const lookup = new Lookuper(this.map, parts);
-    return lookup.lookup();
+  lookupByString(path: string): Lookup<T>[] {
+    return this.lookup(path.split('.')).lookups;
+  }
+
+  lookup(path: string[]): { isEol: boolean; lookups: Lookup<T>[] } {
+    const lookup = new Lookuper<T>(this.map, path);
+    const lookups = lookup.lookup();
+    return {
+      isEol: lookup.isEol,
+      lookups,
+    };
   }
 
   remove(ref: string) {
@@ -147,13 +175,3 @@ export class Paths<T> {
     }
   }
 }
-
-export const clean = (path: string) => {
-  const res: string[] = [];
-  path.split('.').every(part => {
-    const check = part !== '*' && part !== '**' && !part.startsWith('$');
-    if (check) res.push(part);
-    return check;
-  });
-  return res.join('.');
-};
