@@ -72,7 +72,7 @@ export class Pathifier {
     }
   }
 
-  private _addTransformer(transformer: Transformer) {
+  addTransformer(transformer: Transformer) {
     transformer.next = this._transformer;
 
     let t: Transformer = this.rootTransformer;
@@ -83,12 +83,12 @@ export class Pathifier {
   }
 
   map<T = any>(map: Mapper<T>): Pathifier {
-    this._addTransformer(new MapTransformer(map));
+    this.addTransformer(new MapTransformer(map));
     return this;
   }
 
   private _addOnTransformer(path: string, transformer: Transformer) {
-    this._addTransformer(transformer);
+    this.addTransformer(transformer);
     this.refs.push(
       this.data.on(`!+* ${path}`, (value, opts) => transformer.on(value, opts))
     );
@@ -107,12 +107,12 @@ export class Pathifier {
   }
 
   sort<T = any>(sort: Sorter2<T>): Pathifier {
-    this._addTransformer(new SortTransformer(sort));
+    this.addTransformer(new SortTransformer(sort));
     return this;
   }
 
   slice(start: number, end?: number): Pathifier {
-    this._addTransformer(new SliceTransformer(start, end));
+    this.addTransformer(new SliceTransformer(start, end));
     return this;
   }
 
@@ -123,7 +123,7 @@ export class Pathifier {
   }
 
   filter<T = any>(filter: Filter<T>): Pathifier {
-    this._addTransformer(
+    this.addTransformer(
       new FilterTransformer((value, opts) => filter(value, opts.opts))
     );
     return this;
@@ -136,12 +136,12 @@ export class Pathifier {
   }
 
   or(or: any): Pathifier {
-    this._addTransformer(new OrTransformer(or));
+    this.addTransformer(new OrTransformer(or));
     return this;
   }
 
   aggregate<T = any>(aggregate: AggregateCb<T>, delayedCallback = false) {
-    this._addTransformer(
+    this.addTransformer(
       new AggregateTransformer<T>(aggregate, delayedCallback)
     );
     return this;
