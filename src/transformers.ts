@@ -385,9 +385,24 @@ export class FilterTransformer extends BaseTransformer {
   on(value: any, opts: ListenerCallbackOptions) {
     this.onValue = value;
     this.onOpts = opts;
-    this.parent.entries.forEach((entry, index) =>
-      this.update(index, index, entry)
-    );
+    let index = 0;
+    this.parent.entries.forEach(entry => {
+      const test = this.filter(entry.value, {
+        opts: entry.opts,
+        onValue: this.onValue,
+        onOpts: this.onOpts,
+      });
+      const has = this.entries.has(entry);
+
+      if (test && !has) {
+        this.entries.add(entry, index);
+        this.next?.add(index, entry);
+      } else if (!test && has) {
+        this.entries.remove(entry);
+        this.next?.remove(index, entry);
+      }
+      if (test) index++;
+    });
   }
 
   update(_oldIndex: number, _index: number, entry: Entry): void {

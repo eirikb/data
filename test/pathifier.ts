@@ -829,7 +829,7 @@ test('aggregate delayed', async t => {
   t.is(data.get('total'), 4);
   t.is(data.get('count'), 3);
   t.is(data.get('now'), 2);
-  t.is(count, 2);
+  t.is(count, 1);
 });
 
 test('sortOn filterOn', t => {
