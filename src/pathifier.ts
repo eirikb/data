@@ -72,18 +72,21 @@ export class Pathifier {
     }
   }
 
-  addTransformer(transformer: Transformer) {
-    transformer.next = this._transformer;
-
+  lastTransformer() {
     let t: Transformer = this.rootTransformer;
     while (t?.next && t.next !== this._transformer) {
       t = t.next;
     }
-    t.next = transformer;
+    return t;
+  }
+
+  addTransformer(transformer: Transformer) {
+    transformer.next = this._transformer;
+    this.lastTransformer().next = transformer;
   }
 
   map<T = any>(map: Mapper<T>): Pathifier {
-    this.addTransformer(new MapTransformer(map));
+    this.addTransformer(new MapTransformer(this.lastTransformer(), map));
     return this;
   }
 
@@ -95,54 +98,67 @@ export class Pathifier {
   }
 
   mapOn<T = any>(path: string, map: OnMapper<T>): Pathifier {
-    const transformer = new MapTransformer(map);
+    const transformer = new MapTransformer(this.lastTransformer(), map);
     this._addOnTransformer(path, transformer);
     return this;
   }
 
   sortOn<T = any>(path: string, sort: OnSorter2<T>): Pathifier {
-    const transformer = new SortTransformer(sort);
+    const transformer = new SortTransformer(this.lastTransformer(), sort);
     this._addOnTransformer(path, transformer);
     return this;
   }
 
   sort<T = any>(sort: Sorter2<T>): Pathifier {
-    this.addTransformer(new SortTransformer(sort));
+    this.addTransformer(new SortTransformer(this.lastTransformer(), sort));
     return this;
   }
 
   slice(start: number, end?: number): Pathifier {
-    this.addTransformer(new SliceTransformer(start, end));
+    this.addTransformer(
+      new SliceTransformer(this.lastTransformer(), start, end)
+    );
     return this;
   }
 
   sliceOn(path: string, sliceOn: SliceOn): Pathifier {
-    const transformer = new SliceTransformer(0, 0, sliceOn);
+    const transformer = new SliceTransformer(
+      this.lastTransformer(),
+      0,
+      0,
+      sliceOn
+    );
     this._addOnTransformer(path, transformer);
     return this;
   }
 
   filter<T = any>(filter: Filter<T>): Pathifier {
     this.addTransformer(
-      new FilterTransformer((value, opts) => filter(value, opts.opts))
+      new FilterTransformer(this.lastTransformer(), (value, opts) =>
+        filter(value, opts.opts)
+      )
     );
     return this;
   }
 
   filterOn<T = any>(path: string, filterOn: OnFilter<T>): Pathifier {
-    const transformer = new FilterTransformer(filterOn);
+    const transformer = new FilterTransformer(this.lastTransformer(), filterOn);
     this._addOnTransformer(path, transformer);
     return this;
   }
 
   or(or: any): Pathifier {
-    this.addTransformer(new OrTransformer(or));
+    this.addTransformer(new OrTransformer(this.lastTransformer(), or));
     return this;
   }
 
   aggregate<T = any>(aggregate: AggregateCb<T>, delayedCallback = false) {
     this.addTransformer(
-      new AggregateTransformer<T>(aggregate, delayedCallback)
+      new AggregateTransformer<T>(
+        this.lastTransformer(),
+        aggregate,
+        delayedCallback
+      )
     );
     return this;
   }
