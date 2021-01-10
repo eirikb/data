@@ -76,6 +76,7 @@ export class Entries {
 }
 
 export interface Transformer {
+  parent?: Transformer;
   entries: Entries;
   next?: Transformer;
   onValue?: any;
@@ -93,15 +94,11 @@ export interface Transformer {
 }
 
 export abstract class BaseTransformer implements Transformer {
-  parent: Transformer;
+  parent?: Transformer;
   entries = new Entries();
   next?: Transformer;
   onOpts?: ListenerCallbackOptions;
   onValue?: any;
-
-  constructor(parent: Transformer) {
-    this.parent = parent;
-  }
 
   on(value: any, opts: ListenerCallbackOptions): void {
     this.onValue = value;
@@ -141,8 +138,8 @@ export class ArrayTransformer implements Transformer {
 export class MapTransformer extends BaseTransformer {
   private readonly map: OnMapper;
 
-  constructor(parent: Transformer, map: OnMapper) {
-    super(parent);
+  constructor(map: OnMapper) {
+    super();
     this.map = map;
   }
 
@@ -178,8 +175,8 @@ export class OrTransformer extends BaseTransformer {
   private readonly _or: Entry;
   private _orSet: boolean = false;
 
-  constructor(parent: Transformer, or: any) {
-    super(parent);
+  constructor(or: any) {
+    super();
     this._or = {
       value: or,
     } as Entry;
@@ -219,8 +216,8 @@ export class OrTransformer extends BaseTransformer {
 export class SortTransformer extends BaseTransformer {
   private readonly sort: OnSorter2;
 
-  constructor(parent: Transformer, sort: OnSorter2) {
-    super(parent);
+  constructor(sort: OnSorter2) {
+    super();
     this.sort = sort;
   }
 
@@ -276,13 +273,8 @@ export class SliceTransformer extends BaseTransformer {
   private end?: number;
   private readonly sliceOn?: SliceOn | undefined;
 
-  constructor(
-    parent: Transformer,
-    start: number,
-    end?: number,
-    sliceOn?: SliceOn
-  ) {
-    super(parent);
+  constructor(start: number, end?: number, sliceOn?: SliceOn) {
+    super();
     this.start = start;
     this.end = end;
     this.sliceOn = sliceOn;
@@ -342,20 +334,22 @@ export class SliceTransformer extends BaseTransformer {
 export class FilterTransformer extends BaseTransformer {
   private readonly filter: OnFilter;
 
-  constructor(parent: Transformer, filter: OnFilter) {
-    super(parent);
+  constructor(filter: OnFilter) {
+    super();
     this.filter = filter;
   }
 
   private _findIndex(key: string): number {
     let index = 0;
-    const entries = this.parent.entries;
-    for (let i = 0; i < entries.length; i++) {
-      if (entries.get(i).key === key || index >= this.entries.length) {
-        return index;
-      }
-      if (entries.get(i).key === (this.entries.get(index) || {}).key) {
-        index++;
+    const entries = this.parent?.entries;
+    if (entries) {
+      for (let i = 0; i < entries.length; i++) {
+        if (entries.get(i).key === key || index >= this.entries.length) {
+          return index;
+        }
+        if (entries.get(i).key === (this.entries.get(index) || {}).key) {
+          index++;
+        }
       }
     }
     return -1;
@@ -386,7 +380,7 @@ export class FilterTransformer extends BaseTransformer {
     this.onValue = value;
     this.onOpts = opts;
     let index = 0;
-    this.parent.entries.forEach(entry => {
+    this.parent?.entries.forEach(entry => {
       const test = this.filter(entry.value, {
         opts: entry.opts,
         onValue: this.onValue,
@@ -434,12 +428,8 @@ export class AggregateTransformer<T> extends BaseTransformer {
   private readonly delayedCallback: boolean;
   private timeout?: any;
 
-  constructor(
-    parent: Transformer,
-    aggregate: AggregateCb<T>,
-    delayedCallback: boolean
-  ) {
-    super(parent);
+  constructor(aggregate: AggregateCb<T>, delayedCallback: boolean) {
+    super();
     this.aggregateCb = aggregate;
     this.delayedCallback = delayedCallback;
   }

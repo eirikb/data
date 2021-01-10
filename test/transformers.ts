@@ -7,8 +7,6 @@ import {
   Transformer,
 } from '../src';
 
-const parent = {} as Transformer;
-
 function create(transformer: Transformer) {
   const array: any[] = [];
   transformer.next = new (class implements Transformer {
@@ -33,7 +31,7 @@ function create(transformer: Transformer) {
 }
 
 test('slice 1', t => {
-  const slice = new SliceTransformer(parent, 0, 2);
+  const slice = new SliceTransformer(0, 2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   t.deepEqual(array, ['a']);
@@ -44,7 +42,7 @@ test('slice 1', t => {
 });
 
 test('slice 2', t => {
-  const slice = new SliceTransformer(parent, 0, 2);
+  const slice = new SliceTransformer(0, 2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   t.deepEqual(array, ['a']);
@@ -57,7 +55,7 @@ test('slice 2', t => {
 });
 
 test('slice 3', t => {
-  const slice = new SliceTransformer(parent, 2);
+  const slice = new SliceTransformer(2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   t.deepEqual(array, []);
@@ -70,7 +68,7 @@ test('slice 3', t => {
 });
 
 test('slice 4', t => {
-  const slice = new SliceTransformer(parent, 2);
+  const slice = new SliceTransformer(2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   t.deepEqual(array, []);
@@ -83,7 +81,7 @@ test('slice 4', t => {
 });
 
 test('slice 5', t => {
-  const slice = new SliceTransformer(parent, 0, 2);
+  const slice = new SliceTransformer(0, 2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(1, { value: 'b' } as Entry);
@@ -97,7 +95,7 @@ test('slice 5', t => {
 });
 
 test('slice 6', t => {
-  const slice = new SliceTransformer(parent, 0, 2);
+  const slice = new SliceTransformer(0, 2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(1, { value: 'b' } as Entry);
@@ -109,7 +107,7 @@ test('slice 6', t => {
 });
 
 test('slice 7', t => {
-  const slice = new SliceTransformer(parent, 2);
+  const slice = new SliceTransformer(2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(1, { value: 'b' } as Entry);
@@ -122,7 +120,7 @@ test('slice 7', t => {
 });
 
 test('slice 8', t => {
-  const slice = new SliceTransformer(parent, 2);
+  const slice = new SliceTransformer(2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(1, { value: 'b' } as Entry);
@@ -135,7 +133,7 @@ test('slice 8', t => {
 });
 
 test('slice 9', t => {
-  const slice = new SliceTransformer(parent, 2);
+  const slice = new SliceTransformer(2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(0, { value: 'b' } as Entry);
@@ -148,7 +146,7 @@ test('slice 9', t => {
 });
 
 test('slice 10', t => {
-  const slice = new SliceTransformer(parent, 0, 2);
+  const slice = new SliceTransformer(0, 2);
   const array = create(slice);
   slice.add(0, { value: 'a' } as Entry);
   slice.add(1, { value: 'b' } as Entry);
@@ -160,7 +158,7 @@ test('slice 10', t => {
 });
 
 test('slice 11', t => {
-  const slice = new SliceTransformer(parent, 1, 3);
+  const slice = new SliceTransformer(1, 3);
   const array = create(slice);
   slice.add(0, { value: 'b' } as Entry);
   slice.add(1, { value: 'c' } as Entry);
