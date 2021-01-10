@@ -76,7 +76,6 @@ export class Entries {
 }
 
 export interface Transformer {
-  parent?: Transformer;
   entries: Entries;
   next?: Transformer;
   onValue?: any;
@@ -94,7 +93,6 @@ export interface Transformer {
 }
 
 export abstract class BaseTransformer implements Transformer {
-  parent?: Transformer;
   entries = new Entries();
   next?: Transformer;
   onOpts?: ListenerCallbackOptions;
@@ -155,7 +153,7 @@ export class MapTransformer extends BaseTransformer {
   }
 
   remove(index: number, entry: Entry): void {
-    this.entries.remove(entry);
+    this.entries.remove(entry, index);
     this.next?.remove(index, entry);
   }
 
@@ -333,6 +331,7 @@ export class SliceTransformer extends BaseTransformer {
 
 export class FilterTransformer extends BaseTransformer {
   private readonly filter: OnFilter;
+  private readonly all: Entries = new Entries();
 
   constructor(filter: OnFilter) {
     super();
@@ -341,7 +340,7 @@ export class FilterTransformer extends BaseTransformer {
 
   private _findIndex(key: string): number {
     let index = 0;
-    const entries = this.parent?.entries;
+    const entries = this.all;
     if (entries) {
       for (let i = 0; i < entries.length; i++) {
         if (entries.get(i).key === key || index >= this.entries.length) {
@@ -356,6 +355,8 @@ export class FilterTransformer extends BaseTransformer {
   }
 
   add(index: number, entry: Entry): void {
+    this.all.add(entry, index);
+
     if (
       this.filter(entry.value, {
         opts: entry.opts,
@@ -370,6 +371,8 @@ export class FilterTransformer extends BaseTransformer {
   }
 
   remove(index: number, entry: Entry): void {
+    this.all.remove(entry, index);
+
     index = this.entries.remove(entry);
     if (index >= 0) {
       this.next?.remove(index, entry);
@@ -380,7 +383,7 @@ export class FilterTransformer extends BaseTransformer {
     this.onValue = value;
     this.onOpts = opts;
     let index = 0;
-    this.parent?.entries.forEach(entry => {
+    this.all.forEach(entry => {
       const test = this.filter(entry.value, {
         opts: entry.opts,
         onValue: this.onValue,
@@ -400,6 +403,8 @@ export class FilterTransformer extends BaseTransformer {
   }
 
   update(_oldIndex: number, _index: number, entry: Entry): void {
+    this.all.replace(entry, _index, _oldIndex);
+
     const test = this.filter(entry.value, {
       opts: entry.opts,
       onValue: this.onValue,
