@@ -84,7 +84,6 @@ export class Pathifier {
     transformer.next = this._transformer;
     const lastTransformer = this.lastTransformer();
     lastTransformer.next = transformer;
-    transformer.parent = lastTransformer;
   }
 
   map<T = any>(map: Mapper<T>): Pathifier {
