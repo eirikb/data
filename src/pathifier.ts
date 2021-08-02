@@ -20,7 +20,7 @@ import {
 } from './transformers';
 import { Data } from './data';
 
-export class Pathifier {
+export class Pathifier<T = any> {
   private readonly data: Data;
   private readonly path: string;
   private _transformer?: Transformer;
@@ -86,7 +86,7 @@ export class Pathifier {
     lastTransformer.next = transformer;
   }
 
-  map<T = any>(map: Mapper<T>): Pathifier {
+  map(map: Mapper<T>): Pathifier<T> {
     this.addTransformer(new MapTransformer(map));
     return this;
   }
