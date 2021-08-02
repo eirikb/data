@@ -1,8 +1,6 @@
 import { Entry, ListenerCallbackOptions, OnMapper, SliceOn } from 'types';
 import { Data } from 'data';
 
-// import { Data } from 'data';
-
 export class Entries<T> {
   entries: Entry<T>[] = [];
   private keys: string[] = [];
@@ -159,7 +157,7 @@ export class PlainTransformer<T> extends BaseTransformer<T> {
   on(_value: any, _opts: ListenerCallbackOptions): void {}
 }
 
-export class DataTransformer<T> extends PlainTransformer<T> {
+export class DataTransformer<T> extends BaseTransformer<T> {
   private path: string;
 
   constructor(data: Data, path: string) {
@@ -191,6 +189,21 @@ export class DataTransformer<T> extends PlainTransformer<T> {
 
     super.init();
   }
+
+  add(index: number, entry: Entry<T>): void {
+    index = this.entries.add(entry);
+    this.nextAdd(index, entry);
+  }
+
+  remove(index: number, entry: Entry<T>): void {
+    index = this.entries.remove(entry);
+    this.nextRemove(index, entry);
+  }
+
+  update(_oldIndex: number, _index: number, entry: Entry<T>): void {
+    const [oldIndex, index] = this.entries.replace(entry);
+    this.nextUpdate(oldIndex, index, entry);
+  }
 }
 
 export class ToArrayTransformer<T> extends BaseTransformer<T> {
@@ -202,18 +215,21 @@ export class ToArrayTransformer<T> extends BaseTransformer<T> {
   }
 
   add(index: number, entry: Entry<T>): void {
+    console.log('add', index, entry.value);
     index = this.entries.add(entry, index);
     this.array.splice(index, 0, entry.value);
     this.nextAdd(index, entry);
   }
 
   remove(index: number, entry: Entry<T>): void {
+    console.log('remove', index, entry.value);
     index = this.entries.remove(entry, index);
     this.array.splice(index, 1);
     this.nextRemove(index, entry);
   }
 
   update(_oldIndex: number, _index: number, entry: Entry<T>): void {
+    console.log('update', _oldIndex, _index, entry.value);
     const [oldIndex, index] = this.entries.replace(entry, _index, _oldIndex);
     this.array.splice(oldIndex, 1);
     this.array.splice(index, 0, entry.value);

@@ -46,53 +46,68 @@ import { Data, DataTransformer } from '../src';
 //   return { array, data, pathifier };
 // }
 
-test('no', t => {
-  // const { array, data, pathifier } = dataAndPathifier('a.$y');
-  // pathifier.toArray(array);
-  // pathifier.init();
-
+function setup(path: string) {
   const data = new Data();
-  const start = new DataTransformer(data, 'a.$y');
+  const transformer = new DataTransformer(data, path);
   const array: any[] = [];
-  start.toArray(array);
-  start.init();
+  return { data, transformer, array };
+}
+
+function dataAndPathifier(path: string) {
+  const { data, transformer, array } = setup(path);
+  return { data, pathifier: transformer, array };
+}
+
+test('no', t => {
+  const { data, transformer, array } = setup('a.$y');
+  transformer.toArray(array);
+  transformer.init();
 
   data.set('a.b', '1');
   t.deepEqual(array, ['1']);
 });
 
-// test('map add', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
-//   pathifier.init();
-//   data.set('a.b', '1');
-//   t.deepEqual(array, [3]);
-// });
-//
-// test('map add 2', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
-//   pathifier.init();
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, [3, 4]);
-// });
-//
-// test('map add 3', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   pathifier.init();
-//   t.deepEqual(array, [3, 4]);
-// });
+test('map add', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  pathifier
+    .map(value => Number(value) + 1)
+    .map(value => Number(value) + 1)
+    .toArray(array);
+  pathifier.init();
+  data.set('a.b', '1');
+  t.deepEqual(array, [3]);
+});
+
+test('map add 2', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .map(value => Number(value) + 1)
+    .map(value => Number(value) + 1)
+    .toArray(array);
+  pathifier.init();
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  console.log(array);
+  t.deepEqual(array, [3, 4]);
+});
+
+test('map add 3', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .map(value => Number(value) + 1)
+    .map(value => Number(value) + 1)
+    .toArray(array);
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  pathifier.init();
+  t.deepEqual(array, [3, 4]);
+});
 //
 // test('map update', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
