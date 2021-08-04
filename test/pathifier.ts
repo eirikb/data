@@ -46,15 +46,15 @@ import { Data, DataTransformer } from '../src';
 //   return { array, data, pathifier };
 // }
 
-function setup(path: string) {
+function setup<T>(path: string) {
   const data = new Data();
-  const transformer = new DataTransformer(data, path);
+  const transformer = new DataTransformer<T>(data, path);
   const array: any[] = [];
   return { data, transformer, array };
 }
 
-function dataAndPathifier(path: string) {
-  const { data, transformer, array } = setup(path);
+function dataAndPathifier<T = any>(path: string) {
+  const { data, transformer, array } = setup<T>(path);
   return { data, pathifier: transformer, array };
 }
 
@@ -108,88 +108,101 @@ test('map add 3', t => {
   pathifier.init();
   t.deepEqual(array, [3, 4]);
 });
-//
-// test('map update', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
-//   pathifier.init();
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   data.set('a.b', '3');
-//   t.deepEqual(array, [5, 4]);
-// });
-//
-// test('map remove', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.map(value => Number(value) + 1).map(value => Number(value) + 1);
-//   pathifier.init();
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   data.unset('a.b');
-//   t.deepEqual(array, [4]);
-// });
-//
-// test('unset', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$');
-//   pathifier.init();
-//
-//   data.set('a.b', 'ok');
-//   t.deepEqual(array, ['ok']);
-//   data.unset('a.b');
-//   t.deepEqual(array, []);
-// });
-//
-// test('sort', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.sort((a, b) => b.localeCompare(a));
-//   pathifier.init();
-//
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, ['2', '1']);
-// });
-//
-// test('sort update', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.sort((a, b) => b.localeCompare(a));
-//   pathifier.init();
-//
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, ['2', '1']);
-//   data.set('a.b', '3');
-//   t.deepEqual(array, ['3', '2']);
-// });
-//
-// test('sort and map', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.sort((a, b) => b.localeCompare(a)).map(v => Number(v) + 1);
-//   pathifier.init();
-//
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, [3, 2]);
-// });
-//
+
+test('map update', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .map(value => Number(value) + 1)
+    .map(value => Number(value) + 1)
+    .toArray(array);
+  pathifier.init();
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  data.set('a.b', '3');
+  t.deepEqual(array, [5, 4]);
+});
+
+test('map remove', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .map(value => Number(value) + 1)
+    .map(value => Number(value) + 1)
+    .toArray(array);
+  pathifier.init();
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  data.unset('a.b');
+  t.deepEqual(array, [4]);
+});
+
+test('unset', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$');
+  pathifier.toArray(array);
+  pathifier.init();
+
+  data.set('a.b', 'ok');
+  t.deepEqual(array, ['ok']);
+  data.unset('a.b');
+  t.deepEqual(array, []);
+});
+
+test('sort', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier.sort((a, b) => b.localeCompare(a)).toArray(array);
+  pathifier.init();
+
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  t.deepEqual(array, ['2', '1']);
+});
+
+test('sort update', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier.sort((a, b) => b.localeCompare(a)).toArray(array);
+  pathifier.init();
+
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  t.deepEqual(array, ['2', '1']);
+  data.set('a.b', '3');
+  t.deepEqual(array, ['3', '2']);
+});
+
+test('sort and map', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .sort((a, b) => b.localeCompare(a))
+    .map(v => Number(v) + 1)
+    .toArray(array);
+  pathifier.init();
+
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  t.deepEqual(array, [3, 2]);
+});
+
 // test('map and sort', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
 //
-//   pathifier.map(v => `${Number(v) + 1}`).sort((a, b) => b.localeCompare(a));
+//   pathifier
+//     .map(v => `${Number(v) + 1}`)
+//     .sort((a, b) => b.localeCompare(a))
+//     .toArray(array);
 //   pathifier.init();
 //
 //   data.set('a', {
@@ -198,7 +211,7 @@ test('map add 3', t => {
 //   });
 //   t.deepEqual(array, ['3', '2']);
 // });
-//
+
 // test('map add remove update', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
 //

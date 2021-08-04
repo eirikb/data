@@ -1,4 +1,11 @@
-import { Entry, ListenerCallbackOptions, OnMapper, SliceOn } from 'types';
+import {
+  Entry,
+  ListenerCallbackOptions,
+  OnMapper,
+  OnSorter2,
+  SliceOn,
+  Sorter2,
+} from 'types';
 import { Data } from 'data';
 
 export class Entries<T> {
@@ -135,6 +142,10 @@ export abstract class BaseTransformer<T> {
 
   slice(start: number, end?: number): BaseTransformer<T> {
     return this.addTransformer(new SliceTransformer(this.data, start, end));
+  }
+
+  sort(sort: Sorter2<T>): BaseTransformer<T> {
+    return this.addTransformer(new SortTransformer<T>(this.data, sort));
   }
 }
 
@@ -318,61 +329,62 @@ export class OrTransformer<T> extends BaseTransformer<T> {
   }
 }
 
-// export class SortTransformer extends BaseTransformer {
-//   private readonly sort: OnSorter2;
-//
-//   constructor(sort: OnSorter2) {
-//     super();
-//     this.sort = sort;
-//   }
-//
-//   private _sortedIndex(a: Entry) {
-//     let low = 0;
-//     let high = this.entries.length;
-//
-//     while (low < high) {
-//       let mid = (low + high) >>> 1;
-//       const b = this.entries.get(mid);
-//       if (
-//         this.sort(a.value, b.value, {
-//           aOpts: a.opts,
-//           bOpts: b.opts,
-//           onValue: this.onValue,
-//           onOpts: this.onOpts,
-//         }) > 0
-//       ) {
-//         low = mid + 1;
-//       } else {
-//         high = mid;
-//       }
-//     }
-//     return low;
-//   }
-//
-//   add(index: number, entry: Entry): void {
-//     index = this._sortedIndex(entry);
-//     this.entries.add(entry, index);
-//     this.next?.add(index, entry);
-//   }
-//
-//   remove(index: number, entry: Entry): void {
-//     index = this.entries.remove(entry);
-//     this.next?.remove(index, entry);
-//   }
-//
-//   update(_: number, __: number, entry: Entry): void {
-//     const oldIndex2 = this.entries.indexOf(entry);
-//     let index2 = this._sortedIndex(entry);
-//     if (index2 > oldIndex2) index2--;
-//     if (oldIndex2 !== index2) {
-//       this.entries.replace(entry, index2, oldIndex2);
-//       this.next?.update(oldIndex2, index2, entry);
-//     } else {
-//       this.next?.update(oldIndex2, index2, entry);
-//     }
-//   }
-// }
-//
+export class SortTransformer<T> extends BaseTransformer<T> {
+  private readonly _sort: OnSorter2<T>;
+
+  constructor(data: Data, sort: OnSorter2<T>) {
+    super(data);
+    this._sort = sort;
+  }
+
+  private _sortedIndex(a: Entry<T>) {
+    let low = 0;
+    let high = this.entries.length;
+
+    while (low < high) {
+      let mid = (low + high) >>> 1;
+      const b = this.entries.get(mid);
+      if (
+        this._sort(a.value, b.value, {
+          aOpts: a.opts,
+          bOpts: b.opts,
+          onValue: this.onValue,
+          onOpts: this.onOpts,
+        }) > 0
+      ) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    return low;
+  }
+
+  add(index: number, entry: Entry<T>): void {
+    index = this._sortedIndex(entry);
+    console.log('index', index);
+    this.entries.add(entry, index);
+    this.nextAdd(index, entry);
+  }
+
+  remove(index: number, entry: Entry<T>): void {
+    index = this.entries.remove(entry);
+    this.nextRemove(index, entry);
+  }
+
+  update(_: number, __: number, entry: Entry<T>): void {
+    const oldIndex2 = this.entries.indexOf(entry);
+    let index2 = this._sortedIndex(entry);
+    if (index2 > oldIndex2) index2--;
+    if (oldIndex2 !== index2) {
+      this.entries.replace(entry, index2, oldIndex2);
+      this.nextUpdate(oldIndex2, index2, entry);
+    } else {
+      this.nextUpdate(oldIndex2, index2, entry);
+    }
+  }
+}
+
 export class SliceTransformer<T> extends BaseTransformer<T> {
   private start: number;
   private end?: number;
