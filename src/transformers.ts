@@ -1,7 +1,9 @@
 import {
   Entry,
+  Filter,
   ListenerCallbackOptions,
   Mapper,
+  OnFilter,
   OnSorter2,
   SliceOn,
   Sorter2,
@@ -157,6 +159,14 @@ export abstract class BaseTransformer<T, O> {
 
   sort(sort: Sorter2<T>): BaseTransformer<T, T> {
     return this.addTransformer(new SortTransformer<T>(this.data, sort));
+  }
+
+  filter(filter: Filter<T>): BaseTransformer<T, T> {
+    return this.addTransformer(
+      new FilterTransformer<T>(this.data, (value, opts) =>
+        filter(value, opts.opts)
+      )
+    );
   }
 
   mapOn<X>(path: string, map: Mapper<T, X>): BaseTransformer<T, X> {
@@ -473,104 +483,104 @@ export class SliceTransformer<T> extends BaseTransformer<T, T> {
   }
 }
 
-// export class FilterTransformer extends BaseTransformer {
-//   private readonly filter: OnFilter;
-//   private readonly all: Entries = new Entries();
-//
-//   constructor(filter: OnFilter) {
-//     super();
-//     this.filter = filter;
-//   }
-//
-//   private _findIndex(key: string): number {
-//     let index = 0;
-//     const entries = this.all;
-//     if (entries) {
-//       for (let i = 0; i < entries.length; i++) {
-//         if (entries.get(i).key === key || index >= this.entries.length) {
-//           return index;
-//         }
-//         if (entries.get(i).key === (this.entries.get(index) || {}).key) {
-//           index++;
-//         }
-//       }
-//     }
-//     return -1;
-//   }
-//
-//   add(index: number, entry: Entry): void {
-//     this.all.add(entry, index);
-//
-//     if (
-//       this.filter(entry.value, {
-//         opts: entry.opts,
-//         onValue: this.onValue,
-//         onOpts: this.onOpts,
-//       })
-//     ) {
-//       index = this._findIndex(entry.key);
-//       this.entries.add(entry, index);
-//       this.next?.add(index, entry);
-//     }
-//   }
-//
-//   remove(index: number, entry: Entry): void {
-//     this.all.remove(entry, index);
-//
-//     index = this.entries.remove(entry);
-//     if (index >= 0) {
-//       this.next?.remove(index, entry);
-//     }
-//   }
-//
-//   on(value: any, opts: ListenerCallbackOptions) {
-//     this.onValue = value;
-//     this.onOpts = opts;
-//     let index = 0;
-//     this.all.forEach(entry => {
-//       const test = this.filter(entry.value, {
-//         opts: entry.opts,
-//         onValue: this.onValue,
-//         onOpts: this.onOpts,
-//       });
-//       const has = this.entries.has(entry);
-//
-//       if (test && !has) {
-//         this.entries.add(entry, index);
-//         this.next?.add(index, entry);
-//       } else if (!test && has) {
-//         this.entries.remove(entry);
-//         this.next?.remove(index, entry);
-//       }
-//       if (test) index++;
-//     });
-//   }
-//
-//   update(_oldIndex: number, _index: number, entry: Entry): void {
-//     this.all.replace(entry, _index, _oldIndex);
-//
-//     const test = this.filter(entry.value, {
-//       opts: entry.opts,
-//       onValue: this.onValue,
-//       onOpts: this.onOpts,
-//     });
-//     const has = this.entries.has(entry);
-//     if (test && has) {
-//       const index = this._findIndex(entry.key);
-//       const oldIndex = this.entries.indexOf(entry);
-//       this.entries.replace(entry, index, oldIndex);
-//       this.next?.update(oldIndex, index, entry);
-//     } else if (test && !has) {
-//       const index = this._findIndex(entry.key);
-//       this.entries.add(entry, index);
-//       this.next?.add(index, entry);
-//     } else if (!test && has) {
-//       const oldIndex = this.entries.indexOf(entry);
-//       this.entries.remove(entry);
-//       this.next?.remove(oldIndex, entry);
-//     }
-//   }
-// }
+export class FilterTransformer<T> extends BaseTransformer<T, T> {
+  private readonly _filter: OnFilter<T>;
+  private readonly all: Entries<T> = new Entries<T>();
+
+  constructor(data: Data, filter: OnFilter<T>) {
+    super(data);
+    this._filter = filter;
+  }
+
+  private _findIndex(key: string): number {
+    let index = 0;
+    const entries = this.all;
+    if (entries) {
+      for (let i = 0; i < entries.length; i++) {
+        if (entries.get(i).key === key || index >= this.entries.length) {
+          return index;
+        }
+        if (entries.get(i).key === (this.entries.get(index) || {}).key) {
+          index++;
+        }
+      }
+    }
+    return -1;
+  }
+
+  add(index: number, entry: Entry<T>): void {
+    this.all.add(entry, index);
+
+    if (
+      this._filter(entry.value, {
+        opts: entry.opts,
+        onValue: this.onValue,
+        onOpts: this.onOpts,
+      })
+    ) {
+      index = this._findIndex(entry.key);
+      this.entries.add(entry, index);
+      this.nextAdd(index, entry);
+    }
+  }
+
+  remove(index: number, entry: Entry<T>): void {
+    this.all.remove(entry, index);
+
+    index = this.entries.remove(entry);
+    if (index >= 0) {
+      this.nextRemove(index, entry);
+    }
+  }
+
+  on(value: any, opts: ListenerCallbackOptions) {
+    this.onValue = value;
+    this.onOpts = opts;
+    let index = 0;
+    this.all.forEach(entry => {
+      const test = this._filter(entry.value, {
+        opts: entry.opts,
+        onValue: this.onValue,
+        onOpts: this.onOpts,
+      });
+      const has = this.entries.has(entry);
+
+      if (test && !has) {
+        this.entries.add(entry, index);
+        this.nextAdd(index, entry);
+      } else if (!test && has) {
+        this.entries.remove(entry);
+        this.nextRemove(index, entry);
+      }
+      if (test) index++;
+    });
+  }
+
+  update(_oldIndex: number, _index: number, entry: Entry<T>): void {
+    this.all.replace(entry, _index, _oldIndex);
+
+    const test = this._filter(entry.value, {
+      opts: entry.opts,
+      onValue: this.onValue,
+      onOpts: this.onOpts,
+    });
+    const has = this.entries.has(entry);
+    if (test && has) {
+      const index = this._findIndex(entry.key);
+      const oldIndex = this.entries.indexOf(entry);
+      this.entries.replace(entry, index, oldIndex);
+      this.nextUpdate(oldIndex, index, entry);
+    } else if (test && !has) {
+      const index = this._findIndex(entry.key);
+      this.entries.add(entry, index);
+      this.nextAdd(index, entry);
+    } else if (!test && has) {
+      const oldIndex = this.entries.indexOf(entry);
+      this.entries.remove(entry);
+      this.nextRemove(oldIndex, entry);
+    }
+  }
+}
 //
 // export class AggregateTransformer<T> extends BaseTransformer {
 //   private readonly aggregateCb: AggregateCb<T>;

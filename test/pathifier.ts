@@ -368,21 +368,21 @@ test('sortOn', t => {
 //   t.deepEqual(array, ['c', 'd', 'e']);
 // });
 
-// test('filter', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier.filter(value => value !== 'c');
-//   pathifier.init();
-//
-//   data.set('a', {
-//     b: 'b',
-//     c: 'c',
-//     d: 'd',
-//     e: 'e',
-//   });
-//   t.deepEqual(array, ['b', 'd', 'e']);
-// });
-//
+test('filter', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier.filter(value => value !== 'c').toArray(array);
+  pathifier.init();
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['b', 'd', 'e']);
+});
+
 // test('filterOn', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
 //
