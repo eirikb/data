@@ -61,7 +61,10 @@ export type Mapper<T> = (
   opts: ListenerCallbackOnValueOptions
 ) => void;
 
-export type OnMapper<T> = (value: T, opts: ListenerCallbackOnValueOptions) => T;
+export type OnMapper<T, R> = (
+  value: T,
+  opts: ListenerCallbackOnValueOptions
+) => R;
 
 export type SliceOn<T> = (
   onValue?: T,

@@ -75,11 +75,11 @@ export class Entries<T> {
   }
 }
 
-export abstract class BaseTransformer<T> {
-  entries = new Entries<T>();
+export abstract class BaseTransformer<T, O> {
+  entries = new Entries<O>();
   onOpts?: ListenerCallbackOptions;
   onValue?: any;
-  readonly nextTransformers: BaseTransformer<any>[] = [];
+  readonly nextTransformers: BaseTransformer<any, any>[] = [];
   readonly data: Data;
   readonly refs: string[] = [];
 
@@ -90,7 +90,9 @@ export abstract class BaseTransformer<T> {
   on(value: any, opts: ListenerCallbackOptions): void {
     this.onValue = value;
     this.onOpts = opts;
-    this.entries.forEach((entry, index) => this.update(index, index, entry));
+    this.entries.forEach((entry, index) =>
+      this.update(index, index, (entry as unknown) as Entry<T>)
+    );
   }
 
   init() {
@@ -105,19 +107,19 @@ export abstract class BaseTransformer<T> {
 
   abstract update(oldIndex: number, index: number, entry: Entry<T>): void;
 
-  protected nextAdd(index: number, entry: Entry<T>): void {
+  protected nextAdd(index: number, entry: Entry<O>): void {
     for (const transformer of this.nextTransformers) {
       transformer.add(index, entry);
     }
   }
 
-  protected nextRemove(index: number, entry: Entry<T>): void {
+  protected nextRemove(index: number, entry: Entry<O>): void {
     for (const transformer of this.nextTransformers) {
       transformer.remove(index, entry);
     }
   }
 
-  protected nextUpdate(oldIndex: number, index: number, entry: Entry<T>): void {
+  protected nextUpdate(oldIndex: number, index: number, entry: Entry<O>): void {
     for (const transformer of this.nextTransformers) {
       transformer.update(oldIndex, index, entry);
     }
@@ -127,29 +129,31 @@ export abstract class BaseTransformer<T> {
     return this.entries.entries.map(e => e.value);
   }
 
-  private addTransformer<X>(next: BaseTransformer<X>): BaseTransformer<X> {
+  private addTransformer<X, Y>(
+    next: BaseTransformer<X, Y>
+  ): BaseTransformer<X, Y> {
     this.nextTransformers.push(next);
     return next;
   }
 
-  map<X>(map: OnMapper<X>): BaseTransformer<X> {
-    return this.addTransformer(new MapTransformer<X>(this.data, map));
+  map<X>(map: OnMapper<T, X>): BaseTransformer<T, X> {
+    return this.addTransformer(new MapTransformer<T, X>(this.data, map));
   }
 
-  toArray<X>(array: any[]): BaseTransformer<X> {
-    return this.addTransformer(new ToArrayTransformer<X>(this.data, array));
+  toArray(array: any[]): BaseTransformer<T, T> {
+    return this.addTransformer(new ToArrayTransformer<T>(this.data, array));
   }
 
-  slice(start: number, end?: number): BaseTransformer<T> {
+  slice(start: number, end?: number): BaseTransformer<T, T> {
     return this.addTransformer(new SliceTransformer(this.data, start, end));
   }
 
-  sort(sort: Sorter2<T>): BaseTransformer<T> {
+  sort(sort: Sorter2<T>): BaseTransformer<T, T> {
     return this.addTransformer(new SortTransformer<T>(this.data, sort));
   }
 }
 
-export class PlainTransformer<T> extends BaseTransformer<T> {
+export class PlainTransformer<T> extends BaseTransformer<T, T> {
   add(index: number, entry: Entry<T>): void {
     index = this.entries.add(entry, index);
     this.nextAdd(index, entry);
@@ -168,7 +172,7 @@ export class PlainTransformer<T> extends BaseTransformer<T> {
   on(_value: any, _opts: ListenerCallbackOptions): void {}
 }
 
-export class DataTransformer<T> extends BaseTransformer<T> {
+export class DataTransformer<T> extends BaseTransformer<T, T> {
   private path: string;
 
   constructor(data: Data, path: string) {
@@ -217,7 +221,7 @@ export class DataTransformer<T> extends BaseTransformer<T> {
   }
 }
 
-export class ToArrayTransformer<T> extends BaseTransformer<T> {
+export class ToArrayTransformer<T> extends BaseTransformer<T, T> {
   array: any[];
 
   constructor(data: Data, array: any[]) {
@@ -250,43 +254,46 @@ export class ToArrayTransformer<T> extends BaseTransformer<T> {
   on(_value: any, _opts: ListenerCallbackOptions): void {}
 }
 
-export class MapTransformer<T> extends BaseTransformer<T> {
-  private readonly _map: OnMapper<T>;
+export class MapTransformer<T, O> extends BaseTransformer<T, O> {
+  private readonly _map: OnMapper<T, O>;
 
-  constructor(data: Data, map: OnMapper<T>) {
+  constructor(data: Data, map: OnMapper<T, O>) {
     super(data);
     this._map = map;
   }
 
+  private toEntry(entry: Entry<T>): Entry<O> {
+    return {
+      key: entry.key,
+      opts: entry.opts,
+      value: this._map(entry.value, {
+        onValue: this.onValue,
+        onOpts: this.onOpts,
+        ...entry.opts,
+      }),
+    };
+  }
+
   add(index: number, entry: Entry<T>): void {
-    entry = Object.assign({}, entry);
-    entry.value = this._map(entry.value, {
-      onValue: this.onValue,
-      onOpts: this.onOpts,
-      ...entry.opts,
-    });
-    this.entries.add(entry, index);
-    this.nextAdd(index, entry);
+    const e = this.toEntry(entry);
+    this.entries.add(e, index);
+    this.nextAdd(index, e);
   }
 
   remove(index: number, entry: Entry<T>): void {
-    this.entries.remove(entry, index);
-    this.nextRemove(index, entry);
+    const e = this.toEntry(entry);
+    this.entries.remove(e, index);
+    this.nextRemove(index, e);
   }
 
   update(oldIndex: number, index: number, entry: Entry<T>): void {
-    entry = Object.assign({}, entry);
-    entry.value = this._map(entry.value, {
-      onValue: this.onValue,
-      onOpts: this.onOpts,
-      ...entry.opts,
-    });
-    this.entries.replace(entry, oldIndex, index);
-    this.nextUpdate(oldIndex, index, entry);
+    const e = this.toEntry(entry);
+    this.entries.replace(e, oldIndex, index);
+    this.nextUpdate(oldIndex, index, e);
   }
 }
 
-export class OrTransformer<T> extends BaseTransformer<T> {
+export class OrTransformer<T> extends BaseTransformer<T, T> {
   private readonly _or: Entry<T>;
   private _orSet: boolean = false;
 
@@ -329,7 +336,7 @@ export class OrTransformer<T> extends BaseTransformer<T> {
   }
 }
 
-export class SortTransformer<T> extends BaseTransformer<T> {
+export class SortTransformer<T> extends BaseTransformer<T, T> {
   private readonly _sort: OnSorter2<T>;
 
   constructor(data: Data, sort: OnSorter2<T>) {
@@ -385,7 +392,7 @@ export class SortTransformer<T> extends BaseTransformer<T> {
   }
 }
 
-export class SliceTransformer<T> extends BaseTransformer<T> {
+export class SliceTransformer<T> extends BaseTransformer<T, T> {
   private start: number;
   private end?: number;
   private readonly sliceOn?: SliceOn<T> | undefined;

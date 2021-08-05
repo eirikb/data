@@ -196,21 +196,21 @@ test('sort and map', t => {
   t.deepEqual(array, [3, 2]);
 });
 
-// test('map and sort', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//
-//   pathifier
-//     .map(v => `${Number(v) + 1}`)
-//     .sort((a, b) => b.localeCompare(a))
-//     .toArray(array);
-//   pathifier.init();
-//
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, ['3', '2']);
-// });
+test('map and sort', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+
+  pathifier
+    .map(v => `${Number(v) + 1}`)
+    .sort((a, b) => b.localeCompare(a))
+    .toArray(array);
+  pathifier.init();
+
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  t.deepEqual(array, ['3', '2']);
+});
 
 // test('map add remove update', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
