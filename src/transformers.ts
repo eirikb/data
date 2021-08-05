@@ -1,7 +1,7 @@
 import {
   Entry,
   ListenerCallbackOptions,
-  OnMapper,
+  Mapper,
   OnSorter2,
   SliceOn,
   Sorter2,
@@ -136,7 +136,14 @@ export abstract class BaseTransformer<T, O> {
     return next;
   }
 
-  map<X>(map: OnMapper<T, X>): BaseTransformer<T, X> {
+  private addOnTransformer<X, Y>(path: string, next: BaseTransformer<X, Y>) {
+    this.refs.push(
+      this.data.on(`!+* ${path}`, (value, opts) => next.on(value, opts))
+    );
+    return this.addTransformer(next);
+  }
+
+  map<X>(map: Mapper<T, X>): BaseTransformer<T, X> {
     return this.addTransformer(new MapTransformer<T, X>(this.data, map));
   }
 
@@ -150,6 +157,17 @@ export abstract class BaseTransformer<T, O> {
 
   sort(sort: Sorter2<T>): BaseTransformer<T, T> {
     return this.addTransformer(new SortTransformer<T>(this.data, sort));
+  }
+
+  mapOn<X>(path: string, map: Mapper<T, X>): BaseTransformer<T, X> {
+    return this.addOnTransformer(
+      path,
+      new MapTransformer<T, X>(this.data, map)
+    );
+  }
+
+  sortOn(path: string, sort: OnSorter2<T>): BaseTransformer<T, T> {
+    return this.addOnTransformer(path, new SortTransformer<T>(this.data, sort));
   }
 }
 
@@ -255,9 +273,9 @@ export class ToArrayTransformer<T> extends BaseTransformer<T, T> {
 }
 
 export class MapTransformer<T, O> extends BaseTransformer<T, O> {
-  private readonly _map: OnMapper<T, O>;
+  private readonly _map: Mapper<T, O>;
 
-  constructor(data: Data, map: OnMapper<T, O>) {
+  constructor(data: Data, map: Mapper<T, O>) {
     super(data);
     this._map = map;
   }
@@ -395,13 +413,13 @@ export class SortTransformer<T> extends BaseTransformer<T, T> {
 export class SliceTransformer<T> extends BaseTransformer<T, T> {
   private start: number;
   private end?: number;
-  private readonly sliceOn?: SliceOn<T> | undefined;
+  private readonly _sliceOn?: SliceOn<T> | undefined;
 
   constructor(data: Data, start: number, end?: number, sliceOn?: SliceOn<T>) {
     super(data);
     this.start = start;
     this.end = end;
-    this.sliceOn = sliceOn;
+    this._sliceOn = sliceOn;
   }
 
   add(index: number, entry: Entry<T>): void {
@@ -437,12 +455,12 @@ export class SliceTransformer<T> extends BaseTransformer<T, T> {
   }
 
   on(value: any, opts: ListenerCallbackOptions) {
-    if (this.sliceOn) {
+    if (this._sliceOn) {
       const entries = this.entries.entries.slice();
       for (let i = entries.length - 1; i >= 0; i--) {
         this.remove(i, entries[i]);
       }
-      const [start, end] = this.sliceOn(value, opts);
+      const [start, end] = this._sliceOn(value, opts);
       this.start = start;
       this.end = end;
       entries.forEach((entry, index) => this.add(index, entry));

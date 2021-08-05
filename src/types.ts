@@ -56,12 +56,7 @@ export type OnSorter2<T> = (
   }
 ) => number;
 
-export type Mapper<T> = (
-  value: T,
-  opts: ListenerCallbackOnValueOptions
-) => void;
-
-export type OnMapper<T, R> = (
+export type Mapper<T, R> = (
   value: T,
   opts: ListenerCallbackOnValueOptions
 ) => R;

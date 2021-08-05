@@ -310,39 +310,43 @@ test('sort and slice', t => {
   t.deepEqual(array, ['d', 'c']);
 });
 
-// test('mapOn', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//   pathifier.mapOn('test', (value, { onValue }) => {
-//     if (onValue === 'ing') return 'ting';
-//     return value;
-//   });
-//   pathifier.init();
-//   data.set('a.b', '1');
-//   t.deepEqual(array, ['1']);
-//   data.set('test', 'ing');
-//   t.deepEqual(array, ['ting']);
-// });
+test('mapOn', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  pathifier
+    .mapOn('test', (value, { onValue }) => {
+      if (onValue === 'ing') return 'ting';
+      return value;
+    })
+    .toArray(array);
+  pathifier.init();
+  data.set('a.b', '1');
+  t.deepEqual(array, ['1']);
+  data.set('test', 'ing');
+  t.deepEqual(array, ['ting']);
+});
 
-// test('sortOn', t => {
-//   const { array, data, pathifier } = dataAndPathifier('a.$y');
-//   pathifier.sortOn('test', (a, b, { onValue }) => {
-//     if (onValue) {
-//       return b.localeCompare(a);
-//     }
-//     return a.localeCompare(b);
-//   });
-//   pathifier.init();
-//   data.set('a', {
-//     b: '1',
-//     c: '2',
-//   });
-//   t.deepEqual(array, ['1', '2']);
-//   data.set('test', true);
-//   t.deepEqual(array, ['2', '1']);
-//   data.set('test', false);
-//   t.deepEqual(array, ['1', '2']);
-// });
-//
+test('sortOn', t => {
+  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  pathifier
+    .sortOn('test', (a, b, { onValue }) => {
+      if (onValue) {
+        return b.localeCompare(a);
+      }
+      return a.localeCompare(b);
+    })
+    .toArray(array);
+  pathifier.init();
+  data.set('a', {
+    b: '1',
+    c: '2',
+  });
+  t.deepEqual(array, ['1', '2']);
+  data.set('test', true);
+  t.deepEqual(array, ['2', '1']);
+  data.set('test', false);
+  t.deepEqual(array, ['1', '2']);
+});
+
 // test('sliceOn', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
 //
@@ -363,7 +367,7 @@ test('sort and slice', t => {
 //   data.set('test', [1, 4]);
 //   t.deepEqual(array, ['c', 'd', 'e']);
 // });
-//
+
 // test('filter', t => {
 //   const { array, data, pathifier } = dataAndPathifier('a.$y');
 //
