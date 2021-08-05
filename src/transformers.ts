@@ -1,6 +1,5 @@
 import {
   Entry,
-  Filter,
   ListenerCallbackOptions,
   Mapper,
   OnFilter,
@@ -161,12 +160,8 @@ export abstract class BaseTransformer<T, O> {
     return this.addTransformer(new SortTransformer<T>(this.data, sort));
   }
 
-  filter(filter: Filter<T>): BaseTransformer<T, T> {
-    return this.addTransformer(
-      new FilterTransformer<T>(this.data, (value, opts) =>
-        filter(value, opts.opts)
-      )
-    );
+  filter(filter: OnFilter<T>): BaseTransformer<T, T> {
+    return this.addTransformer(new FilterTransformer<T>(this.data, filter));
   }
 
   mapOn<X>(path: string, map: Mapper<T, X>): BaseTransformer<T, X> {
@@ -180,12 +175,10 @@ export abstract class BaseTransformer<T, O> {
     return this.addOnTransformer(path, new SortTransformer<T>(this.data, sort));
   }
 
-  filterOn(path: string, filter: Filter<T>): BaseTransformer<T, T> {
+  filterOn(path: string, filter: OnFilter<T>): BaseTransformer<T, T> {
     return this.addOnTransformer(
       path,
-      new FilterTransformer<T>(this.data, (value, opts) =>
-        filter(value, opts.opts)
-      )
+      new FilterTransformer<T>(this.data, filter)
     );
   }
 }
@@ -406,7 +399,6 @@ export class SortTransformer<T> extends BaseTransformer<T, T> {
 
   add(index: number, entry: Entry<T>): void {
     index = this._sortedIndex(entry);
-    console.log('index', index);
     this.entries.add(entry, index);
     this.nextAdd(index, entry);
   }
