@@ -175,6 +175,13 @@ export abstract class BaseTransformer<T, O> {
     return this.addOnTransformer(path, new SortTransformer<T>(this.data, sort));
   }
 
+  sliceOn(path: string, sliceOn: SliceOn<T>): BaseTransformer<T, T> {
+    return this.addOnTransformer(
+      path,
+      new SliceTransformer(this.data, 0, 0, sliceOn)
+    );
+  }
+
   filterOn(path: string, filter: OnFilter<T>): BaseTransformer<T, T> {
     return this.addOnTransformer(
       path,
@@ -267,7 +274,11 @@ export class ToArrayTransformer<T> extends BaseTransformer<T, T> {
   }
 
   remove(index: number, entry: Entry<T>): void {
-    console.log('remove', index, entry.value);
+    if (entry) {
+      console.log('remove', index, entry.value);
+    } else {
+      console.log('eh no entry', index, entry);
+    }
     index = this.entries.remove(entry, index);
     this.array.splice(index, 1);
     this.nextRemove(index, entry);
@@ -455,7 +466,12 @@ export class SliceTransformer<T> extends BaseTransformer<T, T> {
     if (index >= this.start && (!this.end || index < this.end)) {
       this.nextRemove(index - this.start, entry);
     } else if (index < this.start) {
-      this.nextRemove(0, this.entries.get(this.start - 1));
+      const entry = this.entries.get(this.start - 1);
+      if (entry) {
+        this.nextRemove(0, entry);
+      } else {
+        // TODO: Is it bad that it can be undefined?
+      }
     } else {
       return;
     }
