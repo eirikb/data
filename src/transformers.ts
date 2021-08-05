@@ -164,6 +164,10 @@ export abstract class BaseTransformer<T, O> {
     return this.addTransformer(new FilterTransformer<T>(this.data, filter));
   }
 
+  or(or: any): BaseTransformer<T, T> {
+    return this.addTransformer(new OrTransformer<T>(this.data, or));
+  }
+
   mapOn<X>(path: string, map: Mapper<T, X>): BaseTransformer<T, X> {
     return this.addOnTransformer(
       path,

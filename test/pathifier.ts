@@ -707,27 +707,27 @@ test('child', t => {
   data.set('test.a.ok', 'yes!');
 });
 
-// test('or', t => {
-//   const { pathifier, array } = dataAndPathifier('test.$');
-//
-//   pathifier.or(1);
-//   pathifier.init();
-//
-//   t.deepEqual(array, [1]);
-// });
-//
-// test('or2', t => {
-//   const { data, array, pathifier } = dataAndPathifier('test.$');
-//
-//   pathifier.or('well');
-//   pathifier.init();
-//
-//   t.deepEqual(array, ['well']);
-//   data.set('test.a', 'ok');
-//   t.deepEqual(array, ['ok']);
-//   data.unset('test.a');
-//   t.deepEqual(array, ['well']);
-// });
+test('or', t => {
+  const { pathifier, array } = dataAndPathifier('test.$');
+
+  pathifier.or(1).toArray(array);
+  pathifier.init();
+
+  t.deepEqual(array, [1]);
+});
+
+test('or2', t => {
+  const { data, array, pathifier } = dataAndPathifier('test.$');
+
+  pathifier.or('well').toArray(array);
+  pathifier.init();
+
+  t.deepEqual(array, ['well']);
+  data.set('test.a', 'ok');
+  t.deepEqual(array, ['ok']);
+  data.unset('test.a');
+  t.deepEqual(array, ['well']);
+});
 //
 // // Won't happen
 // test.skip('or3', t => {
