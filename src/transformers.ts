@@ -179,6 +179,15 @@ export abstract class BaseTransformer<T, O> {
   sortOn(path: string, sort: OnSorter2<T>): BaseTransformer<T, T> {
     return this.addOnTransformer(path, new SortTransformer<T>(this.data, sort));
   }
+
+  filterOn(path: string, filter: Filter<T>): BaseTransformer<T, T> {
+    return this.addOnTransformer(
+      path,
+      new FilterTransformer<T>(this.data, (value, opts) =>
+        filter(value, opts.opts)
+      )
+    );
+  }
 }
 
 export class PlainTransformer<T> extends BaseTransformer<T, T> {
