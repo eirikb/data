@@ -660,29 +660,29 @@ test('filterOn and back', t => {
 //   t.deepEqual(array, ['7', '3', '2']);
 // });
 
-// test('Pathifier no sub-array', t => {
-//   const { array, pathifier, data } = dataAndPathifier('users.$');
-//   pathifier.map(p => p.name).toArray(array);
-//   pathifier.init();
-//
-//   data.set('users', [{ name: 'a' }, { name: 'b' }]);
-//   t.deepEqual(array, ['a', 'b']);
-//   data.set('users', [{ name: 'a' }]);
-//   t.deepEqual(array, ['a']);
-// });
+test('Pathifier no sub-array', t => {
+  const { array, pathifier, data } = dataAndPathifier('users.$');
+  pathifier.map(p => p.name).toArray(array);
+  pathifier.init();
 
-// test('Pathifier sub-array', t => {
-//   const { array, pathifier, data } = dataAndPathifier('users.$');
-//   pathifier.map(p => p.name).toArray(array);
-//   pathifier.init();
-//
-//   data.set('users', [{ name: 'a' }, { name: 'b' }]);
-//   t.deepEqual(array, ['a', 'b']);
-//   data.set('users', [{ name: 'a', x: [1] }]);
-//   t.deepEqual(array, ['a']);
-//   data.set('users', [{ name: 'a' }]);
-//   t.deepEqual(array, ['a']);
-// });
+  data.set('users', [{ name: 'a' }, { name: 'b' }]);
+  t.deepEqual(array, ['a', 'b']);
+  data.set('users', [{ name: 'a' }]);
+  t.deepEqual(array, ['a']);
+});
+
+test('Pathifier sub-array', t => {
+  const { array, pathifier, data } = dataAndPathifier('users.$');
+  pathifier.map(p => p.name).toArray(array);
+  pathifier.init();
+
+  data.set('users', [{ name: 'a' }, { name: 'b' }]);
+  t.deepEqual(array, ['a', 'b']);
+  data.set('users', [{ name: 'a', x: [1] }]);
+  t.deepEqual(array, ['a']);
+  data.set('users', [{ name: 'a' }]);
+  t.deepEqual(array, ['a']);
+});
 
 test('map has path', t => {
   const { pathifier, data } = dataAndPathifier('users.$');
