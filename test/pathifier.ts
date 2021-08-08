@@ -8,9 +8,9 @@ function setup<T>(path: string) {
   return { data, transformer, array };
 }
 
-function dataAndPathifier<T = any>(path: string) {
+function dataAndTransformer<T = any>(path: string) {
   const { data, transformer, array } = setup<T>(path);
-  return { data, pathifier: transformer, array };
+  return { data, transformer: transformer, array };
 }
 
 test('no', t => {
@@ -23,24 +23,24 @@ test('no', t => {
 });
 
 test('map add', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
-  pathifier
+  const { array, data, transformer } = dataAndTransformer('a.$y');
+  transformer
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a.b', '1');
   t.deepEqual(array, [3]);
 });
 
 test('map add 2', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -49,9 +49,9 @@ test('map add 2', t => {
 });
 
 test('map add 3', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
@@ -59,18 +59,18 @@ test('map add 3', t => {
     b: '1',
     c: '2',
   });
-  pathifier.init();
+  transformer.init();
   t.deepEqual(array, [3, 4]);
 });
 
 test('map update', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -80,13 +80,13 @@ test('map update', t => {
 });
 
 test('map remove', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -96,9 +96,9 @@ test('map remove', t => {
 });
 
 test('unset', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$');
-  pathifier.toArray(array);
-  pathifier.init();
+  const { array, data, transformer } = dataAndTransformer('a.$');
+  transformer.toArray(array);
+  transformer.init();
 
   data.set('a.b', 'ok');
   t.deepEqual(array, ['ok']);
@@ -107,10 +107,10 @@ test('unset', t => {
 });
 
 test('sort', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.sort((a, b) => b.localeCompare(a)).toArray(array);
-  pathifier.init();
+  transformer.sort((a, b) => b.localeCompare(a)).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: '1',
@@ -120,10 +120,10 @@ test('sort', t => {
 });
 
 test('sort update', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.sort((a, b) => b.localeCompare(a)).toArray(array);
-  pathifier.init();
+  transformer.sort((a, b) => b.localeCompare(a)).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: '1',
@@ -135,13 +135,13 @@ test('sort update', t => {
 });
 
 test('sort and map', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .sort((a, b) => b.localeCompare(a))
     .map(v => Number(v) + 1)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('a', {
     b: '1',
@@ -151,13 +151,13 @@ test('sort and map', t => {
 });
 
 test('map and sort', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .map(v => `${Number(v) + 1}`)
     .sort((a, b) => b.localeCompare(a))
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('a', {
     b: '1',
@@ -167,10 +167,10 @@ test('map and sort', t => {
 });
 
 test('map add remove update', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.map(v => v).toArray(array);
-  pathifier.init();
+  transformer.map(v => v).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b1',
@@ -184,13 +184,13 @@ test('map add remove update', t => {
 });
 
 test('map add remove update 2', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .sort((a, b) => a.localeCompare(b))
     .map(v => v)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('a', {
     b: 'b1',
@@ -204,10 +204,10 @@ test('map add remove update 2', t => {
 });
 
 test('map add remove update 3', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.map(v => v).toArray(array);
-  pathifier.init();
+  transformer.map(v => v).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b1',
@@ -219,10 +219,10 @@ test('map add remove update 3', t => {
 });
 
 test('slice', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.slice(0, 1).toArray(array);
-  pathifier.init();
+  transformer.slice(0, 1).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -232,10 +232,10 @@ test('slice', t => {
 });
 
 test('slice 2', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.slice(1, 3).toArray(array);
-  pathifier.init();
+  transformer.slice(1, 3).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -247,13 +247,13 @@ test('slice 2', t => {
 });
 
 test('sort and slice', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .sort((a, b) => b.localeCompare(a))
     .slice(1, 3)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -265,14 +265,14 @@ test('sort and slice', t => {
 });
 
 test('mapOn', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
-  pathifier
+  const { array, data, transformer } = dataAndTransformer('a.$y');
+  transformer
     .mapOn('test', (value, { onValue }) => {
       if (onValue === 'ing') return 'ting';
       return value;
     })
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a.b', '1');
   t.deepEqual(array, ['1']);
   data.set('test', 'ing');
@@ -280,8 +280,8 @@ test('mapOn', t => {
 });
 
 test('sortOn', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
-  pathifier
+  const { array, data, transformer } = dataAndTransformer('a.$y');
+  transformer
     .sortOn('test', (a, b, { onValue }) => {
       if (onValue) {
         return b.localeCompare(a);
@@ -289,7 +289,7 @@ test('sortOn', t => {
       return a.localeCompare(b);
     })
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('a', {
     b: '1',
     c: '2',
@@ -302,10 +302,10 @@ test('sortOn', t => {
 });
 
 test('sliceOn', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.sliceOn('test.*', value => value).toArray(array);
-  pathifier.init();
+  transformer.sliceOn('test.*', value => value).toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -323,10 +323,10 @@ test('sliceOn', t => {
 });
 
 test('filter', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier.filter(value => value !== 'c').toArray(array);
-  pathifier.init();
+  transformer.filter(value => value !== 'c').toArray(array);
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -338,12 +338,12 @@ test('filter', t => {
 });
 
 test('filterOn', t => {
-  const { array, data, pathifier } = dataAndPathifier('a.$y');
+  const { array, data, transformer } = dataAndTransformer('a.$y');
 
-  pathifier
+  transformer
     .filterOn('test', (value, { onValue }) => value !== onValue)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('a', {
     b: 'b',
@@ -359,15 +359,15 @@ test('filterOn', t => {
 });
 
 test('no output no fail', t => {
-  const { data } = dataAndPathifier('a.$');
+  const { data } = dataAndTransformer('a.$');
   data.set('users.a.name', 'no fail');
   t.pass();
 });
 
 test('then before', t => {
-  const { array, data, pathifier } = dataAndPathifier('users.$');
-  pathifier.toArray(array);
-  pathifier.init();
+  const { array, data, transformer } = dataAndTransformer('users.$');
+  transformer.toArray(array);
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -377,9 +377,9 @@ test('then before', t => {
 });
 
 test('then unset', t => {
-  const { array, data, pathifier } = dataAndPathifier('users.$');
-  pathifier.toArray(array);
-  pathifier.init();
+  const { array, data, transformer } = dataAndTransformer('users.$');
+  transformer.toArray(array);
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -391,10 +391,10 @@ test('then unset', t => {
 });
 
 test('then not called for outfiltered data', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier.filter(user => user.name === 'a').toArray(array);
-  pathifier.init();
+  transformer.filter(user => user.name === 'a').toArray(array);
+  transformer.init();
   data.set('users.a.name', 'a');
   t.deepEqual(array, [{ name: 'a' }]);
   data.set('users.b.name', 'b');
@@ -402,10 +402,10 @@ test('then not called for outfiltered data', t => {
 });
 
 test('then not called for outfiltered data 2', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$.*');
+  const { array, transformer, data } = dataAndTransformer('users.$.*');
 
-  pathifier.filter(user => user.name === 'a').toArray(array);
-  pathifier.init();
+  transformer.filter(user => user.name === 'a').toArray(array);
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a', k: 1 },
@@ -420,10 +420,10 @@ test('then not called for outfiltered data 2', t => {
 });
 
 test('to filter', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier.filter(u => u.name !== 'b').toArray(array);
-  pathifier.init();
+  transformer.filter(u => u.name !== 'b').toArray(array);
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -436,23 +436,23 @@ test('to filter', t => {
 });
 
 test('to filter 2', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
   });
-  pathifier.filter(u => u.name !== 'b').toArray(array);
-  pathifier.init();
+  transformer.filter(u => u.name !== 'b').toArray(array);
+  transformer.init();
 
   t.deepEqual(array, [{ name: 'a' }]);
 });
 
 test('to map', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier.map(user => ({ wat: user.name })).toArray(array);
-  pathifier.init();
+  transformer.map(user => ({ wat: user.name })).toArray(array);
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -465,15 +465,15 @@ test('to map', t => {
 });
 
 test('to map 2', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
   });
 
-  pathifier.map(user => ({ wat: user.name })).toArray(array);
-  pathifier.init();
+  transformer.map(user => ({ wat: user.name })).toArray(array);
+  transformer.init();
 
   data.set('users.c.name', 'c');
 
@@ -481,13 +481,13 @@ test('to map 2', t => {
 });
 
 test('to map and filter', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .map(u => ({ wat: u.name }))
     .filter(u => u.wat !== 'b')
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -500,12 +500,12 @@ test('to map and filter', t => {
 });
 
 test('filterOn after', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .filterOn('filter', (u, { onValue }) => u.name === onValue)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
@@ -518,12 +518,12 @@ test('filterOn after', t => {
 });
 
 test('filterOn before', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .filterOn('filter', (value, { onValue }) => value.name === onValue)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('users', {
     a: { name: 'a' },
@@ -538,10 +538,10 @@ test('filterOn before', t => {
 });
 
 test('sort 2', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier.sort((a, b) => b.name.localeCompare(a.name)).toArray(array);
-  pathifier.init();
+  transformer.sort((a, b) => b.name.localeCompare(a.name)).toArray(array);
+  transformer.init();
 
   t.deepEqual(array, []);
   data.set('users', {
@@ -552,14 +552,14 @@ test('sort 2', t => {
 });
 
 test('Update filterOn on update after data is set', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .filterOn('test', (user, { onValue: filter }) =>
       new RegExp(filter, 'i').test(user)
     )
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', '');
   data.set('users', { a: 'a', b: 'b' });
@@ -569,15 +569,15 @@ test('Update filterOn on update after data is set', t => {
 });
 
 test('filterOn and back', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .map(user => user.name)
     .filterOn('test', (name, { onValue: filter }) =>
       new RegExp(filter, 'i').test(name)
     )
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', '');
   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
@@ -589,15 +589,15 @@ test('filterOn and back', t => {
 });
 
 test('on sortOn - custom order update', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
+  const { array, transformer, data } = dataAndTransformer('users.$');
 
-  pathifier
+  transformer
     .map(user => user.name)
     .sortOn('test', (a, b, { onValue }) =>
       onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
     )
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('users.1', { name: '1' });
   data.set('users.2', { name: '2' });
@@ -611,10 +611,10 @@ test('on sortOn - custom order update', t => {
   t.deepEqual(array, ['7', '3', '2']);
 });
 
-test('Pathifier no sub-array', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
-  pathifier.map(p => p.name).toArray(array);
-  pathifier.init();
+test('Transformer no sub-array', t => {
+  const { array, transformer, data } = dataAndTransformer('users.$');
+  transformer.map(p => p.name).toArray(array);
+  transformer.init();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -622,10 +622,10 @@ test('Pathifier no sub-array', t => {
   t.deepEqual(array, ['a']);
 });
 
-test('Pathifier sub-array', t => {
-  const { array, pathifier, data } = dataAndPathifier('users.$');
-  pathifier.map(p => p.name).toArray(array);
-  pathifier.init();
+test('Transformer sub-array', t => {
+  const { array, transformer, data } = dataAndTransformer('users.$');
+  transformer.map(p => p.name).toArray(array);
+  transformer.init();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -636,42 +636,42 @@ test('Pathifier sub-array', t => {
 });
 
 test('map has path', t => {
-  const { pathifier, data } = dataAndPathifier('users.$');
+  const { transformer, data } = dataAndTransformer('users.$');
   let res: any[] = [];
-  pathifier.map((p, { path }) => {
+  transformer.map((p, { path }) => {
     res.push(path);
     return p.name;
   });
-  pathifier.init();
+  transformer.init();
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, ['users.0', 'users.1']);
 });
 
 test('child', t => {
-  const { pathifier, data } = dataAndPathifier('test.$');
+  const { transformer, data } = dataAndTransformer('test.$');
 
-  pathifier.map((_, { child }) => {
+  transformer.map((_, { child }) => {
     t.is(child('ok'), 'test.a.ok');
   });
-  pathifier.init();
+  transformer.init();
 
   data.set('test.a.ok', 'yes!');
 });
 
 test('or', t => {
-  const { pathifier, array } = dataAndPathifier('test.$');
+  const { transformer, array } = dataAndTransformer('test.$');
 
-  pathifier.or(1).toArray(array);
-  pathifier.init();
+  transformer.or(1).toArray(array);
+  transformer.init();
 
   t.deepEqual(array, [1]);
 });
 
 test('or2', t => {
-  const { data, array, pathifier } = dataAndPathifier('test.$');
+  const { data, array, transformer } = dataAndTransformer('test.$');
 
-  pathifier.or('well').toArray(array);
-  pathifier.init();
+  transformer.or('well').toArray(array);
+  transformer.init();
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
@@ -679,28 +679,25 @@ test('or2', t => {
   data.unset('test.a');
   t.deepEqual(array, ['well']);
 });
-//
-// // Won't happen
-// test.skip('or3', t => {
-//   const data = new Data();
-//   const array: any[] = [];
-//   const pathifier = new Pathifier(data, 'test.$');
-//   pathifier.or('well');
-//   pathifier.init();
-//
-//   pathifier.transformer = createTransformer(array);
-//
-//   t.deepEqual(array, ['well']);
-//   data.set('test.a', 'ok');
-//   t.deepEqual(array, ['ok']);
-//   data.unset('test.a');
-//   t.deepEqual(array, ['well']);
-// });
+
+test('or3', t => {
+  const data = new Data();
+  const array: any[] = [];
+  const transformer = new DataTransformer(data, 'test.$');
+  transformer.or('well').toArray(array);
+  transformer.init();
+
+  t.deepEqual(array, ['well']);
+  data.set('test.a', 'ok');
+  t.deepEqual(array, ['ok']);
+  data.unset('test.a');
+  t.deepEqual(array, ['well']);
+});
 
 test('unset2', async t => {
-  const { data, array, pathifier } = dataAndPathifier('test');
-  pathifier.toArray(array);
-  pathifier.init();
+  const { data, array, transformer } = dataAndTransformer('test');
+  transformer.toArray(array);
+  transformer.init();
 
   data.set('test', 'ing');
   t.deepEqual(array, ['ing']);
@@ -750,15 +747,15 @@ test('filterOn 3', async t => {
   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
 
   const array: any[] = [];
-  const pathifier = new DataTransformer<any>(data, 'users.$');
-  pathifier
+  const transformer = new DataTransformer<any>(data, 'users.$');
+  transformer
     .filterOn('test', (user, { onValue }) => {
       const o = new RegExp(onValue, 'i').test(user.name);
       return o;
     })
     .map(user => user.name)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   t.deepEqual(array, ['Two!']);
   data.set('test', '');
@@ -766,9 +763,9 @@ test('filterOn 3', async t => {
 });
 
 test('lists', t => {
-  const { array, data, pathifier } = dataAndPathifier('users.$');
-  pathifier.toArray(array);
-  pathifier.init();
+  const { array, data, transformer } = dataAndTransformer('users.$');
+  transformer.toArray(array);
+  transformer.init();
   data.set('users', [{ name: 'eirik' }, { name: 'steffen' }]);
   t.deepEqual(array, [{ name: 'eirik' }, { name: 'steffen' }]);
   data.set('users.1.name', 'wut');
@@ -781,8 +778,8 @@ test('aggregate', t => {
   data.set('f', ['a', 'b', 'c', 'd']);
 
   const array: any[] = [];
-  const pathifier = new DataTransformer(data, 'users.$');
-  pathifier
+  const transformer = new DataTransformer(data, 'users.$');
+  transformer
     .aggregate(entrires => {
       data.set('total', entrires.length);
     })
@@ -796,7 +793,7 @@ test('aggregate', t => {
     })
     .toArray(array);
 
-  pathifier.init();
+  transformer.init();
 
   t.deepEqual(array, ['a', 'b']);
   t.is(data.get('total'), 4);
@@ -818,9 +815,9 @@ test('aggregate delayed', async t => {
   data.set('f', ['a', 'b', 'c', 'd']);
 
   const array: any[] = [];
-  const pathifier = new DataTransformer(data, 'users.$');
+  const transformer = new DataTransformer(data, 'users.$');
   let count = 0;
-  pathifier
+  transformer
     .aggregate(entrires => {
       data.set('total', entrires.length);
     }, true)
@@ -835,7 +832,7 @@ test('aggregate delayed', async t => {
     }, true)
     .toArray(array);
 
-  pathifier.init();
+  transformer.init();
 
   t.deepEqual(array, ['a', 'b']);
   await tick();
@@ -858,16 +855,16 @@ test('aggregate delayed', async t => {
 });
 
 test('sortOn filterOn', t => {
-  const { array, data, pathifier } = dataAndPathifier('test.$');
+  const { array, data, transformer } = dataAndTransformer('test.$');
 
-  pathifier
+  transformer
     .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
     .filterOn('filter', (value, { onValue }) =>
       new RegExp(onValue).test(value.name)
     )
     .map(x => x.name)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', {
     a: { name: 'a', x: 5, y: 1 },
@@ -886,9 +883,9 @@ test('sortOn filterOn', t => {
 });
 
 test('sortOn filterOn 2', t => {
-  const { array, data, pathifier } = dataAndPathifier('test.$');
+  const { array, data, transformer } = dataAndTransformer('test.$');
 
-  pathifier
+  transformer
     .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
     .filterOn('filter', (value, { onValue }) =>
       new RegExp(onValue).test(value.name)
@@ -896,7 +893,7 @@ test('sortOn filterOn 2', t => {
     .filter(() => true)
     .map(v => v.name)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', [
     { name: 'a', x: 5, y: 1 },
@@ -911,16 +908,16 @@ test('sortOn filterOn 2', t => {
 });
 
 test('sortOn + filter', t => {
-  const { array, data, pathifier } = dataAndPathifier('test.$');
+  const { array, data, transformer } = dataAndTransformer('test.$');
 
-  pathifier
+  transformer
     .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
     .filterOn('filter', (value, { onValue }) =>
       new RegExp(onValue, 'i').test(value.name)
     )
     .map(x => x.name)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', [
     { name: 'a', x: 5, y: 1 },
@@ -941,9 +938,9 @@ test('sortOn + filter', t => {
 });
 
 test('sortOn filterOn slice', t => {
-  const { array, data, pathifier } = dataAndPathifier('test.$');
+  const { array, data, transformer } = dataAndTransformer('test.$');
 
-  pathifier
+  transformer
     .sortOn('sort', (a, b, { onValue }) => b[onValue] - a[onValue])
     .filterOn('filter', (value, { onValue }) =>
       new RegExp(onValue).test(value.name)
@@ -951,7 +948,7 @@ test('sortOn filterOn slice', t => {
     .map(x => x.name)
     .slice(0, 3)
     .toArray(array);
-  pathifier.init();
+  transformer.init();
 
   data.set('test', {
     a: { name: 'a', x: 5, y: 1 },
