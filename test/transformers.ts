@@ -1,9 +1,9 @@
 import test from 'ava';
-import { Entry, PlainTransformer } from '../src';
+import { Data, Entry, PlainTransformer } from '../src';
 
 test('slice 1', t => {
   const array: string[] = [];
-  const input = new PlainTransformer();
+  const input = new PlainTransformer(new Data());
   input.slice(0, 2).toArray(array);
   input.add(0, { value: 'a' } as Entry<string>);
   t.deepEqual(array, ['a']);
@@ -15,7 +15,7 @@ test('slice 1', t => {
 
 test('slice 2', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(0, 2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   t.deepEqual(array, ['a']);
@@ -29,7 +29,7 @@ test('slice 2', t => {
 
 test('slice 3', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   t.deepEqual(array, []);
@@ -43,7 +43,7 @@ test('slice 3', t => {
 
 test('slice 4', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   t.deepEqual(array, []);
@@ -57,7 +57,7 @@ test('slice 4', t => {
 
 test('slice 5', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(0, 2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(1, { value: 'b' } as Entry<string>);
@@ -72,7 +72,7 @@ test('slice 5', t => {
 
 test('slice 6', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(0, 2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(1, { value: 'b' } as Entry<string>);
@@ -85,7 +85,7 @@ test('slice 6', t => {
 
 test('slice 7', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(1, { value: 'b' } as Entry<string>);
@@ -99,7 +99,7 @@ test('slice 7', t => {
 
 test('slice 8', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(1, { value: 'b' } as Entry<string>);
@@ -113,7 +113,7 @@ test('slice 8', t => {
 
 test('slice 9', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(0, { value: 'b' } as Entry<string>);
@@ -127,7 +127,7 @@ test('slice 9', t => {
 
 test('slice 10', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(0, 2).toArray(array);
   slice.add(0, { value: 'a' } as Entry<string>);
   slice.add(1, { value: 'b' } as Entry<string>);
@@ -140,7 +140,7 @@ test('slice 10', t => {
 
 test('slice 11', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(1, 3).toArray(array);
   slice.add(0, { value: 'b' } as Entry<string>);
   slice.add(1, { value: 'c' } as Entry<string>);
@@ -151,7 +151,7 @@ test('slice 11', t => {
 
 test('or', t => {
   const array: string[] = [];
-  const slice = new PlainTransformer();
+  const slice = new PlainTransformer(new Data());
   slice.slice(1, 3).toArray(array);
   slice.add(0, { value: 'b' } as Entry<string>);
   slice.add(1, { value: 'c' } as Entry<string>);
