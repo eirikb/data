@@ -760,10 +760,6 @@ test('unset2', async t => {
 });
 
 test('When + filterOn 2', async t => {
-  // const { data, array, pathifier } = dataAndPathifier('test');
-  // const data = new Data();
-  // const a = createPathifier(data, 'yes');
-
   const data = new Data();
   const a = new DataTransformer(data, 'yes');
   const array: any[] = [];
@@ -797,24 +793,26 @@ test('When + filterOn 2', async t => {
   t.deepEqual(array, [['One!', 'Two!']]);
 });
 
-// test('filterOn 3', async t => {
-//   const data = new Data();
-//   data.set('test', 'two');
-//   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
-//
-//   const { array, pathifier } = createPathifier(data, 'users.$');
-//   pathifier
-//     .filterOn('test', (user, { onValue }) => {
-//       const o = new RegExp(onValue, 'i').test(user.name);
-//       return o;
-//     })
-//     .map(user => user.name);
-//   pathifier.init();
-//
-//   t.deepEqual(array, ['Two!']);
-//   data.set('test', '');
-//   t.deepEqual(array, ['One!', 'Two!']);
-// });
+test('filterOn 3', async t => {
+  const data = new Data();
+  data.set('test', 'two');
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
+
+  const array: any[] = [];
+  const pathifier = new DataTransformer<any>(data, 'users.$');
+  pathifier
+    .filterOn('test', (user, { onValue }) => {
+      const o = new RegExp(onValue, 'i').test(user.name);
+      return o;
+    })
+    .map(user => user.name)
+    .toArray(array);
+  pathifier.init();
+
+  t.deepEqual(array, ['Two!']);
+  data.set('test', '');
+  t.deepEqual(array, ['One!', 'Two!']);
+});
 
 test('lists', t => {
   const { array, data, pathifier } = dataAndPathifier('users.$');
