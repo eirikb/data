@@ -1,4 +1,5 @@
 import {
+  AggregateCb,
   Entry,
   ListenerCallbackOptions,
   Mapper,
@@ -164,6 +165,15 @@ export abstract class BaseTransformer<T, O> {
     return this.addTransformer(new FilterTransformer<T>(this.data, filter));
   }
 
+  aggregate(
+    aggregate: AggregateCb<T>,
+    delayedCallback = false
+  ): BaseTransformer<T, T> {
+    return this.addTransformer(
+      new AggregateTransformer<T>(this.data, aggregate, delayedCallback)
+    );
+  }
+
   or(or: any): BaseTransformer<T, T> {
     return this.addTransformer(new OrTransformer<T>(this.data, or));
   }
@@ -271,25 +281,18 @@ export class ToArrayTransformer<T> extends BaseTransformer<T, T> {
   }
 
   add(index: number, entry: Entry<T>): void {
-    console.log('add', index, entry.value);
     index = this.entries.add(entry, index);
     this.array.splice(index, 0, entry.value);
     this.nextAdd(index, entry);
   }
 
   remove(index: number, entry: Entry<T>): void {
-    if (entry) {
-      console.log('remove', index, entry.value);
-    } else {
-      console.log('eh no entry', index, entry);
-    }
     index = this.entries.remove(entry, index);
     this.array.splice(index, 1);
     this.nextRemove(index, entry);
   }
 
   update(_oldIndex: number, _index: number, entry: Entry<T>): void {
-    console.log('update', _oldIndex, _index, entry.value);
     const [oldIndex, index] = this.entries.replace(entry, _index, _oldIndex);
     this.array.splice(oldIndex, 1);
     this.array.splice(index, 0, entry.value);
@@ -604,48 +607,48 @@ export class FilterTransformer<T> extends BaseTransformer<T, T> {
     }
   }
 }
-//
-// export class AggregateTransformer<T> extends BaseTransformer {
-//   private readonly aggregateCb: AggregateCb<T>;
-//   private readonly delayedCallback: boolean;
-//   private timeout?: any;
-//
-//   constructor(aggregate: AggregateCb<T>, delayedCallback: boolean) {
-//     super();
-//     this.aggregateCb = aggregate;
-//     this.delayedCallback = delayedCallback;
-//   }
-//
-//   private callCallback() {
-//     const { entries } = this.entries;
-//     const values = entries.map(entry => entry.value);
-//     this.aggregateCb(values, entries);
-//   }
-//
-//   private callback() {
-//     if (!this.delayedCallback) {
-//       this.callCallback();
-//     } else {
-//       clearTimeout(this.timeout);
-//       this.timeout = setTimeout(() => this.callCallback(), 0);
-//     }
-//   }
-//
-//   add(index: number, entry: Entry): void {
-//     this.entries.add(entry, index);
-//     this.callback();
-//     this.next?.add(index, entry);
-//   }
-//
-//   remove(index: number, entry: Entry): void {
-//     this.entries.remove(entry, index);
-//     this.callback();
-//     this.next?.remove(index, entry);
-//   }
-//
-//   update(oldIndex: number, index: number, entry: Entry): void {
-//     this.entries.replace(entry, index, oldIndex);
-//     this.callback();
-//     this.next?.update(oldIndex, index, entry);
-//   }
-// }
+
+export class AggregateTransformer<T> extends BaseTransformer<T, T> {
+  private readonly aggregateCb: AggregateCb<T>;
+  private readonly delayedCallback: boolean;
+  private timeout?: any;
+
+  constructor(data: Data, aggregate: AggregateCb<T>, delayedCallback: boolean) {
+    super(data);
+    this.aggregateCb = aggregate;
+    this.delayedCallback = delayedCallback;
+  }
+
+  private callCallback() {
+    const { entries } = this.entries;
+    const values = entries.map(entry => entry.value);
+    this.aggregateCb(values, entries);
+  }
+
+  private callback() {
+    if (!this.delayedCallback) {
+      this.callCallback();
+    } else {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => this.callCallback(), 0);
+    }
+  }
+
+  add(index: number, entry: Entry<T>): void {
+    this.entries.add(entry, index);
+    this.callback();
+    this.nextAdd(index, entry);
+  }
+
+  remove(index: number, entry: Entry<T>): void {
+    this.entries.remove(entry, index);
+    this.callback();
+    this.nextRemove(index, entry);
+  }
+
+  update(oldIndex: number, index: number, entry: Entry<T>): void {
+    this.entries.replace(entry, index, oldIndex);
+    this.callback();
+    this.nextUpdate(oldIndex, index, entry);
+  }
+}
