@@ -45,7 +45,6 @@ test('map add 2', t => {
     b: '1',
     c: '2',
   });
-  console.log(array);
   t.deepEqual(array, [3, 4]);
 });
 
@@ -342,10 +341,7 @@ test('filterOn', t => {
   const { array, data, pathifier } = dataAndPathifier('a.$y');
 
   pathifier
-    .filterOn('test', (value, { onValue }) => {
-      console.log('vaæue', value, 'onValue', onValue);
-      return value !== onValue;
-    })
+    .filterOn('test', (value, { onValue }) => value !== onValue)
     .toArray(array);
   pathifier.init();
 
