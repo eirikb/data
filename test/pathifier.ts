@@ -637,28 +637,28 @@ test('filterOn and back', t => {
   t.deepEqual(array, ['One!', 'Two!']);
 });
 
-// test('on sortOn - custom order update', t => {
-//   const { array, pathifier, data } = dataAndPathifier('users.$');
-//
-//   pathifier
-//     .map(user => user.name)
-//     .sortOn('test', (a, b, { onValue }) =>
-//       onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
-//     )
-//     .toArray(array);
-//   pathifier.init();
-//
-//   data.set('users.1', { name: '1' });
-//   data.set('users.2', { name: '2' });
-//   data.set('users.3', { name: '3' });
-//   t.deepEqual(array, ['1', '2', '3']);
-//   data.set('test', 'yes');
-//   t.deepEqual(array, ['3', '2', '1']);
-//   data.unset('users.1');
-//   t.deepEqual(array, ['3', '2']);
-//   data.set('users.1', { name: '7' });
-//   t.deepEqual(array, ['7', '3', '2']);
-// });
+test('on sortOn - custom order update', t => {
+  const { array, pathifier, data } = dataAndPathifier('users.$');
+
+  pathifier
+    .map(user => user.name)
+    .sortOn('test', (a, b, { onValue }) =>
+      onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
+    )
+    .toArray(array);
+  pathifier.init();
+
+  data.set('users.1', { name: '1' });
+  data.set('users.2', { name: '2' });
+  data.set('users.3', { name: '3' });
+  t.deepEqual(array, ['1', '2', '3']);
+  data.set('test', 'yes');
+  t.deepEqual(array, ['3', '2', '1']);
+  data.unset('users.1');
+  t.deepEqual(array, ['3', '2']);
+  data.set('users.1', { name: '7' });
+  t.deepEqual(array, ['7', '3', '2']);
+});
 
 test('Pathifier no sub-array', t => {
   const { array, pathifier, data } = dataAndPathifier('users.$');
@@ -759,37 +759,43 @@ test('unset2', async t => {
   t.deepEqual(array, []);
 });
 
-// test('When + filterOn 2', async t => {
-//   const data = new Data();
-//   const a = createPathifier(data, 'yes');
-//
-//   a.pathifier.map(tt => {
-//     switch (tt) {
-//       case true:
-//         const b = createPathifier(data, 'users.$');
-//         b.pathifier
-//           .filterOn('test', (user, { onValue }) =>
-//             new RegExp(onValue, 'i').test(user.name)
-//           )
-//           .map(user => user.name);
-//         b.pathifier.init();
-//         return b.array;
-//       default:
-//         return [];
-//     }
-//   });
-//   a.pathifier.init();
-//   data.set('yes', true);
-//   data.set('test', 'two');
-//   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
-//   t.deepEqual(a.array, [['Two!']]);
-//   data.set('yes', false);
-//   t.deepEqual(a.array, [[]]);
-//   data.set('yes', true);
-//   t.deepEqual(a.array, [['Two!']]);
-//   data.set('test', '');
-//   t.deepEqual(a.array, [['One!', 'Two!']]);
-// });
+test('When + filterOn 2', async t => {
+  // const { data, array, pathifier } = dataAndPathifier('test');
+  // const data = new Data();
+  // const a = createPathifier(data, 'yes');
+
+  const data = new Data();
+  const a = new DataTransformer(data, 'yes');
+  const array: any[] = [];
+
+  a.map(tt => {
+    switch (tt) {
+      case true:
+        const arr: any[] = [];
+        const b = new DataTransformer<any>(data, 'users.$');
+        b.filterOn('test', (user, { onValue }) =>
+          new RegExp(onValue, 'i').test(user.name)
+        )
+          .map(user => user.name)
+          .toArray(arr);
+        b.init();
+        return arr;
+      default:
+        return [];
+    }
+  }).toArray(array);
+  a.init();
+  data.set('yes', true);
+  data.set('test', 'two');
+  data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
+  t.deepEqual(array, [['Two!']]);
+  data.set('yes', false);
+  t.deepEqual(array, [[]]);
+  data.set('yes', true);
+  t.deepEqual(array, [['Two!']]);
+  data.set('test', '');
+  t.deepEqual(array, [['One!', 'Two!']]);
+});
 
 // test('filterOn 3', async t => {
 //   const data = new Data();

@@ -308,7 +308,7 @@ export class MapTransformer<T, O> extends BaseTransformer<T, O> {
   }
 
   private toEntry(entry: Entry<T>): Entry<O> {
-    if (!entry.value) return { key: entry.key } as Entry<O>;
+    if (entry.value === undefined) return { key: entry.key } as Entry<O>;
 
     return {
       key: entry.key,
