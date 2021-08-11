@@ -3,8 +3,7 @@ import {
   BaseTransformer,
   Data,
   DataTransformer,
-  Entry,
-  MapTransformer,
+  FlatTransformer,
 } from '../src';
 
 function setup<T>(path: string) {
@@ -972,86 +971,6 @@ test('sortOn filterOn slice', t => {
   t.pass();
 });
 
-type Index = { [index: number]: Index };
-
-export class FlatTransformer<T> extends BaseTransformer<[T, number[]], T> {
-  private index: Index = {};
-
-  constructor(data: Data) {
-    super(data);
-  }
-
-  private toEntry(entry: Entry<[T, number[]]>): Entry<T> {
-    if (entry.value === undefined) return { key: entry.key } as Entry<T>;
-
-    return {
-      key: entry.key,
-      opts: entry.opts,
-      value: entry.value[0],
-    };
-  }
-
-  addToTransformer(index: number[], parent: BaseTransformer<any, any>): void {
-    parent
-      .addTransformer(new MapTransformer(this.data, value => [value, index]))
-      .addTransformer(this);
-
-    // TODO: When to init, init?
-    if (parent.root instanceof DataTransformer) {
-      parent.root.init();
-    }
-  }
-
-  findIndex(index: number[], create = false) {
-    let idx = 0;
-    let ii = this.index;
-    for (const i of index) {
-      for (let y = 0; y < i; y++) {
-        if (ii[y]) {
-          idx++;
-        }
-      }
-      if (ii[i] === undefined && create) ii[i] = {};
-      ii = ii[i];
-      if (!ii) break;
-    }
-    return idx;
-  }
-
-  addTo(index: number[], value: any) {
-    const idx = this.findIndex(index, true);
-    const entry = {
-      value,
-    } as Entry<T>;
-    this.entries.add(entry, idx);
-    this.nextAdd(idx, entry);
-  }
-
-  add(index: number, entry: Entry<[T, number[]]>): void {
-    console.log('add', index, entry.value);
-    const v = entry.value[0];
-    if (v instanceof BaseTransformer) {
-      this.addToTransformer(entry.value[1], v);
-    } else {
-      this.addTo(entry.value[1], entry.value[0]);
-    }
-  }
-
-  remove(index: number, entry: Entry<[T, number[]]>): void {
-    console.log('remove', index, entry.value);
-    const e = this.toEntry(entry);
-    this.entries.remove(e, index);
-    this.nextRemove(index, e);
-  }
-
-  update(oldIndex: number, index: number, entry: Entry<[T, number[]]>): void {
-    console.log('update', index, entry.value);
-    const e = this.toEntry(entry);
-    this.entries.replace(e, oldIndex, index);
-    this.nextUpdate(oldIndex, index, e);
-  }
-}
-
 test('flat 1', t => {
   const array: any[] = [];
   const data = new Data();
@@ -1191,4 +1110,15 @@ test('flat 7', t => {
   data.set('b.lol', 'yeah');
   data.set('a', ['lol']);
   t.deepEqual(array, ['a', 'yeah', 'd']);
+});
+
+test('flat 8', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addTo([0], ['a', ['b', 'c']]);
+  t.deepEqual(array, ['a', 'b', 'c']);
 });
