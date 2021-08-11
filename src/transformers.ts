@@ -84,6 +84,7 @@ export abstract class BaseTransformer<T, O> {
   readonly nextTransformers: BaseTransformer<any, any>[] = [];
   readonly data: Data;
   readonly refs: string[] = [];
+  root: BaseTransformer<any, any> | undefined;
 
   constructor(data: Data) {
     this.data = data;
@@ -131,14 +132,16 @@ export abstract class BaseTransformer<T, O> {
     return this.entries.entries.map(e => e.value);
   }
 
-  private addTransformer<X, Y>(
-    next: BaseTransformer<X, Y>
-  ): BaseTransformer<X, Y> {
+  addTransformer<X, Y>(next: BaseTransformer<X, Y>): BaseTransformer<X, Y> {
     this.nextTransformers.push(next);
+    next.root = this.root;
     return next;
   }
 
-  private addOnTransformer<X, Y>(path: string, next: BaseTransformer<X, Y>) {
+  private addOnTransformer<X, Y>(
+    path: string,
+    next: BaseTransformer<X, Y>
+  ): BaseTransformer<X, Y> {
     this.refs.push(
       this.data.on(`!+* ${path}`, (value, opts) => next.on(value, opts))
     );
@@ -224,7 +227,7 @@ export class PlainTransformer<T> extends BaseTransformer<T, T> {
 }
 
 export class DataTransformer<T> extends BaseTransformer<T, T> {
-  private path: string;
+  private readonly path: string;
 
   constructor(data: Data, path: string) {
     super(data);

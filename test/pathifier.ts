@@ -1,5 +1,11 @@
 import test from 'ava';
-import { Data, DataTransformer } from '../src';
+import {
+  BaseTransformer,
+  Data,
+  DataTransformer,
+  Entry,
+  MapTransformer,
+} from '../src';
 
 function setup<T>(path: string) {
   const data = new Data();
@@ -749,10 +755,9 @@ test('filterOn 3', async t => {
   const array: any[] = [];
   const transformer = new DataTransformer<any>(data, 'users.$');
   transformer
-    .filterOn('test', (user, { onValue }) => {
-      const o = new RegExp(onValue, 'i').test(user.name);
-      return o;
-    })
+    .filterOn('test', (user, { onValue }) =>
+      new RegExp(onValue, 'i').test(user.name)
+    )
     .map(user => user.name)
     .toArray(array);
   transformer.init();
@@ -965,4 +970,225 @@ test('sortOn filterOn slice', t => {
   data.set('filter', '[abcd]');
   t.deepEqual(array, ['d', 'c', 'b']);
   t.pass();
+});
+
+type Index = { [index: number]: Index };
+
+export class FlatTransformer<T> extends BaseTransformer<[T, number[]], T> {
+  private index: Index = {};
+
+  constructor(data: Data) {
+    super(data);
+  }
+
+  private toEntry(entry: Entry<[T, number[]]>): Entry<T> {
+    if (entry.value === undefined) return { key: entry.key } as Entry<T>;
+
+    return {
+      key: entry.key,
+      opts: entry.opts,
+      value: entry.value[0],
+    };
+  }
+
+  addToTransformer(index: number[], parent: BaseTransformer<any, any>): void {
+    parent
+      .addTransformer(new MapTransformer(this.data, value => [value, index]))
+      .addTransformer(this);
+
+    // TODO: When to init, init?
+    if (parent.root instanceof DataTransformer) {
+      parent.root.init();
+    }
+  }
+
+  findIndex(index: number[], create = false) {
+    let idx = 0;
+    let ii = this.index;
+    for (const i of index) {
+      for (let y = 0; y < i; y++) {
+        if (ii[y]) {
+          idx++;
+        }
+      }
+      if (ii[i] === undefined && create) ii[i] = {};
+      ii = ii[i];
+      if (!ii) break;
+    }
+    return idx;
+  }
+
+  addTo(index: number[], value: any) {
+    const idx = this.findIndex(index, true);
+    const entry = {
+      value,
+    } as Entry<T>;
+    this.entries.add(entry, idx);
+    this.nextAdd(idx, entry);
+  }
+
+  add(index: number, entry: Entry<[T, number[]]>): void {
+    console.log('add', index, entry.value);
+    const v = entry.value[0];
+    if (v instanceof BaseTransformer) {
+      this.addToTransformer(entry.value[1], v);
+    } else {
+      this.addTo(entry.value[1], entry.value[0]);
+    }
+  }
+
+  remove(index: number, entry: Entry<[T, number[]]>): void {
+    console.log('remove', index, entry.value);
+    const e = this.toEntry(entry);
+    this.entries.remove(e, index);
+    this.nextRemove(index, e);
+  }
+
+  update(oldIndex: number, index: number, entry: Entry<[T, number[]]>): void {
+    console.log('update', index, entry.value);
+    const e = this.toEntry(entry);
+    this.entries.replace(e, oldIndex, index);
+    this.nextUpdate(oldIndex, index, e);
+  }
+}
+
+test('flat 1', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+  flatTransformer.addTo([1, 1], 'c');
+  t.deepEqual(array, ['a', 'c', 'd']);
+  flatTransformer.addTo([1, 0, 0], 'b');
+  t.deepEqual(array, ['a', 'b', 'c', 'd']);
+});
+
+test('flat 2', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+  flatTransformer.addTo([1, 1], 'c');
+  t.deepEqual(array, ['a', 'c', 'd']);
+  flatTransformer.addTo([1, 0], 'b');
+  t.deepEqual(array, ['a', 'b', 'c', 'd']);
+});
+
+test('flat 3', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addTo([1, 1], 'd');
+  t.deepEqual(array, ['d']);
+  flatTransformer.addTo([0, 1], 'c');
+  t.deepEqual(array, ['c', 'd']);
+  flatTransformer.addTo([0, 0], 'a');
+  t.deepEqual(array, ['a', 'c', 'd']);
+  flatTransformer.addTo([0, 1], 'b');
+  t.deepEqual(array, ['a', 'b', 'c', 'd']);
+});
+
+test('flat 4', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addTo([2], 'c');
+  t.deepEqual(array, ['c']);
+  flatTransformer.addTo([1], 'b');
+  t.deepEqual(array, ['b', 'c']);
+  flatTransformer.addTo([3], 'd');
+  t.deepEqual(array, ['b', 'c', 'd']);
+});
+
+test('flat 5', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  const b = new DataTransformer(data, 'b');
+  const c = new DataTransformer(data, 'c');
+  b.init();
+  c.init();
+
+  flatTransformer.addToTransformer([1, 0], b);
+  flatTransformer.addToTransformer([1, 1], c);
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+
+  data.set('b', 'b');
+  t.deepEqual(array, ['a', 'b', 'd']);
+  data.set('c', 'c');
+  t.deepEqual(array, ['a', 'b', 'c', 'd']);
+});
+
+function don(data: Data, path: string): BaseTransformer<any, any> {
+  const a = new DataTransformer(data, path);
+  a.root = a;
+  return a;
+}
+
+test('flat 6', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addToTransformer(
+    [1],
+    don(data, 'a.$').map(l => l + 's')
+  );
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+
+  data.set('a', ['lol']);
+  t.deepEqual(array, ['a', 'lols', 'd']);
+});
+
+test('flat 7', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addToTransformer(
+    [1],
+    don(data, 'a.$').map(l => don(data, `b.${l}`))
+  );
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+
+  data.set('b.lol', 'yeah');
+  data.set('a', ['lol']);
+  t.deepEqual(array, ['a', 'yeah', 'd']);
 });
