@@ -1122,3 +1122,23 @@ test('flat 8', t => {
   flatTransformer.addTo([0], ['a', ['b', 'c']]);
   t.deepEqual(array, ['a', 'b', 'c']);
 });
+
+test('flat 9', t => {
+  const array: any[] = [];
+  const data = new Data();
+
+  const flatTransformer = new FlatTransformer(data);
+  flatTransformer.toArray(array);
+
+  flatTransformer.addToTransformer([1], don(data, 'a'));
+
+  flatTransformer.addTo([0], 'a');
+  t.deepEqual(array, ['a']);
+  flatTransformer.addTo([2], 'd');
+  t.deepEqual(array, ['a', 'd']);
+
+  data.set('a', 'yes');
+  t.deepEqual(array, ['a', 'yes', 'd']);
+  data.set('a', undefined);
+  t.deepEqual(array, ['a', 'd']);
+});

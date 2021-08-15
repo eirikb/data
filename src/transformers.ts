@@ -314,8 +314,6 @@ export class MapTransformer<T, O> extends BaseTransformer<T, O> {
   }
 
   private toEntry(entry: Entry<T>): Entry<O> {
-    if (entry.value === undefined) return { key: entry.key } as Entry<O>;
-
     return {
       key: entry.key,
       opts: entry.opts,
@@ -333,8 +331,8 @@ export class MapTransformer<T, O> extends BaseTransformer<T, O> {
     this.nextAdd(index, e);
   }
 
-  remove(index: number, entry: Entry<T>): void {
-    const e = this.toEntry(entry);
+  remove(index: number, _: Entry<T>): void {
+    const e = this.entries.get(index);
     this.entries.remove(e, index);
     this.nextRemove(index, e);
   }
@@ -718,8 +716,7 @@ export class FlatTransformer<T> extends BaseTransformer<[T, number[]], T> {
     this.nextAdd(idx, entry);
   }
 
-  add(index: number, entry: Entry<[T, number[]]>): void {
-    console.log('add', index, entry.value);
+  add(_: number, entry: Entry<[T, number[]]>): void {
     const v = entry.value[0];
     if (v instanceof BaseTransformer) {
       this.addToTransformer(entry.value[1], v);
@@ -728,15 +725,22 @@ export class FlatTransformer<T> extends BaseTransformer<[T, number[]], T> {
     }
   }
 
-  remove(index: number, entry: Entry<[T, number[]]>): void {
-    console.log('remove', index, entry.value);
+  remove(_: number, entry: Entry<[T, number[]]>): void {
+    const indexes = entry.value[1];
+    const idx = this.findIndex(indexes);
+    let ii = this.index;
+    for (const i of indexes.slice(0, -1)) {
+      if (ii) ii = ii[i];
+    }
+    if (ii) {
+      delete ii[indexes[indexes.length - 1]];
+    }
     const e = this.toEntry(entry);
-    this.entries.remove(e, index);
-    this.nextRemove(index, e);
+    this.entries.remove(e, idx);
+    this.nextRemove(idx, e);
   }
 
   update(oldIndex: number, index: number, entry: Entry<[T, number[]]>): void {
-    console.log('update', index, entry.value);
     const e = this.toEntry(entry);
     this.entries.replace(e, oldIndex, index);
     this.nextUpdate(oldIndex, index, e);
