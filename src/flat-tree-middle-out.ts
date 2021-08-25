@@ -1,68 +1,62 @@
 /***
- * The flat middle-out tree algorithm
+ * The Relatively Fast Flat Middle-out Tree Algorithm
  *
  * This is by far the fastest middle-out algorithm implementation in a tree based array-like structure.
- * Insertion and removal of nodes is about O(m) where m is tree depth.
  */
 
-type Index = Index[] & {
+export type Ref = object;
+
+export type Node = Node[] & {
   value: any;
+  ref: Ref;
   count: number;
-  includeInCount: boolean;
 };
 
+function createNode(): Node {
+  return Object.assign([], {
+    ref: {},
+    value: undefined,
+    count: 0,
+  });
+}
+
 export class FlatTreeMiddleOut {
-  private index: Index[] = [];
+  private root: Node = createNode();
 
-  private createIndex(): Index {
-    return Object.assign([], {
-      count: 0,
-      includeInCount: false,
-      value: undefined,
-    });
-  }
-
-  add(index: number[], value: any, includeInCount: boolean): number | null {
-    console.log(' >', index, value);
-
+  add(
+    path: Ref[],
+    index: number,
+    value: any,
+    visible: boolean
+  ): [Ref, number | undefined] {
+    let node: Node | undefined = this.root;
     let idx = 0;
-    let ii = this.index;
-    for (let i = 0; i < index.length; i++) {
-      const end = i === index.length - 1;
+    const pathAsNodes = [this.root];
+    for (const ref of path) {
+      node = node?.find(n => {
+        if (n.ref === ref) return n;
+        idx += n.count;
+        return undefined;
+      });
+      if (node !== undefined) pathAsNodes.push(node);
+    }
+    if (!node) node = this.root;
 
-      const v = index[i];
-      ii[v] = ii[v] ?? this.createIndex();
-      if (includeInCount) ii[v].count++;
+    for (let i = 0; i < index; i++) {
+      idx += node[i]?.count ?? 0;
+    }
 
-      if (includeInCount) {
-        if (end && ii[v].value !== undefined) {
-          // throw new Error(`Index ${index} already set`);
-          console.log('Already set! MUST - PUSH!', end, 'idx', idx);
-          ii.splice(v, 0, this.createIndex());
-        }
+    const n = createNode();
+    node.splice(index, 0, n);
+    n.value = value;
 
-        for (let j = 0; j < v; j++) {
-          const prev = ii[j];
-          if (prev) {
-            idx += prev.count;
-          }
-        }
-      }
-      if (!end) {
-        ii = ii[v];
+    if (visible) {
+      n.count = 1;
+      for (const ns of pathAsNodes) {
+        ns.count++;
       }
     }
-    const end = index[index.length - 1];
 
-    ii[end].value = value;
-    ii[end].includeInCount = includeInCount;
-    ii[end].count = includeInCount ? 1 : 0;
-
-    if (!includeInCount) return null;
-
-    // console.log(' <', this.index);
-    console.log(' <', idx);
-
-    return idx;
+    return [n.ref, visible ? idx : undefined];
   }
 }
