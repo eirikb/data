@@ -98,16 +98,16 @@ test('tree 4', t => {
   t.is(f.add([dt5, dt6, dt7], 0, 'X', true)[1], 5);
   t.is(f.add([dt5, dt6, dt8], 1, 'Y', true)[1], 9);
 });
-//
-// test('remove 1', t => {
-//   const flatTreeMiddleOut = new FlatTreeMiddleOut();
-//   t.is(flatTreeMiddleOut.add([0], 'a', true), 0);
-//   t.is(flatTreeMiddleOut.add([2], 'd', true), 1);
-//
-//   t.is(flatTreeMiddleOut.add([1], 'DT 1!', false), null);
-//   t.is(flatTreeMiddleOut.add([1, 0], 'b', true), 1);
-//   t.is(flatTreeMiddleOut.add([1, 1], 'c', true), 2);
-//   t.is(flatTreeMiddleOut.add([1, 1], 'X', true), 2);
-//
-//   t.is(flatTreeMiddleOut.remove([1, 1]), 5);
-// });
+
+test('remove 1', t => {
+  const f = new FlatTreeMiddleOut();
+  t.is(f.add([], 0, 'a', true)[1], 0);
+  t.is(f.add([], 2, 'd', true)[1], 1);
+
+  const dt1 = f.add([], 1, 'DT 1!', false)[0];
+  t.is(f.add([dt1], 0, 'b', true)[1], 1);
+  t.is(f.add([dt1], 1, 'c', true)[1], 2);
+  t.is(f.add([dt1], 1, 'X', true)[1], 2);
+
+  t.is(f.remove([dt1], 1, true), 2);
+});

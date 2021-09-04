@@ -20,15 +20,16 @@ function createNode(): Node {
   });
 }
 
+interface NodeFind {
+  node: Node;
+  idx: number;
+  pathAsNodes: Node[];
+}
+
 export class FlatTreeMiddleOut {
   private root: Node = createNode();
 
-  add(
-    path: Ref[],
-    index: number,
-    value: any,
-    visible: boolean
-  ): [Ref, number | undefined] {
+  find(path: Ref[], index: number): NodeFind {
     let node: Node | undefined = this.root;
     let idx = 0;
     const pathAsNodes = [this.root];
@@ -45,6 +46,16 @@ export class FlatTreeMiddleOut {
     for (let i = 0; i < index; i++) {
       idx += node[i]?.count ?? 0;
     }
+    return { node, idx, pathAsNodes };
+  }
+
+  add(
+    path: Ref[],
+    index: number,
+    value: any,
+    visible: boolean
+  ): [Ref, number | undefined] {
+    const { node, idx, pathAsNodes } = this.find(path, index);
 
     const n = createNode();
     node.splice(index, 0, n);
@@ -58,5 +69,18 @@ export class FlatTreeMiddleOut {
     }
 
     return [n.ref, visible ? idx : undefined];
+  }
+
+  remove(path: Ref[], index: number, visible: boolean): number {
+    const { node, idx, pathAsNodes } = this.find(path, index);
+    node.splice(index, 1);
+
+    if (visible) {
+      for (const ns of pathAsNodes) {
+        ns.count++;
+      }
+    }
+
+    return idx;
   }
 }
