@@ -33,7 +33,6 @@ test('map add', t => {
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  // //transformer.start();
 
   data.set('a.b', '1');
   t.deepEqual(array, [3]);
@@ -46,7 +45,6 @@ test('map add 2', t => {
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -62,7 +60,6 @@ test('map add 3', t => {
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -78,7 +75,6 @@ test('map update', t => {
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -95,7 +91,6 @@ test('map remove', t => {
     .map(value => Number(value) + 1)
     .map(value => Number(value) + 1)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -108,7 +103,6 @@ test('map remove', t => {
 test('unset', t => {
   const { array, data, transformer } = dataAndTransformer('a.$');
   transformer.toArray(array);
-  //transformer.start();
 
   data.set('a.b', 'ok');
   t.deepEqual(array, ['ok']);
@@ -120,7 +114,6 @@ test('sort', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.sort((a, b) => b.localeCompare(a)).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -133,7 +126,6 @@ test('sort update', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.sort((a, b) => b.localeCompare(a)).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -151,7 +143,6 @@ test('sort and map', t => {
     .sort((a, b) => b.localeCompare(a))
     .map(v => Number(v) + 1)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -167,7 +158,6 @@ test('map and sort', t => {
     .map(v => `${Number(v) + 1}`)
     .sort((a, b) => b.localeCompare(a))
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: '1',
@@ -180,7 +170,6 @@ test('map add remove update', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.map(v => v).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b1',
@@ -200,7 +189,6 @@ test('map add remove update 2', t => {
     .sort((a, b) => a.localeCompare(b))
     .map(v => v)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b1',
@@ -217,7 +205,6 @@ test('map add remove update 3', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.map(v => v).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b1',
@@ -232,7 +219,6 @@ test('slice', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.slice(0, 1).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -245,7 +231,6 @@ test('slice 2', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.slice(1, 3).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -277,7 +262,6 @@ test('mapOn', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
   transformer
     .mapOn('test', (value, { onValue }) => {
-      console.log('mapOn', value, 'onValue', onValue);
       if (onValue === 'ing') return 'ting';
       return value;
     })
@@ -299,21 +283,14 @@ test('sortOn', t => {
       return a.localeCompare(b);
     })
     .toArray(array);
-  //transformer.start();
-  console.log('  INIT SET');
   data.set('a', {
     b: '1',
     c: '2',
   });
   t.deepEqual(array, ['1', '2']);
-  console.log('  SET test TO true');
   data.set('test', true);
-  console.log(array, 'should be [2, 1]');
   t.deepEqual(array, ['2', '1']);
-  console.log('  SET test TO false');
   data.set('test', false);
-  console.log(array, 'should be [1, 2]');
-  // t.pass();
   t.deepEqual(array, ['1', '2']);
 });
 
@@ -321,7 +298,6 @@ test('sliceOn', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.sliceOn('test.*', value => value).toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -335,7 +311,6 @@ test('sliceOn', t => {
   data.set('test', [0, 3]);
   t.deepEqual(array, ['b', 'c', 'd']);
   data.set('test', [1, 4]);
-  console.log(array, 'should be [c d e]');
   // t.deepEqual(array, ['c', 'd', 'e']);
 });
 
@@ -343,7 +318,6 @@ test('filter', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
   transformer.filter(value => value !== 'c').toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -360,7 +334,6 @@ test('filterOn', t => {
   transformer
     .filterOn('test', (value, { onValue }) => value !== onValue)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -384,7 +357,6 @@ test('no output no fail', t => {
 test('then before', t => {
   const { array, data, transformer } = dataAndTransformer('users.$');
   transformer.toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -396,7 +368,6 @@ test('then before', t => {
 test('then unset', t => {
   const { array, data, transformer } = dataAndTransformer('users.$');
   transformer.toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -411,7 +382,6 @@ test('then not called for outfiltered data', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
 
   transformer.filter(user => user.name === 'a').toArray(array);
-  //transformer.start();
   data.set('users.a.name', 'a');
   t.deepEqual(array, [{ name: 'a' }]);
   data.set('users.b.name', 'b');
@@ -422,7 +392,6 @@ test('then not called for outfiltered data 2', t => {
   const { array, transformer, data } = dataAndTransformer('users.$.*');
 
   transformer.filter(user => user.name === 'a').toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a', k: 1 },
@@ -440,7 +409,6 @@ test('to filter', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
 
   transformer.filter(u => u.name !== 'b').toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -460,7 +428,6 @@ test('to filter 2', t => {
     b: { name: 'b' },
   });
   transformer.filter(u => u.name !== 'b').toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, [{ name: 'a' }]);
 });
@@ -469,7 +436,6 @@ test('to map', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
 
   transformer.map(user => ({ wat: user.name })).toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -490,7 +456,6 @@ test('to map 2', t => {
   });
 
   transformer.map(user => ({ wat: user.name })).toArray(array);
-  //transformer.start();
 
   data.set('users.c.name', 'c');
 
@@ -504,7 +469,6 @@ test('to map and filter', t => {
     .map(u => ({ wat: u.name }))
     .filter(u => u.wat !== 'b')
     .toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -522,7 +486,6 @@ test('filterOn after', t => {
   transformer
     .filterOn('filter', (u, { onValue }) => u.name === onValue)
     .toArray(array);
-  //transformer.start();
   data.set('users', {
     a: { name: 'a' },
     b: { name: 'b' },
@@ -540,7 +503,6 @@ test('filterOn before', t => {
   transformer
     .filterOn('filter', (value, { onValue }) => value.name === onValue)
     .toArray(array);
-  //transformer.start();
 
   data.set('users', {
     a: { name: 'a' },
@@ -558,7 +520,6 @@ test('sort 2', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
 
   transformer.sort((a, b) => b.name.localeCompare(a.name)).toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, []);
   data.set('users', {
@@ -576,7 +537,6 @@ test('Update filterOn on update after data is set', t => {
       new RegExp(filter, 'i').test(user)
     )
     .toArray(array);
-  //transformer.start();
 
   data.set('test', '');
   data.set('users', { a: 'a', b: 'b' });
@@ -594,7 +554,6 @@ test('filterOn and back', t => {
       new RegExp(filter, 'i').test(name)
     )
     .toArray(array);
-  //transformer.start();
 
   data.set('test', '');
   data.set('users', { one: { name: 'One!' }, two: { name: 'Two!' } });
@@ -614,7 +573,6 @@ test('on sortOn - custom order update', t => {
       onValue === 'yes' ? b.localeCompare(a) : a.localeCompare(b)
     )
     .toArray(array);
-  //transformer.start();
 
   data.set('users.1', { name: '1' });
   data.set('users.2', { name: '2' });
@@ -631,7 +589,6 @@ test('on sortOn - custom order update', t => {
 test('Transformer no sub-array', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
   transformer.map(p => p.name).toArray(array);
-  //transformer.start();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -642,7 +599,6 @@ test('Transformer no sub-array', t => {
 test('Transformer sub-array', t => {
   const { array, transformer, data } = dataAndTransformer('users.$');
   transformer.map(p => p.name).toArray(array);
-  //transformer.start();
 
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(array, ['a', 'b']);
@@ -659,7 +615,6 @@ test('map has path', t => {
     res.push(path);
     return p.name;
   });
-  //transformer.start();
   data.set('users', [{ name: 'a' }, { name: 'b' }]);
   t.deepEqual(res, ['users.0', 'users.1']);
 });
@@ -670,7 +625,6 @@ test('child', t => {
   transformer.map((_, { child }) => {
     t.is(child('ok'), 'test.a.ok');
   });
-  //transformer.start();
 
   data.set('test.a.ok', 'yes!');
 });
@@ -679,7 +633,6 @@ test('or', t => {
   const { transformer, array } = dataAndTransformer('test.$');
 
   transformer.or(1).toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, [1]);
 });
@@ -688,7 +641,6 @@ test('or2', t => {
   const { data, array, transformer } = dataAndTransformer('test.$');
 
   transformer.or('well').toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
@@ -702,7 +654,6 @@ test('or3', t => {
   const array: any[] = [];
   const transformer = new DataTransformer(data, 'test.$');
   transformer.or('well').toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, ['well']);
   data.set('test.a', 'ok');
@@ -714,7 +665,6 @@ test('or3', t => {
 test('unset2', async t => {
   const { data, array, transformer } = dataAndTransformer('test');
   transformer.toArray(array);
-  //transformer.start();
 
   data.set('test', 'ing');
   t.deepEqual(array, ['ing']);
@@ -771,7 +721,6 @@ test('filterOn 3', async t => {
     )
     .map(user => user.name)
     .toArray(array);
-  //transformer.start();
 
   t.deepEqual(array, ['Two!']);
   data.set('test', '');
@@ -781,7 +730,6 @@ test('filterOn 3', async t => {
 test('lists', t => {
   const { array, data, transformer } = dataAndTransformer('users.$');
   transformer.toArray(array);
-  //transformer.start();
   data.set('users', [{ name: 'eirik' }, { name: 'steffen' }]);
   t.deepEqual(array, [{ name: 'eirik' }, { name: 'steffen' }]);
   data.set('users.1.name', 'wut');
@@ -797,7 +745,6 @@ test('aggregate', t => {
   const transformer = new DataTransformer(data, 'users.$');
   transformer
     .aggregate(entries => {
-      console.log('oh my', entries);
       data.set('total', entries.length);
     })
     .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
@@ -809,8 +756,6 @@ test('aggregate', t => {
       data.set('now', entries.length);
     })
     .toArray(array);
-
-  //transformer.start();
 
   t.deepEqual(array, ['a', 'b']);
   t.is(data.get('total'), 4);
@@ -832,17 +777,14 @@ test('aggregate 1', t => {
   const array: any[] = [];
   const transformer = new DataTransformer(data, 'users.$');
   transformer
-    // .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
+    .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
     .slice(0, 2)
     .toArray(array);
 
-  console.log(array);
-  t.pass();
-
-  // t.deepEqual(array, ['a', 'b']);
-  // data.unset('f');
-  // data.set('f', ['a', 'b', 'c']);
-  // t.deepEqual(array, ['a', 'b']);
+  t.deepEqual(array, ['a', 'b']);
+  data.unset('f');
+  data.set('f', ['a', 'b', 'c']);
+  t.deepEqual(array, ['a', 'b']);
 });
 
 test('aggregate delayed', async t => {
@@ -869,8 +811,6 @@ test('aggregate delayed', async t => {
       count++;
     }, true)
     .toArray(array);
-
-  //transformer.start();
 
   t.deepEqual(array, ['a', 'b']);
   await tick();
@@ -902,7 +842,6 @@ test('sortOn filterOn', t => {
     )
     .map(x => x.name)
     .toArray(array);
-  //transformer.start();
 
   data.set('test', {
     a: { name: 'a', x: 5, y: 1 },
@@ -931,7 +870,6 @@ test('sortOn filterOn 2', t => {
     .filter(() => true)
     .map(v => v.name)
     .toArray(array);
-  //transformer.start();
 
   data.set('test', [
     { name: 'a', x: 5, y: 1 },
@@ -955,7 +893,6 @@ test('sortOn + filter', t => {
     )
     .map(x => x.name)
     .toArray(array);
-  //transformer.start();
 
   data.set('test', [
     { name: 'a', x: 5, y: 1 },
@@ -986,7 +923,6 @@ test('sortOn filterOn slice', t => {
     .map(x => x.name)
     .slice(0, 3)
     .toArray(array);
-  //transformer.start();
 
   data.set('test', {
     a: { name: 'a', x: 5, y: 1 },
@@ -1002,5 +938,4 @@ test('sortOn filterOn slice', t => {
   t.deepEqual(array, ['e', 'd', 'c']);
   data.set('filter', '[abcd]');
   t.deepEqual(array, ['d', 'c', 'b']);
-  t.pass();
 });
