@@ -263,7 +263,6 @@ test('sort and slice', t => {
     .sort((a, b) => b.localeCompare(a))
     .slice(1, 3)
     .toArray(array);
-  //transformer.start();
 
   data.set('a', {
     b: 'b',
@@ -271,9 +270,7 @@ test('sort and slice', t => {
     d: 'd',
     e: 'e',
   });
-  console.log(array, 'should be [d c]');
-  t.pass();
-  // t.deepEqual(array, ['d', 'c']);
+  t.deepEqual(array, ['d', 'c']);
 });
 
 test('mapOn', t => {
@@ -799,8 +796,9 @@ test('aggregate', t => {
   const array: any[] = [];
   const transformer = new DataTransformer(data, 'users.$');
   transformer
-    .aggregate(entrires => {
-      data.set('total', entrires.length);
+    .aggregate(entries => {
+      console.log('oh my', entries);
+      data.set('total', entries.length);
     })
     .filterOn('f', (v, { onValue }) => (onValue || []).includes(v))
     .aggregate(entries => {

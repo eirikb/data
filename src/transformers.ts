@@ -529,32 +529,21 @@ export class SliceTransformer<T> extends BaseTransformer<T, T> {
   }
 
   add(index: number, entry: Entry<T>): void {
-    // this.entries.add(entry, index);
-    console.log('slice transformer add?!', index, entry.value);
-
     if (this.parent !== undefined) {
-      console.log(
-        this.parent.entries.entries.map(e => e.value),
-        this.entries.entries.map(e => e.value)
-      );
-
       if (index >= this.startIdx && (!this.endIdx || index < this.endIdx)) {
         this.nextAdd(index - this.startIdx, entry);
-      } else if (index < this.startIdx && this.entries.length > this.startIdx) {
-        this.nextAdd(
-          0,
-          this.parent.entries.get(this.startIdx)
-          // this.parent.entries.get(index)
-          // entry
-        );
+      } else if (
+        index < this.startIdx &&
+        this.parent.entries.length > this.startIdx
+      ) {
+        this.nextAdd(0, this.parent.entries.get(this.startIdx));
       } else {
         return;
       }
 
-      if (this.endIdx && this.entries.length > this.endIdx) {
+      if (this.endIdx && this.parent.entries.length > this.endIdx) {
         this.nextRemove(
           this.endIdx - this.startIdx,
-          // entry
           this.parent.entries.get(this.endIdx)
         );
       }
@@ -751,19 +740,19 @@ export class AggregateTransformer<T> extends BaseTransformer<T, T> {
 
   add(index: number, entry: Entry<T>): void {
     // this.entries.add(entry, index);
-    this.callback();
     this.nextAdd(index, entry);
+    this.callback();
   }
 
   remove(index: number, entry: Entry<T>): void {
     // this.entries.remove(entry, index);
-    this.callback();
     this.nextRemove(index, entry);
+    this.callback();
   }
 
   update(oldIndex: number, index: number, entry: Entry<T>): void {
     // this.entries.replace(entry, index, oldIndex);
-    this.callback();
     this.nextUpdate(oldIndex, index, entry);
+    this.callback();
   }
 }
