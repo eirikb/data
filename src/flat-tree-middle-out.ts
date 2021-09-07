@@ -77,6 +77,10 @@ export class FlatTreeMiddleOut {
     return [n.ref, visible ? idx : undefined];
   }
 
+  nodes(): Node[] {
+    return this.walkTheWalk(this.root);
+  }
+
   walkTheWalk(node: Node, res: Node[] = []): Node[] {
     node.forEach(n => this.walkTheWalk(n, res));
     res.push(node);

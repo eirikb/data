@@ -191,3 +191,23 @@ test('it', t => {
   data.set('a', [{ t: 'a' }, { t: 'b' }, { t: 'c' }]);
   t.deepEqual(array, ['c', 'b']);
 });
+
+test('stop start', t => {
+  const array: any[] = [];
+  const data = new Data();
+  const f = new Pathifier(data, new ToArrayTransformer(data, array));
+
+  f.put(
+    0,
+    f
+      .on('a.$')
+      .sort((a, b) => b.t.localeCompare(a.t))
+      .slice(0, 2)
+      .map(v => v.t)
+  );
+  f.stop();
+  data.set('a', [{ t: 'a' }, { t: 'b' }, { t: 'c' }]);
+  t.deepEqual(array, []);
+  f.start();
+  t.deepEqual(array, ['c', 'b']);
+});

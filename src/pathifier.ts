@@ -12,6 +12,22 @@ export class Pathifier {
     this.root = root;
   }
 
+  start() {
+    for (const node of this.f.nodes()) {
+      if (node.value instanceof BaseTransformer) {
+        node.value.start();
+      }
+    }
+  }
+
+  stop() {
+    for (const node of this.f.nodes()) {
+      if (node.value instanceof BaseTransformer) {
+        node.value.stop();
+      }
+    }
+  }
+
   private add(path: Ref[], index: number, entry: Entry<any>) {
     if (entry.value instanceof BaseTransformer) {
       this.hack(path, index, entry.value);
@@ -83,7 +99,5 @@ export class Pathifier {
         }
       })(this.data)
     );
-
-    // d.start();
   }
 }
