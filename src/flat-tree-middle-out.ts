@@ -10,13 +10,15 @@ export type Node = Node[] & {
   value: any;
   ref: Ref;
   count: number;
+  visible: boolean;
 };
 
-function createNode(): Node {
+function createNode(visible: boolean): Node {
   return Object.assign([], {
     ref: {},
     value: undefined,
     count: 0,
+    visible,
   });
 }
 
@@ -27,9 +29,9 @@ interface NodeFind {
 }
 
 export class FlatTreeMiddleOut {
-  private root: Node = createNode();
+  private root: Node = createNode(false);
 
-  find(path: Ref[], index: number): NodeFind {
+  private find(path: Ref[], index: number): NodeFind {
     let node: Node | undefined = this.root;
     let idx = 0;
     const pathAsNodes = [this.root];
@@ -57,7 +59,7 @@ export class FlatTreeMiddleOut {
   ): [Ref, number | undefined] {
     const { node, idx, pathAsNodes } = this.find(path, index);
 
-    const n = createNode();
+    const n = createNode(visible);
     node.splice(index, 0, n);
     n.value = value;
 
@@ -71,16 +73,26 @@ export class FlatTreeMiddleOut {
     return [n.ref, visible ? idx : undefined];
   }
 
-  remove(path: Ref[], index: number, visible: boolean): number {
+  walkTheWalk(node: Node, res: Node[] = []): Node[] {
+    node.forEach(n => this.walkTheWalk(n, res));
+    res.push(node);
+    return res;
+  }
+
+  remove(path: Ref[], index: number): { idx: number; value: any }[] {
     const { node, idx, pathAsNodes } = this.find(path, index);
+    const target = node[index];
+
     node.splice(index, 1);
 
-    if (visible) {
+    const nodes = this.walkTheWalk(target);
+
+    if (target.count > 0) {
       for (const ns of pathAsNodes) {
-        ns.count++;
+        ns.count -= target.count;
       }
     }
 
-    return idx;
+    return nodes.map((node, i) => ({ idx: idx + i, value: node.value }));
   }
 }

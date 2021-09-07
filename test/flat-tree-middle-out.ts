@@ -109,5 +109,57 @@ test('remove 1', t => {
   t.is(f.add([dt1], 1, 'c', true)[1], 2);
   t.is(f.add([dt1], 1, 'X', true)[1], 2);
 
-  t.is(f.remove([dt1], 1, true), 2);
+  const rm = f.remove([dt1], 1);
+  t.is(1, rm.length);
+  t.is(2, rm[0].idx);
+  t.is('X', rm[0].value);
+});
+
+test('walk the walk', t => {
+  const f = new FlatTreeMiddleOut();
+  t.is(f.add([], 0, 'a', true)[1], 0);
+  t.is(f.add([], 3, 'd', true)[1], 1);
+  const dt1 = f.add([], 1, 'DT!', false)[0];
+  const dt2 = f.add([dt1], 0, 'DT2!', false)[0];
+  const dt3 = f.add([dt1, dt2], 0, 'DT3!', false)[0];
+  const dt4 = f.add([dt1, dt2], 1, 'DT4!', false)[0];
+  f.add([dt1, dt2, dt3], 0, 'b', true);
+  f.add([dt1, dt2, dt3], 1, 'c', true);
+  f.add([dt1, dt2, dt4], 0, 'd', true);
+  f.add([dt1, dt2], 2, 'e', true);
+  const dt5 = f.add([], 2, 'DT5!', false)[0];
+  let dt6 = f.add([dt5], 0, 'DT6!', false)[0];
+  let dt7 = f.add([dt5, dt6], 0, 'DT7!', false)[0];
+  let dt8 = f.add([dt5, dt6], 1, 'DT8!', false)[0];
+  f.add([dt5, dt6, dt7], 0, 'f', true);
+  f.add([dt5, dt6, dt7], 1, 'g', true);
+  f.add([dt5, dt6, dt8], 0, 'h', true);
+  f.add([dt5, dt6, dt8], 1, 'i', true);
+  f.add([dt5, dt6, dt7], 0, 'X', true);
+  f.add([dt5, dt6, dt8], 1, 'Y', true);
+
+  t.deepEqual(
+    [
+      { idx: 5, value: 'X' },
+      { idx: 6, value: 'f' },
+      { idx: 7, value: 'g' },
+      { idx: 8, value: 'DT7!' },
+      { idx: 9, value: 'h' },
+      { idx: 10, value: 'Y' },
+      { idx: 11, value: 'i' },
+      { idx: 12, value: 'DT8!' },
+      { idx: 13, value: 'DT6!' },
+    ],
+    f.remove([dt5], 0)
+  );
+
+  dt6 = f.add([dt5], 0, 'DT6!', false)[0];
+  dt7 = f.add([dt5, dt6], 0, 'DT7!', false)[0];
+  dt8 = f.add([dt5, dt6], 1, 'DT8!', false)[0];
+  t.is(f.add([dt5, dt6, dt7], 0, 'f', true)[1], 5);
+  t.is(f.add([dt5, dt6, dt7], 1, 'g', true)[1], 6);
+  t.is(f.add([dt5, dt6, dt8], 0, 'h', true)[1], 7);
+  t.is(f.add([dt5, dt6, dt8], 1, 'i', true)[1], 8);
+  t.is(f.add([dt5, dt6, dt7], 0, 'X', true)[1], 5);
+  t.is(f.add([dt5, dt6, dt8], 1, 'Y', true)[1], 9);
 });
