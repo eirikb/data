@@ -31,6 +31,10 @@ interface NodeFind {
 export class FlatTreeMiddleOut {
   private root: Node = createNode(false);
 
+  getIndex(path: Ref[], index: number): number {
+    return this.find(path, index).idx;
+  }
+
   private find(path: Ref[], index: number): NodeFind {
     let node: Node | undefined = this.root;
     let idx = 0;
@@ -79,7 +83,10 @@ export class FlatTreeMiddleOut {
     return res;
   }
 
-  remove(path: Ref[], index: number): { idx: number; value: any }[] {
+  remove(
+    path: Ref[],
+    index: number
+  ): { idx: number | undefined; value: any }[] {
     const { node, idx, pathAsNodes } = this.find(path, index);
     const target = node[index];
 
@@ -93,6 +100,13 @@ export class FlatTreeMiddleOut {
       }
     }
 
-    return nodes.map((node, i) => ({ idx: idx + i, value: node.value }));
+    let i = idx - 1;
+    return nodes.map(node => {
+      if (node.visible) i++;
+      return {
+        idx: node.visible ? i : undefined,
+        value: node.value,
+      };
+    });
   }
 }

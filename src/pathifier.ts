@@ -38,9 +38,14 @@ export class Pathifier {
   }
 
   private xremove(path: Ref[], index: number, entry: Entry<any>) {
-    const idx = this.f.remove(path, index, true);
-    if (idx !== undefined) {
-      this.root.remove(idx, entry);
+    const res = this.f.remove(path, index);
+    for (const { idx, value } of res.reverse()) {
+      if (value instanceof BaseTransformer) {
+        value.stop();
+      }
+      if (idx !== undefined) {
+        this.root.remove(idx, entry);
+      }
     }
   }
 
@@ -51,7 +56,7 @@ export class Pathifier {
     entry: Entry<any>
   ) {
     if (oldIndex === index) {
-      const { idx } = this.f.find(path, index);
+      const idx = this.f.getIndex(path, index);
       this.root.update(idx, idx, entry);
     } else {
       this.xremove(path, oldIndex, entry);

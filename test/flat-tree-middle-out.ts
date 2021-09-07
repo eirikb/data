@@ -143,12 +143,12 @@ test('walk the walk', t => {
       { idx: 5, value: 'X' },
       { idx: 6, value: 'f' },
       { idx: 7, value: 'g' },
-      { idx: 8, value: 'DT7!' },
-      { idx: 9, value: 'h' },
-      { idx: 10, value: 'Y' },
-      { idx: 11, value: 'i' },
-      { idx: 12, value: 'DT8!' },
-      { idx: 13, value: 'DT6!' },
+      { idx: undefined, value: 'DT7!' },
+      { idx: 8, value: 'h' },
+      { idx: 9, value: 'Y' },
+      { idx: 10, value: 'i' },
+      { idx: undefined, value: 'DT8!' },
+      { idx: undefined, value: 'DT6!' },
     ],
     f.remove([dt5], 0)
   );
