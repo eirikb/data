@@ -241,6 +241,20 @@ test('slice 2', t => {
   t.deepEqual(array, ['c', 'd']);
 });
 
+test('slice 3', t => {
+  const { array, data, transformer } = dataAndTransformer('a.$');
+
+  transformer.slice(1, 4).toArray(array);
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['c', 'd', 'e']);
+});
+
 test('sort and slice', t => {
   const { array, data, transformer } = dataAndTransformer('a.$y');
 
@@ -248,6 +262,22 @@ test('sort and slice', t => {
     .sort((a, b) => b.localeCompare(a))
     .slice(1, 3)
     .toArray(array);
+
+  data.set('a', {
+    b: 'b',
+    c: 'c',
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['d', 'c']);
+
+  data.set('a', {
+    d: 'd',
+    e: 'e',
+  });
+  t.deepEqual(array, ['d']);
+  data.set('a', {});
+  t.deepEqual(array, []);
 
   data.set('a', {
     b: 'b',
@@ -311,7 +341,7 @@ test('sliceOn', t => {
   data.set('test', [0, 3]);
   t.deepEqual(array, ['b', 'c', 'd']);
   data.set('test', [1, 4]);
-  // t.deepEqual(array, ['c', 'd', 'e']);
+  t.deepEqual(array, ['c', 'd', 'e']);
 });
 
 test('filter', t => {

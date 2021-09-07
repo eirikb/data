@@ -208,7 +208,7 @@ export abstract class BaseTransformer<T, O> {
   sliceOn(path: string, sliceOn: SliceOn<T>): BaseTransformer<T, T> {
     return this.addOnTransformer(
       path,
-      new SliceTransformer(this.data, 0, 0, sliceOn)
+      new SliceTransformer(this.data, 0, undefined, sliceOn)
     );
   }
 
@@ -425,64 +425,79 @@ export class SortTransformer<T> extends BaseTransformer<T, T> {
 }
 
 export class SliceTransformer<T> extends BaseTransformer<T, T> {
-  private startIdx: number;
-  private endIdx?: number;
+  private startAt: number;
+  private endAt: number;
+  private itemsBeforeStart: number = 0;
   private readonly _sliceOn?: SliceOn<T> | undefined;
 
   constructor(
     data: Data,
-    startIdx: number,
-    endIdx?: number,
+    startAt: number,
+    endAt?: number,
     sliceOn?: SliceOn<T>
   ) {
     super(data);
-    this.startIdx = startIdx;
-    this.endIdx = endIdx;
+    this.startAt = startAt;
+    this.endAt = endAt !== undefined ? endAt : Number.MAX_VALUE;
     this._sliceOn = sliceOn;
   }
 
   add(index: number, entry: Entry<T>): void {
     if (this.parent !== undefined) {
-      if (index >= this.startIdx && (!this.endIdx || index < this.endIdx)) {
-        this.nextAdd(index - this.startIdx, entry);
-      } else if (
-        index < this.startIdx &&
-        this.parent.entries.length > this.startIdx
-      ) {
-        this.nextAdd(0, this.parent.entries.get(this.startIdx));
-      } else {
-        return;
-      }
+      const mySize = this.entries.length;
+      const start = this.startAt;
+      const end = this.endAt;
+      const expectedSize = end - start;
 
-      if (this.endIdx && this.parent.entries.length > this.endIdx) {
-        this.nextRemove(
-          this.endIdx - this.startIdx,
-          this.parent.entries.get(this.endIdx)
-        );
+      if (index >= start && index < end) {
+        if (mySize + 1 > expectedSize) {
+          this.nextRemove(expectedSize - 1, this.entries.get(expectedSize - 1));
+        }
+        this.nextAdd(index - start, entry);
+      } else if (index < end) {
+        if (this.itemsBeforeStart === start) {
+          if (mySize + 1 > expectedSize) {
+            this.nextRemove(
+              expectedSize - 1,
+              this.entries.get(expectedSize - 1)
+            );
+          }
+          this.nextAdd(0, this.parent.entries.get(start));
+        } else {
+          this.itemsBeforeStart++;
+        }
       }
     }
   }
 
   remove(index: number, entry: Entry<T>): void {
     if (this.parent !== undefined) {
-      if (index >= this.startIdx && (!this.endIdx || index < this.endIdx)) {
-        this.nextRemove(index - this.startIdx, entry);
-      } else if (index < this.startIdx) {
-        const entry = this.parent.entries.get(this.startIdx - 1);
-        if (entry) {
-          this.nextRemove(0, entry);
-        } else {
-          // TODO: Is it bad that it can be undefined?
-        }
-      } else {
-        return;
-      }
+      const mySize = this.entries.length;
+      const parentSize = this.parent.entries.length;
+      const start = this.startAt;
+      const end = this.endAt;
+      const expectedSize = end - start;
 
-      if (this.endIdx && this.parent.entries.length >= this.endIdx) {
-        this.nextAdd(
-          this.endIdx - this.startIdx,
-          this.parent.entries.get(this.endIdx - 1)
-        );
+      if (index >= start && index < end) {
+        this.nextRemove(index - start, entry);
+        if (mySize - 1 < expectedSize && parentSize > start + expectedSize) {
+          this.nextAdd(
+            expectedSize - 1,
+            this.parent.entries.get(start + expectedSize - 1)
+          );
+        }
+      } else if (index < end) {
+        if (this.itemsBeforeStart === start && mySize > 0) {
+          this.nextRemove(0, this.entries.get(index));
+          if (mySize - 1 < expectedSize) {
+            this.nextAdd(
+              expectedSize - 1,
+              this.parent.entries.get(start + expectedSize - 1)
+            );
+          }
+        } else {
+          this.itemsBeforeStart--;
+        }
       }
     }
   }
@@ -493,8 +508,8 @@ export class SliceTransformer<T> extends BaseTransformer<T, T> {
         this.nextRemove(i, this.entries.get(i));
       }
       const [start, end] = this._sliceOn(value, opts);
-      this.startIdx = start;
-      this.endIdx = end;
+      this.startAt = start;
+      this.endAt = end !== undefined ? end : Number.MAX_VALUE;
       this.parent.entries.forEach((entry, index) => this.add(index, entry));
     }
   }
