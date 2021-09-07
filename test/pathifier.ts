@@ -14,9 +14,40 @@ test('flat 1', t => {
   );
 
   data.set('test', ['b', 'c']);
-  data.set('tast', { b: 'd', c: 'e' });
-  console.log('array', array);
-  t.pass();
+  t.deepEqual(array, ['a', 'lolb', 'lolc']);
+});
+
+test('flat 2', t => {
+  const array: any[] = [];
+  const data = new Data();
+  const f = new Pathifier(data, new ToArrayTransformer(data, array));
+
+  f.put(0, 'a');
+  f.put(
+    1,
+    f.on('test.$').map(x => [x, f.on(`tast.${x}`)])
+  );
+
+  data.set('tast', { b: 'X', c: 'Y' });
+  data.set('test', ['b', 'c']);
+  t.deepEqual(array, ['a', 'b', 'X', 'c', 'Y']);
+});
+
+test('flat 3', t => {
+  const array: any[] = [];
+  const data = new Data();
+  const f = new Pathifier(data, new ToArrayTransformer(data, array));
+
+  f.put(0, 'a');
+  f.put(
+    1,
+    f.on('test.$').map(x => [x, f.on(`tast.${x}`)])
+  );
+
+  data.set('tast', { b: 'X', c: 'Y' });
+  data.set('test', ['b', 'c']);
+  data.set('tast.c', 'Z');
+  t.deepEqual(array, ['a', 'b', 'X', 'c', 'Z']);
 });
 
 // test('flat 2', t => {

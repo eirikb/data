@@ -12,19 +12,7 @@ export class Pathifier {
     this.root = root;
   }
 
-  private wat(o: any): string {
-    if (o.constructor.name.endsWith('Transformer')) {
-      return o.constructor.name;
-    } else if (Array.isArray(o)) {
-      return '[' + o.map(this.wat).join(', ') + ']';
-    } else {
-      return o;
-    }
-  }
-
   private add(path: Ref[], index: number, entry: Entry<any>) {
-    console.log('xadd', path, index, this.wat(entry.value));
-
     if (entry.value instanceof BaseTransformer) {
       this.hack(path, index, entry.value);
     } else if (Array.isArray(entry.value)) {
@@ -56,6 +44,21 @@ export class Pathifier {
     }
   }
 
+  private xupdate(
+    path: Ref[],
+    oldIndex: number,
+    index: number,
+    entry: Entry<any>
+  ) {
+    if (oldIndex === index) {
+      const { idx } = this.f.find(path, index);
+      this.root.update(idx, idx, entry);
+    } else {
+      this.xremove(path, oldIndex, entry);
+      this.add(path, index, entry);
+    }
+  }
+
   private hack(p: Ref[], iii: number, d: BaseTransformer<any, any>) {
     const [rr] = this.f.add(p, iii, d, false);
     const path = p.concat(rr);
@@ -67,12 +70,11 @@ export class Pathifier {
         }
 
         remove(index: number, entry: Entry<any>): void {
-          console.log('remove', index);
           self.xremove(path, index, entry);
         }
 
         update(oldIndex: number, index: number, entry: Entry<any>): void {
-          console.log('update', oldIndex, index, entry);
+          self.xupdate(path, oldIndex, index, entry);
         }
       })(this.data)
     );
