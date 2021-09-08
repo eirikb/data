@@ -1,5 +1,5 @@
 import { FlatTreeMiddleOut, Ref } from './flat-tree-middle-out';
-import { BaseTransformer, DataTransformer } from './transformers';
+import { BaseTransformer } from './transformers';
 import { Data, Entry } from './data';
 
 export class Pathifier {
@@ -43,10 +43,6 @@ export class Pathifier {
         this.root.add(idx, entry);
       }
     }
-  }
-
-  on(path: string): DataTransformer<any> {
-    return new DataTransformer<any>(this.data, path);
   }
 
   put(index: number, value: any) {

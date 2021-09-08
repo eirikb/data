@@ -1,5 +1,6 @@
 import test from 'ava';
-import { Data, DataTransformer } from '../src';
+import { Data } from '../src/data';
+import { DataTransformer } from '../src/transformers';
 
 function setup<T>(path: string) {
   const data = new Data();

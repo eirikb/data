@@ -1,6 +1,7 @@
 import { ListenerCallbackWithType } from './types';
 import { Core, reverseLookup } from './core';
 import { ChangeListeners, ChangeType, Listeners } from './listeners';
+import { BaseTransformer, DataTransformer } from './transformers';
 
 export * from './types';
 
@@ -51,6 +52,10 @@ export class Data {
       this.set(toSet.path, toSet.value, toSet.byKey);
     }
   }
+
+  don = <X = any>(path: string): BaseTransformer<X, X> => {
+    return new DataTransformer(this, path);
+  };
 
   on<T = any>(
     flagsAndPath: string,

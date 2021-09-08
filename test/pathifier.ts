@@ -1,5 +1,6 @@
 import test from 'ava';
-import { Data, ToArrayTransformer } from '../src';
+import { Data } from '../src/data';
+import { ToArrayTransformer } from '../src/transformers';
 import { Pathifier } from '../src/pathifier';
 
 test('flat 1', t => {
@@ -10,7 +11,7 @@ test('flat 1', t => {
   f.put(0, 'a');
   f.put(
     1,
-    f.on('test.$').map(x => 'lol' + x)
+    data.don('test.$').map(x => 'lol' + x)
   );
 
   data.set('test', ['b', 'c']);
@@ -25,7 +26,7 @@ test('flat 2', t => {
   f.put(0, 'a');
   f.put(
     1,
-    f.on('test.$').map(x => [x, f.on(`tast.${x}`)])
+    data.don('test.$').map(x => [x, data.don(`tast.${x}`)])
   );
 
   data.set('tast', { b: 'X', c: 'Y' });
@@ -41,7 +42,7 @@ test('flat 3', t => {
   f.put(0, 'a');
   f.put(
     1,
-    f.on('test.$').map(x => [x, f.on(`tast.${x}`)])
+    data.don('test.$').map(x => [x, data.don(`tast.${x}`)])
   );
 
   data.set('tast', { b: 'X', c: 'Y' });
@@ -72,7 +73,7 @@ test('flat 5', t => {
   f.put(0, 'a');
   f.put(
     1,
-    f.on('test.$').map(x => f.on(`tast.${x}`))
+    data.don('test.$').map(x => data.don(`tast.${x}`))
   );
 
   data.set('tast', { b: 'X', c: 'Y' });
@@ -90,7 +91,7 @@ test('flat 6', t => {
 
   f.put(
     1,
-    f.on('a.$').map(l => l + 's')
+    data.don('a.$').map(l => l + 's')
   );
   t.deepEqual(array, []);
 
@@ -110,7 +111,7 @@ test('flat 7', t => {
 
   f.put(
     1,
-    f.on('a.$').map(l => f.on(`b.${l}`))
+    data.don('a.$').map(l => data.don(`b.${l}`))
   );
   f.put(0, 'a');
   t.deepEqual(array, ['a']);
@@ -138,7 +139,7 @@ test('flat 9', t => {
 
   const f = new Pathifier(data, new ToArrayTransformer(data, array));
 
-  f.put(1, f.on('a'));
+  f.put(1, data.don('a'));
 
   f.put(0, 'a');
   t.deepEqual(array, ['a']);
@@ -161,7 +162,7 @@ test('flat 10', t => {
 
   f.put(
     1,
-    f.on('a.$').map(_ => f.on('b.$'))
+    data.don('a.$').map(_ => data.don('b.$'))
   );
 
   f.put(2, 'd');
@@ -182,8 +183,8 @@ test('it', t => {
 
   f.put(
     0,
-    f
-      .on('a.$')
+    data
+      .don('a.$')
       .sort((a, b) => b.t.localeCompare(a.t))
       .slice(0, 2)
       .map(v => v.t)
@@ -199,8 +200,8 @@ test('stop start', t => {
 
   f.put(
     0,
-    f
-      .on('a.$')
+    data
+      .don('a.$')
       .sort((a, b) => b.t.localeCompare(a.t))
       .slice(0, 2)
       .map(v => v.t)
