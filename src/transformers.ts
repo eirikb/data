@@ -8,7 +8,7 @@ import {
   SliceOn,
   Sorter2,
 } from 'types';
-import { Data } from 'data';
+import { Data } from './data';
 
 export class Entries<T> {
   entries: Entry<T>[] = [];
