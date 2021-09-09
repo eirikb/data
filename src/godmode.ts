@@ -47,11 +47,13 @@ export class GodMode<T> {
   public data: T;
   // public React: React;
   // private readonly domdom: Domdom;
-  private readonly _data: Data;
+  protected readonly _data: Data;
+  private readonly proxyEnabled: boolean;
 
-  constructor(data: Data, initialData: T) {
+  constructor(data: Data, initialData: T, proxyEnabled = true) {
     this._data = data;
     // this.domdom = domdom;
+    this.proxyEnabled = proxyEnabled;
     this.data = this.proxify({}) as T;
     // this.React = domdom.React;
 
@@ -75,6 +77,8 @@ export class GodMode<T> {
   };
 
   private proxify(o: any, path: string[] = []): any {
+    if (!this.proxyEnabled) return o;
+
     if (!(isProbablyPlainObject(o) || Array.isArray(o))) {
       return o;
     }

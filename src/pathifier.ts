@@ -12,8 +12,12 @@ export class Pathifier {
     this.root = root;
   }
 
+  nodes() {
+    return this.f.nodes();
+  }
+
   start() {
-    for (const node of this.f.nodes()) {
+    for (const node of this.nodes()) {
       if (node.value instanceof BaseTransformer) {
         node.value.start();
       }
@@ -21,7 +25,7 @@ export class Pathifier {
   }
 
   stop() {
-    for (const node of this.f.nodes()) {
+    for (const node of this.nodes()) {
       if (node.value instanceof BaseTransformer) {
         node.value.stop();
       }

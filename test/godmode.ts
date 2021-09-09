@@ -214,3 +214,22 @@ test('stop start', t => {
   f.start();
   t.deepEqual(array, ['c', 'b']);
 });
+
+test('No callstack please', async t => {
+  const array: any[] = [];
+  const d = new Data();
+  const f = new Pathifier(d, new ToArrayTransformer(d, array));
+  // TODO: Why must proxy be disabled? - hint: t.deepEqual passes Symbol.toStringTag + more, and it comes out wrong
+  const g = new GodMode<{ a: A[] }>(d, { a: [] }, false);
+  f.put(0, g.don('test'));
+  g.on('!+*', 'test', val => {
+    t.deepEqual(val, { hello: 'world' });
+  });
+  g.set('test', {
+    hello: 'world',
+  });
+  g.on('!+*', 'test', val => {
+    t.deepEqual(val, { hello: 'world' });
+  });
+  t.deepEqual(array, [{ hello: 'world' }]);
+});
