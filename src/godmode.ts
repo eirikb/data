@@ -104,6 +104,8 @@ export class GodMode<T> {
 
         const value = target[key];
         if (typeof value === 'function') {
+          if (key === 'valueOf') return target;
+
           return (...args: any[]) => {
             const res = value.call(target, ...args);
             this._set(path, target);
