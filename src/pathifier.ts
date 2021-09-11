@@ -71,13 +71,8 @@ export class Pathifier {
     index: number,
     entry: Entry<any>
   ) {
-    if (oldIndex === index) {
-      const idx = this.f.getIndex(path, index);
-      this.root.update(idx, idx, entry);
-    } else {
-      this.xremove(path, oldIndex, entry);
-      this.add(path, index, entry);
-    }
+    this.xremove(path, oldIndex, entry);
+    this.add(path, index, entry);
   }
 
   private hack(p: Ref[], iii: number, d: BaseTransformer<any, any>) {

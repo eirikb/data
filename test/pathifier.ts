@@ -2,6 +2,7 @@ import test from 'ava';
 import { Data } from '../src/data';
 import { ToArrayTransformer } from '../src/transformers';
 import { Pathifier } from '../src/pathifier';
+import { GodMode } from '../src';
 
 test('flat 1', t => {
   const array: any[] = [];
@@ -211,4 +212,27 @@ test('stop start', t => {
   t.deepEqual(array, []);
   f.start();
   t.deepEqual(array, ['c', 'b']);
+});
+
+test('Wildcard', async t => {
+  const array: any[] = [];
+  const data = new Data();
+  const f = new Pathifier(data, new ToArrayTransformer(data, array));
+  f.put(0, data.don('x.*'));
+  data.set('x', ['a']);
+  t.deepEqual(array, ['a']);
+  data.set('x', ['b']);
+  t.deepEqual(array, ['b']);
+});
+
+test('Wildcard with godmode', async t => {
+  const array: any[] = [];
+  const data = new Data();
+  const f = new Pathifier(data, new ToArrayTransformer(data, array));
+  const g = new GodMode(data, {});
+  f.put(0, g.don('x.*'));
+  data.set('x', ['a']);
+  t.deepEqual(array, ['a']);
+  data.set('x', ['b']);
+  t.deepEqual(array, ['b']);
 });
