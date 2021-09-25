@@ -105,6 +105,13 @@ export class GodMode<T> {
         const value = target[key];
         if (typeof value === 'function') {
           if (Array.isArray(target)) {
+            if (value === target.splice) {
+              return (a: any, b: any, c: any) => {
+                const ffs = target.slice();
+                ffs.splice(a, b, c);
+                this._set(path, ffs);
+              };
+            }
             return (target as any)[key];
           }
           if (key === 'valueOf') return target;

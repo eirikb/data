@@ -265,3 +265,32 @@ test('godMode 3', async t => {
   g.data.users.push({ name: ':)' });
   t.deepEqual(array, ['wut', 'wat', ':)']);
 });
+
+test('array is hacked for now', async t => {
+  interface User {
+    name: string;
+  }
+
+  interface Data {
+    users: User[];
+  }
+
+  const array: any[] = [];
+  const d = new Data();
+  const f = new Pathifier(d, new ToArrayTransformer(d, array));
+  const g = new GodMode<Data>(d, { users: [] });
+  f.put(
+    0,
+    // @ts-ignore
+    d.don('users.$id').map(u => u.name)
+  );
+
+  g.data.users = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
+  t.deepEqual(array, ['A', 'B', 'C']);
+  g.data.users = [{ name: 'A' }, { name: 'C' }];
+  t.deepEqual(array, ['A', 'C']);
+  g.data.users = [{ name: 'A' }, { name: 'B' }, { name: 'C' }];
+  t.deepEqual(array, ['A', 'B', 'C']);
+  g.data.users.splice(1, 1);
+  t.deepEqual(array, ['A', 'C']);
+});
