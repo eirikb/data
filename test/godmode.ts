@@ -245,3 +245,23 @@ test('Proxy', async t => {
     t.deepEqual(v, { hello: 'world' });
   });
 });
+
+test('godMode 3', async t => {
+  const array: any[] = [];
+  const d = new Data();
+  const f = new Pathifier(d, new ToArrayTransformer(d, array));
+  const g = new GodMode<any>(d, {});
+  f.put(
+    0,
+    d.don('users.$.*').map(u => u.name)
+  );
+
+  g.data.users = [{ name: 'hello' }, { name: 'world' }];
+  g.data.users[0].name = 'wut';
+  g.set('users.0.name', 'wut');
+  t.deepEqual(array, ['wut', 'world']);
+  g.data.users[1] = { name: 'wat' };
+  t.deepEqual(array, ['wut', 'wat']);
+  g.data.users.push({ name: ':)' });
+  t.deepEqual(array, ['wut', 'wat', ':)']);
+});

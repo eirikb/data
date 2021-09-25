@@ -102,12 +102,11 @@ export class GodMode<T> {
         else if (key === proxiedSymbol) return true;
         else if (key === '$path') return path.concat(key).join('.');
 
-        if (Array.isArray(target)) {
-          return (target as any)[key];
-        }
-
         const value = target[key];
         if (typeof value === 'function') {
+          if (Array.isArray(target)) {
+            return (target as any)[key];
+          }
           if (key === 'valueOf') return target;
 
           return (...args: any[]) => {
