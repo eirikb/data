@@ -1,0 +1,60 @@
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: 'Version'
+
+name: Build and publish
+
+jobs:
+  build:
+    name: Build and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
+
+      - run: npm i
+
+      - run: npm run lint
+
+      - run: npm run test
+
+      - run: npm run build
+
+      - name: Git config
+        run: |
+          git config --global user.name 'Eirik Brandtzæg'
+          git config --global user.email 'eirikb@eirikb.no'
+
+      - run: npm version --no-git-tag-version ${{ github.event.inputs.version }}
+
+      - name: Set env
+        run: |
+          VER=$(node -p 'require("./package.json").version')
+          echo "Version $VER"
+          echo "PKG_VERSION=$VER" >> $GITHUB_ENV
+
+      - run: git commit -am "Automatic update ${{ env.PKG_VERSION }}!" || true
+
+      - run: git push
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.PKG_VERSION }}
+          release_name: Release v${{ env.PKG_VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Publish
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
