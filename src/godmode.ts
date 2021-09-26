@@ -104,19 +104,18 @@ export class GodMode<T> {
 
         const value = target[key];
         if (typeof value === 'function') {
-          if (Array.isArray(target)) {
-            if (value === target.splice) {
-              return (a: any, b: any, c: any) => {
-                const ffs = target.slice();
-                ffs.splice(a, b, c);
-                this._set(path, ffs);
-              };
-            }
+          const isArray = Array.isArray(target);
+          const isSideEffects =
+            isArray && (value === target.splice || value === target.reverse);
+          if (isArray && !isSideEffects) {
             return (target as any)[key];
           }
           if (key === 'valueOf') return target;
 
           return (...args: any[]) => {
+            if (isSideEffects) {
+              target = target.slice();
+            }
             const res = value.call(target, ...args);
             this._set(path, target);
             return res;
