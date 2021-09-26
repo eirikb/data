@@ -1,6 +1,6 @@
 import test from 'ava';
 import { walk, remove } from '../src/walker';
-import { ChangeType } from '../src';
+import { ChangeType } from '../src/listeners';
 
 test('add string', t => {
   walk([], 'hello', undefined, ({ changeType, newValue, oldValue }) => {

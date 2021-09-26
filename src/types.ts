@@ -30,13 +30,13 @@ export interface Change {
   listenerCallback: ListenerCallback;
 }
 
-export interface Entry<T = any> {
+export interface Entry<T> {
   key: string;
   value: T;
   opts: ListenerCallbackOptions;
 }
 
-export type Sorter2<T = any> = (
+export type Sorter2<T> = (
   aValue: T,
   bValue: T,
   opts: {
@@ -45,7 +45,7 @@ export type Sorter2<T = any> = (
   }
 ) => number;
 
-export type OnSorter2<T = any> = (
+export type OnSorter2<T> = (
   aValue: T,
   bValue: T,
   opts: {
@@ -56,26 +56,18 @@ export type OnSorter2<T = any> = (
   }
 ) => number;
 
-export type Mapper<T = any> = (
+export type Mapper<T, R> = (
   value: T,
   opts: ListenerCallbackOnValueOptions
-) => void;
+) => R;
 
-export type OnMapper<T = any> = (
-  value: T,
-  opts: ListenerCallbackOnValueOptions
-) => void;
-
-export type SliceOn<T = any> = (
+export type SliceOn<T> = (
   onValue?: T,
   onOpts?: ListenerCallbackOptions
 ) => [number, number?];
 
-export type Filter<T = any> = (
-  value: T,
-  opts: ListenerCallbackOptions
-) => boolean;
-export type OnFilter<T = any> = (
+export type Filter<T> = (value: T, opts: ListenerCallbackOptions) => boolean;
+export type OnFilter<T> = (
   value: T,
   opts: {
     opts: ListenerCallbackOptions;

@@ -1,5 +1,5 @@
 import test from 'ava';
-import { ChangeListeners, ChangeType } from '../src';
+import { ChangeListeners, ChangeType } from '../src/listeners';
 import { Core, reverseLookup } from '../src/core';
 
 test('add', t => {
