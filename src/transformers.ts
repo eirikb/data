@@ -7,7 +7,7 @@ import {
   OnSorter2,
   SliceOn,
   Sorter2,
-} from 'types';
+} from './types';
 import { Data } from './data';
 
 export class Entries<T> {
