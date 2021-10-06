@@ -76,10 +76,14 @@ export class GodMode<T> {
     this._data.unset(path.join('.'));
   };
 
+  private _get = (path: string[]) => {
+    return this._data.get(path.join('.'));
+  };
+
   private proxify(o: any, path: string[] = []): any {
     if (!this.proxyEnabled) return o;
 
-    if (!(isProbablyPlainObject(o) || Array.isArray(o))) {
+    if (!isProbablyPlainObject(o) && !Array.isArray(o)) {
       return o;
     }
 
@@ -102,25 +106,30 @@ export class GodMode<T> {
         else if (key === proxiedSymbol) return true;
         else if (key === '$path') return path.concat(key).join('.');
 
-        const value = target[key];
-        if (typeof value === 'function') {
-          const isArray = Array.isArray(target);
-          const isSideEffects =
-            isArray && (value === target.splice || value === target.reverse);
-          if (isArray && !isSideEffects) {
-            return (target as any)[key];
-          }
-          if (key === 'valueOf') return target;
-
+        const parent = this._get(path);
+        if (typeof parent[key] === 'function') {
           return (...args: any[]) => {
-            if (isSideEffects) {
-              target = target.slice();
+            if (
+              Array.isArray(target) &&
+              (key === 'push' ||
+                key === 'reverse' ||
+                key === 'pop' ||
+                key === 'shift' ||
+                key === 'unshift' ||
+                key === 'sort' ||
+                key === 'splice')
+            ) {
+              this._unset(path);
+              const res = parent[key].call(target, ...args);
+              this._set(path, target);
+              return res;
+            } else {
+              return parent[key].call(target, ...args);
             }
-            const res = value.call(target, ...args);
-            this._set(path, target);
-            return res;
           };
         }
+
+        const value = this._get(path.concat(String(key)));
         return this.proxify(value, path.concat(String(key)));
       },
     });

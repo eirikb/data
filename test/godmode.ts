@@ -17,6 +17,101 @@ interface A {
   t: string;
 }
 
+interface Hello {
+  hello: string[];
+}
+
+function initHello(): [string[], GodMode<Hello>] {
+  const ha: string[] = [];
+  const d = new Data();
+  const f = new Pathifier(d, new ToArrayTransformer(d, ha));
+  const hg = new GodMode<Hello>(d, { hello: ['hello', 'world'] });
+  f.put(0, hg.don('hello.*'));
+  return [ha, hg];
+}
+
+test('get hello', t => {
+  const d = new Data();
+  const g = new GodMode<{ hello: string }>(d, { hello: 'world' });
+  t.is(g.data.hello, 'world');
+});
+
+test('set hello', t => {
+  const d = new Data();
+  const g = new GodMode<{ hello: string }>(d, { hello: 'world' });
+  g.data.hello = ':D';
+  t.is(g.data.hello, ':D');
+});
+
+test('hello array', t => {
+  const [, hg] = initHello();
+  t.deepEqual(hg.data.hello, ['hello', 'world']);
+  t.is(hg.data.hello[0], 'hello');
+  t.is(hg.data.hello[1], 'world');
+});
+
+test('push array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.push(':D');
+  t.deepEqual(hg.data.hello, ['hello', 'world', ':D']);
+  t.deepEqual(ha, ['hello', 'world', ':D']);
+  hg.data.hello.push(':O');
+  t.deepEqual(hg.data.hello, ['hello', 'world', ':D', ':O']);
+  t.deepEqual(ha, ['hello', 'world', ':D', ':O']);
+});
+
+test('reverse array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.reverse();
+  t.deepEqual(hg.data.hello, ['world', 'hello']);
+  t.deepEqual(ha, ['world', 'hello']);
+});
+
+test('pop array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.pop();
+  t.deepEqual(hg.data.hello, ['hello']);
+  t.deepEqual(ha, ['hello']);
+});
+
+test('shift array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.shift();
+  t.deepEqual(hg.data.hello, ['world']);
+  t.deepEqual(ha, ['world']);
+});
+
+test('splice array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.splice(0, 1);
+  t.deepEqual(hg.data.hello, ['world']);
+  t.deepEqual(ha, ['world']);
+});
+
+test('unshift array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.unshift(':D');
+  t.deepEqual(hg.data.hello, [':D', 'hello', 'world']);
+  t.deepEqual(ha, [':D', 'hello', 'world']);
+});
+
+test('sort array', t => {
+  const [ha, hg] = initHello();
+  hg.data.hello.push('A');
+  hg.data.hello.sort();
+  t.deepEqual(hg.data.hello, ['A', 'hello', 'world']);
+  t.deepEqual(ha, ['A', 'hello', 'world']);
+});
+
+test('set X array', t => {
+  const d = new Data();
+  const g = new GodMode<{ hello: string[] }>(d, {
+    hello: ['yes', 'hello', 'world'],
+  });
+  g.data.hello[1] = ':O';
+  t.deepEqual(g.data.hello, ['yes', ':O', 'world']);
+});
+
 test('flat 1', t => {
   const array: any[] = [];
   const d = new Data();
@@ -320,4 +415,21 @@ test('array is hacked for reverse', async t => {
   t.deepEqual(array, ['A', 'B', 'C']);
   g.data.users.reverse();
   t.deepEqual(array, ['C', 'B', 'A']);
+});
+
+test('twice the slice', t => {
+  const array: any[] = [];
+  const d = new Data();
+  const f = new Pathifier(d, new ToArrayTransformer(d, array));
+  const g = new GodMode<{ stuff: string[] }>(d, { stuff: [] });
+  f.put(0, d.don('stuff.$'));
+
+  g.data.stuff = ['A', 'B', 'C'];
+  t.deepEqual(array, ['A', 'B', 'C']);
+  g.data.stuff.splice(0, 1);
+  t.deepEqual(array, ['B', 'C']);
+  g.data.stuff.splice(0, 1);
+  t.deepEqual(array, ['C']);
+  g.data.stuff.splice(0, 1);
+  t.deepEqual(array, []);
 });
